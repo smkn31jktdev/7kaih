@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import StudentSidebar from "@/app/components/dashboard/student/sidebar";
@@ -50,6 +50,9 @@ export default function BuktiSiswa() {
 
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
 
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
+
   const [hasSubmittedThisMonth, setHasSubmittedThisMonth] = useState(false);
 
   const [currentMonth, setCurrentMonth] = useState("");
@@ -77,9 +80,14 @@ export default function BuktiSiswa() {
       "Desember",
     ];
     setCurrentMonth(`${monthNames[now.getMonth()]} ${now.getFullYear()}`);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (submittedBukti?.foto) {
+      loadImage(submittedBukti.foto);
+    }
+  }, [submittedBukti]);
 
   useEffect(() => {
     if (snackbar) {
@@ -91,7 +99,7 @@ export default function BuktiSiswa() {
     }
   }, [snackbar]);
 
-  const fetchStudentData = async () => {
+  const fetchStudentData = useCallback(async () => {
     try {
       const token = localStorage.getItem("studentToken");
       if (!token) {
@@ -122,9 +130,9 @@ export default function BuktiSiswa() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
-  const checkExistingBukti = async () => {
+  const checkExistingBukti = useCallback(async () => {
     try {
       const token = localStorage.getItem("studentToken");
       if (!token) return;
@@ -148,10 +156,50 @@ export default function BuktiSiswa() {
       if (data.bukti) {
         setHasSubmittedThisMonth(true);
         setSubmittedBukti(data.bukti);
-        // Form tetap kosong, hanya status yang berubah
       }
     } catch (error) {
       console.error("Error checking existing bukti:", error);
+    }
+  }, []);
+
+  const loadImage = async (fotoPath: string) => {
+    if (!fotoPath || !fotoPath.startsWith("/uploads/bukti/")) {
+      setImageDataUrl(null);
+      return;
+    }
+
+    setImageLoading(true);
+    try {
+      const token = localStorage.getItem("studentToken");
+      if (!token) {
+        setImageDataUrl(null);
+        return;
+      }
+
+      const filename = fotoPath.split("/").pop();
+      const response = await fetch(`/api/uploads/bukti/${filename}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load image");
+      }
+
+      const blob = await response.blob();
+      const dataUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+
+      setImageDataUrl(dataUrl);
+    } catch (error) {
+      console.error("Error loading image:", error);
+      setImageDataUrl(null);
+    } finally {
+      setImageLoading(false);
     }
   };
 
@@ -490,22 +538,30 @@ export default function BuktiSiswa() {
                                 Foto yang Sudah Diupload
                               </label>
                               <div className="relative w-full max-w-xs h-48 border border-gray-300 rounded-lg shadow-sm overflow-hidden bg-gray-50">
-                                <Image
-                                  src={
-                                    submittedBukti.foto.startsWith(
-                                      "/uploads/bukti/"
-                                    )
-                                      ? `/api/uploads/bukti/${submittedBukti.foto
-                                          .split("/")
-                                          .pop()}`
-                                      : submittedBukti.foto.startsWith("http")
-                                      ? submittedBukti.foto
-                                      : "/placeholder-image.png"
-                                  }
-                                  alt="Foto bukti kegiatan"
-                                  fill
-                                  className="object-contain"
-                                />
+                                {imageLoading ? (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                                    <div className="text-center">
+                                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600 mx-auto mb-2"></div>
+                                      <p className="text-sm text-gray-500">
+                                        Memuat gambar...
+                                      </p>
+                                    </div>
+                                  </div>
+                                ) : imageDataUrl ? (
+                                  <Image
+                                    src={imageDataUrl}
+                                    alt="Foto bukti kegiatan"
+                                    fill
+                                    className="object-contain"
+                                  />
+                                ) : (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
+                                    <div className="text-center">
+                                      <FileImage className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                                      <p>Foto belum tersedia</p>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                               <p className="text-xs text-gray-500 mt-2">
                                 Foto bukti kegiatan yang sudah dikumpulkan pada{" "}
