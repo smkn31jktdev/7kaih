@@ -12,6 +12,7 @@ import {
   CircleCheck,
   CircleX,
   School,
+  // Book,
 } from "lucide-react";
 
 interface KegiatanData {
