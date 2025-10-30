@@ -9,10 +9,19 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@astrajs/collections": "^0.0.2",
+    "@datastax/astra-db-ts": "^2.1.1",
+    "@types/bcrypt": "^6.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "bcrypt": "^6.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "jspdf": "^3.0.3",
     "lucide-react": "^0.545.0",
     "next": "15.5.4",
+    "notistack": "^3.0.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "react-loading-skeleton": "^3.5.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

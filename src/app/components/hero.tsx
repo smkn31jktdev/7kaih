@@ -47,8 +47,8 @@ const Hero = () => {
         />
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-20 px-6 lg:flex-row">
-        <div className="relative flex h-[320px] w-[320px] items-center justify-center lg:h-[420px] lg:w-[420px]">
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center justify-center gap-20 px-6 md:flex-col md:justify-center lg:flex-row lg:justify-between">
+        <div className="order-2 lg:order-1 relative flex h-[320px] w-[320px] items-center justify-center lg:h-[420px] lg:w-[420px]">
           <div
             className="absolute inset-12 rounded-full border border-white/70 backdrop-blur-sm"
             aria-hidden="true"
@@ -92,19 +92,15 @@ const Hero = () => {
           </div>
         </div>
 
-        <div className="max-w-xl text-center lg:text-left">
+        <div className="order-1 lg:order-2 max-w-xl text-center lg:text-left">
           <span className="inline-flex items-center gap-2 rounded-full bg-blue-100/80 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-blue-700">
             Penerapan Gerakan
           </span>
-          <h1 className="mt-6 text-4xl font-black tracking-tight bg-gradient-to-r from-[var(--highlight)] to-[var(--secondary)] bg-clip-text text-transparent sm:text-5xl lg:text-6xl animate-fade-in">
+          <h1
+            className={`font-unbounded mt-6 text-3xl font-black tracking-tight bg-gradient-to-r from-[var(--highlight)] to-[var(--secondary)] bg-clip-text text-transparent sm:text-4xl lg:text-5xl animate-fade-in`}
+          >
             Tujuh Kebiasaan Anak Indonesia Hebat
           </h1>
-          <p className="mt-6 text-base leading-relaxed text-slate-600 sm:text-lg">
-            Kebiasaan kecil yang dilakukan secara konsisten mampu mengantar
-            anak-anak Indonesia menjadi generasi yang sehat, cerdas, dan
-            berakhlak mulia. Mulai perjalanan hebat ini bersama keluarga dan
-            komunitas di seluruh nusantara.
-          </p>
         </div>
       </div>
     </section>

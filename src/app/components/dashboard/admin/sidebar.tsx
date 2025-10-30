@@ -7,11 +7,12 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   LaptopMinimal,
-  User,
   Wrench,
   ChevronDown,
   ChevronRight,
   X,
+  UserPlus,
+  FileText,
 } from "lucide-react";
 
 const menuItems = [
@@ -26,40 +27,47 @@ const menuItems = [
     id: "monitoring",
     label: "Monitoring",
     icon: LaptopMinimal,
-    href: "/site/private/admin/monitoring",
+    href: "/site/private/admin/kegiatan",
     hasSubmenu: true,
     submenu: [
-      { label: "Bangun Pagi", href: "/site/private/admin/monitoring/events" },
+      { label: "Bangun Pagi", href: "/site/private/admin/kegiatan/bangun" },
       {
         label: "Beribadah",
-        href: "/site/private/admin/monitoring/events/user",
+        href: "/site/private/admin/kegiatan/beribadah",
       },
       {
         label: "Makan Sehat",
-        href: "/site/private/admin/monitoring/events/user",
+        href: "/site/private/admin/kegiatan/makan",
       },
       {
         label: "Olahraga",
-        href: "/site/private/admin/monitoring/events/user",
+        href: "/site/private/admin/kegiatan/olahraga",
       },
       {
         label: "Belajar",
-        href: "/site/private/admin/monitoring/events/user",
+        href: "/site/private/admin/kegiatan/belajar",
       },
       {
         label: "Bermasyarakat",
-        href: "/site/private/admin/monitoring/events/user",
+        href: "/site/private/admin/kegiatan/bermasyarakat",
       },
       {
         label: "Tidur Cukup",
-        href: "/site/private/admin/monitoring/events/user",
+        href: "/site/private/admin/kegiatan/tidur",
       },
     ],
   },
   {
+    id: "bukti-kegiatan",
+    label: "Bukti Kegiatan",
+    icon: FileText,
+    href: "/site/private/admin/bukti",
+    hasSubmenu: false,
+  },
+  {
     id: "user-profile",
     label: "Atur User",
-    icon: User,
+    icon: UserPlus,
     href: "/admin/user",
     hasSubmenu: true,
     submenu: [

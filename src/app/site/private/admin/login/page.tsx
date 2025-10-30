@@ -1,25 +1,118 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Mail, Lock, Eye, EyeOff, AlertTriangle } from "lucide-react";
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const sanitizeInput = (input: string): string => {
+    return input
+      .replace(/<[^>]*>/g, "")
+      .replace(/[{};:']/g, "")
+      .trim();
+  };
+
+  useEffect(() => {
+    if (
+      searchParams.get("expired") === "1" ||
+      searchParams.get("expired") === "true"
+    ) {
+      setSnackbar({
+        message: "Sesi anda telah berakhir, silakan masuk kembali",
+        type: "error",
+      });
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (snackbar) {
+      setSnackbarVisible(true);
+      const hideTimer = setTimeout(() => {
+        setSnackbarVisible(false);
+      }, 3000);
+      return () => clearTimeout(hideTimer);
+    }
+  }, [snackbar]);
+
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem("rememberedEmail");
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login attempt:", { email, password });
+    const sanitizedEmail = sanitizeInput(email);
+    const sanitizedPassword = sanitizeInput(password);
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: sanitizedEmail,
+          password: sanitizedPassword,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem("adminToken", data.token);
+        localStorage.setItem("adminUser", JSON.stringify(data.admin));
+        if (rememberMe) {
+          localStorage.setItem("rememberedEmail", sanitizedEmail);
+        } else {
+          localStorage.removeItem("rememberedEmail");
+        }
+        setSnackbar({
+          message: "Login berhasil! Mengarahkan ke dashboard...",
+          type: "success",
+        });
+        setTimeout(() => {
+          window.location.href = "/site/private/admin";
+        }, 2000);
+      } else {
+        setSnackbar({
+          message: data.error || "Login gagal",
+          type: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setSnackbar({
+        message: "Terjadi kesalahan saat login",
+        type: "error",
+      });
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-4 py-12">
-      <div className="max-w-md w-full bg-[var(--background)]/90 backdrop-blur-sm rounded-2xl p-8 transform transition-all duration-300">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-sky-100 px-4 py-12 relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute -left-16 top-12 h-64 w-64 rounded-full bg-blue-200/40 blur-3xl"
+          aria-hidden
+        />
+        <div
+          className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-sky-200/50 blur-3xl"
+          aria-hidden
+        />
+      </div>
+      <div className="max-w-md w-full backdrop-blur-sm rounded-2xl p-8 transform transition-all duration-300">
         <div className="text-center mb-8">
           <div className="relative mb-6">
             <Image
@@ -52,7 +145,7 @@ export default function LoginPage() {
                 type="email"
                 id="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(sanitizeInput(e.target.value))}
                 required
                 className="pl-12 pr-4 py-3 w-full border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--btn)] focus:border-transparent transition-all duration-200 bg-gray-50/50 hover:bg-white"
                 placeholder="Masukkan email Anda"
@@ -73,7 +166,7 @@ export default function LoginPage() {
                 type={showPassword ? "text" : "password"}
                 id="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => setPassword(sanitizeInput(e.target.value))}
                 required
                 className="pl-12 pr-12 py-3 w-full border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--btn)] focus:border-transparent transition-all duration-200 bg-gray-50/50 hover:bg-white"
                 placeholder="Masukkan kata sandi"
@@ -116,16 +209,29 @@ export default function LoginPage() {
             Masuk
           </button>
         </form>
-
-        <p className="text-center text-sm text-[var(--foreground)] mt-4">
-          Belum punya akun?{" "}
-          <Link
-            href="/site/private/admin/register"
-            className="text-[var(--btn)] hover:underline"
-          >
-            Daftar Disini
-          </Link>
-        </p>
+      </div>
+      <div
+        className={`fixed top-6 left-1/2 -translate-x-1/2 transform transition-all duration-500 z-50 ${
+          snackbarVisible
+            ? "translate-y-0 opacity-100 scale-100"
+            : "-translate-y-6 opacity-0 scale-95"
+        } ${
+          snackbar?.type === "success"
+            ? "bg-gradient-to-r from-emerald-500 to-emerald-600 border-emerald-400"
+            : snackbar?.type === "error"
+            ? "bg-gradient-to-r from-rose-500 to-rose-600 border-rose-400"
+            : "bg-gradient-to-r from-gray-500 to-gray-600 border-gray-400"
+        } text-white px-6 py-4 rounded-2xl shadow-2xl border-2 pointer-events-none max-w-sm`}
+        aria-live="assertive"
+      >
+        <div className="flex items-center gap-3">
+          {snackbar?.type === "error" && (
+            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          )}
+          <div className="font-medium text-sm leading-relaxed">
+            {snackbar?.message}
+          </div>
+        </div>
       </div>
     </div>
   );

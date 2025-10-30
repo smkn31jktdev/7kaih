@@ -3,15 +3,15 @@
 import { useState, useEffect } from "react";
 import { Menu, User, LayoutDashboard, Wrench, Bot, LogOut } from "lucide-react";
 
-interface AdminNavbarProps {
+interface StudentNavbarProps {
   onToggleSidebar?: () => void;
   onToggleMobileSidebar?: () => void;
 }
 
-export default function AdminNavbar({
+export default function StudentNavbar({
   onToggleSidebar,
   onToggleMobileSidebar,
-}: AdminNavbarProps) {
+}: StudentNavbarProps) {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -23,26 +23,25 @@ export default function AdminNavbar({
   useEffect(() => {
     // Load user from localStorage then fetch fresh data from server
     try {
-      const raw = localStorage.getItem("adminUser");
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      const email = parsed?.email;
-      if (!email) return;
-      setUserEmail(email);
+      const token = localStorage.getItem("studentToken");
+      if (!token) return;
 
       // fetch fresh user data
       (async () => {
         try {
-          const resp = await fetch("/api/auth/admin/me", {
+          const resp = await fetch("/api/auth/student/me", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           });
           if (!resp.ok) return;
           const json = await resp.json();
-          const user = json?.user;
-          if (user) {
-            setUserName(user.username || user.name || user.email);
+          const student = json?.student;
+          if (student) {
+            setUserName(student.nama || student.nisn);
+            setUserEmail(student.email || student.nisn);
           }
         } catch {}
       })();
@@ -162,10 +161,25 @@ export default function AdminNavbar({
           </a>
           <div className="border-t border-gray-100 my-2"></div>
           <button
-            onClick={() => {
-              localStorage.removeItem("adminUser");
+            onClick={async () => {
+              try {
+                const token = localStorage.getItem("studentToken");
+                if (token) {
+                  await fetch("/api/student/logout", {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      "Content-Type": "application/json",
+                    },
+                  });
+                }
+              } catch (error) {
+                console.error("Logout error:", error);
+              }
+              localStorage.removeItem("studentToken");
+              localStorage.removeItem("studentUser");
               // redirect to login
-              window.location.href = "/site/personal/admin/login";
+              window.location.href = "/site/student/login";
             }}
             className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
           >

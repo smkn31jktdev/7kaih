@@ -4,14 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  SquareActivity,
-  Wrench,
-  ChevronDown,
-  ChevronRight,
-  X,
-} from "lucide-react";
+import { LayoutDashboard, SquareActivity, FileText, X } from "lucide-react";
 
 const menuItems = [
   {
@@ -26,40 +19,13 @@ const menuItems = [
     label: "Input Kegiatan",
     icon: SquareActivity,
     href: "/site/student/kegiatan",
-    hasSubmenu: true,
-    submenu: [
-      { label: "Bangun Pagi", href: "/site/student/kegiatan/bangun" },
-      {
-        label: "Beribadah",
-        href: "/site/student/kegiatan/beribadah",
-      },
-      {
-        label: "Makan Sehat",
-        href: "/site/student/kegiatan/makan",
-      },
-      {
-        label: "Olahraga",
-        href: "/site/student/kegiatan/olahraga",
-      },
-      {
-        label: "Belajar",
-        href: "/site/student/kegiatan/belajar",
-      },
-      {
-        label: "Bermasyarakat",
-        href: "/site/student/kegiatan/bermasyarakat",
-      },
-      {
-        label: "Tidur Cukup",
-        href: "/site/student/kegiatan/tidur",
-      },
-    ],
+    hasSubmenu: false,
   },
   {
-    id: "settings",
-    label: "Pengaturan Akun",
-    icon: Wrench,
-    href: "/site/student/settings",
+    id: "dokumentasi",
+    label: "Dokumentasi",
+    icon: FileText,
+    href: "/site/student/bukti",
     hasSubmenu: false,
   },
 ];
@@ -75,7 +41,6 @@ export default function AdminSidebar({
   isMobileOpen = false,
   onMobileClose,
 }: AdminSidebarProps) {
-  const [openMenus, setOpenMenus] = useState<string[]>([]);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -125,98 +90,34 @@ export default function AdminSidebar({
     };
   }, [isMobileOpen, onMobileClose]);
 
-  const toggleMenu = (menuId: string) => {
-    setOpenMenus((prev) =>
-      prev.includes(menuId)
-        ? prev.filter((id) => id !== menuId)
-        : [...prev, menuId]
-    );
-  };
-
-  // Highlight active menu based on current pathname
   const pathname = usePathname();
 
-  useEffect(() => {
-    if (!pathname) return;
-
-    // open the parent menu if a submenu matches the current path
-    menuItems.forEach((item) => {
-      if (item.hasSubmenu && item.submenu) {
-        const match = item.submenu.some((si) => pathname.startsWith(si.href));
-        if (match && !openMenus.includes(item.id)) {
-          setOpenMenus((prev) => [...prev, item.id]);
-        }
-      }
-    });
-  }, [pathname, openMenus]);
+  useEffect(() => {}, [pathname]);
 
   const renderMenuItem = (item: (typeof menuItems)[0]) => {
-    const isOpen = openMenus.includes(item.id);
     const Icon = item.icon;
-    const isActive = !item.hasSubmenu && pathname === item.href;
+    const isActive = pathname === item.href;
 
     return (
       <div key={item.id} className="mb-1">
-        <div
+        <Link
+          href={item.href}
           className={`flex items-center ${
-            isCollapsed ? "justify-center px-3" : "justify-between px-6"
+            isCollapsed ? "justify-center px-3" : "px-6"
           } py-3 ${
             isActive ? "bg-white/10 text-white font-semibold" : "text-white"
-          } hover:text-white hover:bg-white/10 hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer rounded-md group border-b border-white/10 ${
-            item.hasSubmenu ? "" : ""
-          }`}
-          onClick={() => (item.hasSubmenu ? toggleMenu(item.id) : null)}
+          } hover:text-white hover:bg-white/10 hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer rounded-md group border-b border-white/10`}
           title={isCollapsed ? item.label : undefined}
         >
-          <Link
-            href={item.hasSubmenu ? "#" : item.href}
-            className={`flex items-center ${
-              isCollapsed ? "justify-center" : "flex-1"
-            }`}
-            onClick={(e) => item.hasSubmenu && e.preventDefault()}
-          >
-            <Icon
-              className={`w-5 h-5 ${
-                isCollapsed ? "" : "mr-3"
-              } text-white group-hover:text-white`}
-            />
-            {!isCollapsed && (
-              <>
-                <span className="font-medium text-sm">{item.label}</span>
-              </>
-            )}
-          </Link>
-          {item.hasSubmenu && !isCollapsed && (
-            <div className="ml-2">
-              {isOpen ? (
-                <ChevronDown className="w-4 h-4 text-white" />
-              ) : (
-                <ChevronRight className="w-4 h-4 text-white" />
-              )}
-            </div>
+          <Icon
+            className={`w-5 h-5 ${
+              isCollapsed ? "" : "mr-3"
+            } text-white group-hover:text-white`}
+          />
+          {!isCollapsed && (
+            <span className="font-medium text-sm">{item.label}</span>
           )}
-        </div>
-
-        {item.hasSubmenu && isOpen && item.submenu && !isCollapsed && (
-          <div className="ml-12 mb-2 transition-all duration-300 ease-in-out">
-            {item.submenu.map((subItem, index) => {
-              const subActive = pathname === subItem.href;
-              return (
-                <Link
-                  key={index}
-                  href={subItem.href}
-                  className={`block px-6 py-2 text-sm ${
-                    subActive
-                      ? "bg-white/10 text-white font-semibold"
-                      : "text-white"
-                  } hover:text-white hover:bg-white/10 hover:scale-105 transition-all duration-200 rounded-md`}
-                >
-                  {subItem.label}
-                </Link>
-              );
-            })}
-          </div>
-        )}
+        </Link>
       </div>
     );
   };

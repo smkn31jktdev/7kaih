@@ -1,13 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  UserCog,
-  GraduationCap,
-  Sparkles,
-  ArrowRight,
-  ArrowLeft,
-} from "lucide-react";
+import { UserCog, GraduationCap, ArrowRight, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 
 export default function WelcomePage() {
@@ -23,29 +17,18 @@ export default function WelcomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 md:p-6 overflow-hidden relative">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-      <div className="absolute top-0 right-0 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-100 flex items-center justify-center p-4 md:p-6 overflow-hidden relative">
       <div className="relative z-10 w-full max-w-5xl">
-        {/* Header Section */}
         <div className="text-center mb-10 animate-fade-in">
-          <div className="flex items-center justify-center mb-4">
-            <Sparkles className="w-8 h-8 text-indigo-600 animate-pulse" />
-          </div>
           <h1 className="welcome-title text-4xl md:text-5xl font-extrabold mb-3">
-            WELCOME
+            Halo!
           </h1>
           <p className="text-base md:text-lg text-gray-700 font-medium">
             Selamat Datang, Silakan pilih akun anda
           </p>
         </div>
 
-        {/* Cards Section */}
         <div className="grid md:grid-cols-2 gap-6 md:gap-8 px-2 md:px-4">
-          {/* Admin Card */}
           <div
             onClick={() => handleNavigation("admin")}
             onMouseEnter={() => setHoveredCard("admin")}
@@ -53,11 +36,9 @@ export default function WelcomePage() {
             className="group cursor-pointer transform transition-all duration-500 hover:scale-102"
           >
             <div className="relative bg-white rounded-3xl shadow-xl overflow-hidden border border-transparent card admin transition-all duration-300">
-              {/* Gradient Overlay */}
               <div className="absolute inset-0 overlay opacity-0 transition-opacity duration-300"></div>
 
               <div className="relative p-6 md:p-8">
-                {/* Icon Container */}
                 <div className="mb-6 flex justify-center">
                   <div className="relative">
                     <div className="absolute inset-0 glow rounded-full blur-lg opacity-40 group-hover:opacity-70 transition-opacity duration-300"></div>
@@ -67,7 +48,6 @@ export default function WelcomePage() {
                   </div>
                 </div>
 
-                {/* Title */}
                 <h2
                   className="text-xl md:text-2xl font-semibold mb-3 text-center group-hover:text-indigo-600 transition-colors duration-300"
                   style={{ color: "var(--foreground)" }}
@@ -75,9 +55,6 @@ export default function WelcomePage() {
                   Masuk sebagai Admin
                 </h2>
 
-                {/* Description */}
-
-                {/* Button */}
                 <div className="flex items-center justify-center">
                   <div
                     className="flex items-center font-semibold group-hover:opacity-80 transition-opacity text-xs md:text-sm"
@@ -93,12 +70,9 @@ export default function WelcomePage() {
                 </div>
               </div>
 
-              {/* Bottom Accent */}
               <div className="h-2 bottom-accent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
             </div>
           </div>
-
-          {/* Student Card */}
           <div
             onClick={() => handleNavigation("student")}
             onMouseEnter={() => setHoveredCard("student")}
@@ -106,11 +80,9 @@ export default function WelcomePage() {
             className="group cursor-pointer transform transition-all duration-500 hover:scale-102"
           >
             <div className="relative bg-white rounded-3xl shadow-xl overflow-hidden border border-transparent card student transition-all duration-300">
-              {/* Gradient Overlay */}
               <div className="absolute inset-0 overlay opacity-0 transition-opacity duration-300"></div>
 
               <div className="relative p-6 md:p-8">
-                {/* Icon Container */}
                 <div className="mb-6 flex justify-center">
                   <div className="relative">
                     <div className="absolute inset-0 glow rounded-full blur-lg opacity-40 group-hover:opacity-70 transition-opacity duration-300"></div>
@@ -120,7 +92,6 @@ export default function WelcomePage() {
                   </div>
                 </div>
 
-                {/* Title */}
                 <h2
                   className="text-xl md:text-2xl font-semibold mb-3 text-center group-hover:text-pink-600 transition-colors duration-300"
                   style={{ color: "var(--foreground)" }}
@@ -128,7 +99,6 @@ export default function WelcomePage() {
                   Masuk sebagai Siswa
                 </h2>
 
-                {/* Button */}
                 <div className="flex items-center justify-center">
                   <div
                     className="flex items-center font-semibold group-hover:opacity-80 transition-opacity text-xs md:text-sm"
@@ -143,14 +113,11 @@ export default function WelcomePage() {
                   </div>
                 </div>
               </div>
-
-              {/* Bottom Accent */}
               <div className="h-2 bottom-accent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
             </div>
           </div>
         </div>
 
-        {/* Footer Info */}
         <div className="text-center mt-8 animate-fade-in-delayed">
           <div className="flex justify-center mb-4">
             <button

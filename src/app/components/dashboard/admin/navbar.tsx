@@ -21,28 +21,31 @@ export default function AdminNavbar({
   };
 
   useEffect(() => {
-    // Load user from localStorage then fetch fresh data from server
     try {
       const raw = localStorage.getItem("adminUser");
       if (!raw) return;
       const parsed = JSON.parse(raw);
-      const email = parsed?.email;
-      if (!email) return;
-      setUserEmail(email);
+      setUserName(parsed.nama);
+      setUserEmail(parsed.email);
 
       // fetch fresh user data
       (async () => {
         try {
+          const token = localStorage.getItem("adminToken");
+          if (!token) return;
           const resp = await fetch("/api/auth/admin/me", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
           });
           if (!resp.ok) return;
           const json = await resp.json();
           const user = json?.user;
           if (user) {
-            setUserName(user.username || user.name || user.email);
+            setUserName(user.nama);
+            setUserEmail(user.email);
           }
         } catch {}
       })();
@@ -51,7 +54,6 @@ export default function AdminNavbar({
 
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-white/6 shadow-sm relative bg-[var(--secondary)] backdrop-blur-sm">
-      {/* Left side - Toggle button */}
       <button
         onClick={() => {
           if (window.innerWidth < 768) {
@@ -97,7 +99,6 @@ export default function AdminNavbar({
         <Menu className="w-5 h-5 transition-transform duration-200 ease-out" />
       </button>
 
-      {/* Right side - User Profile */}
       <div className="relative">
         <button
           onClick={toggleProfileDropdown}
@@ -158,8 +159,7 @@ export default function AdminNavbar({
           <button
             onClick={() => {
               localStorage.removeItem("adminUser");
-              // redirect to login
-              window.location.href = "/site/personal/admin/login";
+              window.location.href = "/site/private/admin/login";
             }}
             className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
           >

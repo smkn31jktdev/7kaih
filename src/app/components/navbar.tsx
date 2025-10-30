@@ -14,7 +14,7 @@ const Navbar = () => {
         >
           <div className="relative h-10 w-32 transition-transform duration-300 group-hover:scale-[1.02]">
             <Image
-              src="/img/navbar.png"
+              src="/assets/img/navbar.png"
               alt="Anak Hebat"
               fill
               priority
