@@ -5,7 +5,7 @@ import { verifyToken } from "@/app/utils/jwt";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { filename: string } }
+  { params }: { params: Promise<{ filename: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -21,7 +21,7 @@ export async function GET(
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const filename = params.filename;
+    const { filename } = await params;
     const filePath = join(
       process.cwd(),
       "public",

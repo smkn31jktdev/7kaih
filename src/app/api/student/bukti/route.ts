@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/app/utils/jwt";
 import { buktiCollection, studentCollection } from "@/app/lib/db";
 import db from "@/app/lib/db";
-import { Bukti } from "@/types/bukti";
+import { Bukti } from "@/app/types/bukti";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 
