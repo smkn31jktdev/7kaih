@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import AdminSidebar from "@/app/components/dashboard/admin/sidebar";
 import AdminNavbar from "@/app/components/dashboard/admin/navbar";
 import { useSessionTimeout } from "@/app/lib/useSessionTimeout";
@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import jsPDF from "jspdf";
+import Select from "@/app/components/Select";
 
 interface Student {
   id: string;
@@ -39,6 +40,11 @@ interface StudentSummary {
   indicators: SummaryIndicator[];
 }
 
+interface SummaryMonthOption {
+  key: string;
+  label: string;
+}
+
 const RATING_HEADERS = [
   { value: 1, label: "Kurang Baik" },
   { value: 2, label: "Cukup Baik" },
@@ -57,6 +63,11 @@ export default function AdminDashboard() {
   const [summaries, setSummaries] = useState<StudentSummary[]>([]);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [summaryMonths, setSummaryMonths] = useState<SummaryMonthOption[]>([]);
+  const [selectedSummaryMonth, setSelectedSummaryMonth] = useState<
+    string | null
+  >(null);
+  const summaryMonthRef = useRef<string | null>(null);
   const [selectedSummary, setSelectedSummary] = useState<StudentSummary | null>(
     null
   );
@@ -64,11 +75,97 @@ export default function AdminDashboard() {
   const [adminLoading, setAdminLoading] = useState(true);
   const [studentsLoading, setStudentsLoading] = useState(true);
 
+  const updateSelectedSummaryMonth = useCallback((value: string | null) => {
+    summaryMonthRef.current = value;
+    setSelectedSummaryMonth(value);
+  }, []);
+
+  const selectedSummaryMonthLabel = useMemo(() => {
+    if (!selectedSummaryMonth) {
+      return null;
+    }
+    const option = summaryMonths.find(
+      (month) => month.key === selectedSummaryMonth
+    );
+    return option?.label ?? null;
+  }, [selectedSummaryMonth, summaryMonths]);
+
   useSessionTimeout({
     timeoutMinutes: 30,
     redirectPath: "/site/private/admin/login?expired=1",
     tokenKey: "adminToken",
   });
+
+  const fetchSummaries = useCallback(
+    async (monthOverride?: string | null) => {
+      let fallbackRefetch: string | null = null;
+      try {
+        setSummaryLoading(true);
+        setSummaryError(null);
+        const token = localStorage.getItem("adminToken");
+        if (!token) {
+          console.error("No token found");
+          setSummaryError(
+            "Token admin tidak ditemukan. Silakan login kembali."
+          );
+          setSummaries([]);
+          return;
+        }
+        const monthToFetch =
+          monthOverride ?? summaryMonthRef.current ?? undefined;
+        const endpoint = monthToFetch
+          ? `/api/admin/kegiatan/summary?month=${encodeURIComponent(
+              monthToFetch
+            )}`
+          : "/api/admin/kegiatan/summary";
+        const response = await fetch(endpoint, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.error || "Gagal memuat rangkuman");
+        }
+        const data = await response.json();
+        setSummaries(data.summaries || []);
+        setSummaryMonths(data.availableMonths || []);
+        if (monthOverride === undefined) {
+          if (!summaryMonthRef.current) {
+            const fallbackMonth =
+              data.selectedMonth || data.availableMonths?.[0]?.key || null;
+            if (fallbackMonth) {
+              updateSelectedSummaryMonth(fallbackMonth);
+            }
+          } else if (
+            summaryMonthRef.current &&
+            data.availableMonths &&
+            data.availableMonths.length > 0 &&
+            !data.availableMonths.some(
+              (option: SummaryMonthOption) =>
+                option.key === summaryMonthRef.current
+            )
+          ) {
+            const fallbackMonth = data.availableMonths[0].key;
+            fallbackRefetch = fallbackMonth;
+            updateSelectedSummaryMonth(fallbackMonth);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching summary:", error);
+        setSummaryError(
+          error instanceof Error ? error.message : "Terjadi kesalahan"
+        );
+        setSummaries([]);
+      } finally {
+        setSummaryLoading(false);
+        if (fallbackRefetch) {
+          void fetchSummaries(fallbackRefetch);
+        }
+      }
+    },
+    [updateSelectedSummaryMonth]
+  );
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -130,49 +227,21 @@ export default function AdminDashboard() {
       }
     };
 
-    const fetchSummaries = async () => {
-      try {
-        setSummaryLoading(true);
-        setSummaryError(null);
-        const token = localStorage.getItem("adminToken");
-        if (!token) {
-          console.error("No token found");
-          setSummaryLoading(false);
-          return;
-        }
-        const response = await fetch("/api/admin/kegiatan/summary", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch summary");
-        }
-        const data: StudentSummary[] = await response.json();
-        setSummaries(data);
-      } catch (error) {
-        console.error("Error fetching summary:", error);
-        setSummaryError(
-          error instanceof Error ? error.message : "Terjadi kesalahan"
-        );
-      } finally {
-        setSummaryLoading(false);
-      }
-    };
-
     fetchStudents();
     fetchAdmin();
     fetchSummaries();
 
     // Polling for real-time updates every 10 seconds
     const interval = setInterval(fetchStudents, 10000);
-    const summaryInterval = setInterval(fetchSummaries, 60000);
+    const summaryInterval = setInterval(() => {
+      fetchSummaries();
+    }, 60000);
 
     return () => {
       clearInterval(interval);
       clearInterval(summaryInterval);
     };
-  }, []);
+  }, [fetchSummaries]);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -194,6 +263,17 @@ export default function AdminDashboard() {
   const closeSummaryModal = () => {
     setIsSummaryModalOpen(false);
     setSelectedSummary(null);
+  };
+
+  const handleSummaryMonthChange = (newMonth: string) => {
+    if (!newMonth || newMonth === summaryMonthRef.current) {
+      return;
+    }
+    if (isSummaryModalOpen) {
+      closeSummaryModal();
+    }
+    updateSelectedSummaryMonth(newMonth);
+    fetchSummaries(newMonth);
   };
 
   const handleDownloadSummaryPDF = () => {
@@ -640,6 +720,36 @@ export default function AdminDashboard() {
                               Pilih siswa untuk melihat laporan 7 kebiasaan baik
                               dan unduh PDF resmi.
                             </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                          <div className="text-sm text-slate-600">
+                            {selectedSummaryMonth && selectedSummaryMonthLabel
+                              ? `Menampilkan laporan bulan ${selectedSummaryMonthLabel}`
+                              : summaryMonths.length > 0
+                              ? "Pilih bulan untuk melihat laporan."
+                              : "Belum ada data bulan tersedia."}
+                          </div>
+                          <div className="w-full sm:w-64">
+                            <Select
+                              value={selectedSummaryMonth ?? ""}
+                              onChange={handleSummaryMonthChange}
+                              options={summaryMonths.map((month) => ({
+                                value: month.key,
+                                label: month.label,
+                              }))}
+                              placeholder={
+                                summaryMonths.length === 0
+                                  ? "Tidak ada data bulan"
+                                  : "Pilih bulan laporan"
+                              }
+                              disabled={
+                                summaryMonths.length === 0 || summaryLoading
+                              }
+                              className="text-sm"
+                              searchable
+                            />
                           </div>
                         </div>
 

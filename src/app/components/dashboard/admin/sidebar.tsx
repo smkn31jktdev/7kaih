@@ -13,6 +13,8 @@ import {
   X,
   UserPlus,
   FileText,
+  FileSpreadsheet,
+  Eraser,
 } from "lucide-react";
 
 const menuItems = [
@@ -21,6 +23,13 @@ const menuItems = [
     label: "Dashboard",
     icon: LayoutDashboard,
     href: "/site/private/admin",
+    hasSubmenu: false,
+  },
+  {
+    id: "rekap-data",
+    label: "Rekap Data",
+    icon: FileSpreadsheet,
+    href: "/site/private/admin/sheets",
     hasSubmenu: false,
   },
   {
@@ -76,6 +85,10 @@ const menuItems = [
         label: "Tambahkan Siswa",
         href: "/site/private/admin/tambah-siswa",
       },
+      {
+        label: "Edit Siswa",
+        href: "/site/private/admin/edit-siswa",
+      },
     ],
   },
   {
@@ -83,6 +96,13 @@ const menuItems = [
     label: "Pengaturan Akun",
     icon: Wrench,
     href: "/site/private/admin/settings",
+    hasSubmenu: false,
+  },
+  {
+    id: "clear-data",
+    label: "Hapus Data",
+    icon: Eraser,
+    href: "/site/private/admin/delete",
     hasSubmenu: false,
   },
 ];

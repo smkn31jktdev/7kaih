@@ -121,14 +121,34 @@ export default function AdminBeribadahPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/admin/kegiatan/beribadah");
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
+        setLoading(true);
+        setError(null);
+        const token = localStorage.getItem("adminToken");
+        if (!token) {
+          throw new Error(
+            "Token admin tidak ditemukan, silakan login kembali."
+          );
         }
+
+        const response = await fetch("/api/admin/kegiatan/beribadah", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.status === 401) {
+          throw new Error("Sesi admin berakhir, silakan login kembali.");
+        }
+
+        if (!response.ok) {
+          throw new Error("Gagal mengambil data");
+        }
+
         const result: BeribadahStudent[] = await response.json();
         setStudents(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        setError(err instanceof Error ? err.message : "Terjadi kesalahan");
+        setStudents([]);
       } finally {
         setLoading(false);
       }
@@ -590,8 +610,8 @@ export default function AdminBeribadahPage() {
                           <div className="flex-1">
                             <div className="bg-white rounded-2xl p-5 border border-indigo-100">
                               <div className="flex items-start gap-3 mb-4">
-                                <div className="w-12 h-12 rounded-2xl bg-green-100 flex items-center justify-center">
-                                  <HandCoins className="w-6 h-6 text-green-600" />
+                                <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
+                                  <HandCoins className="w-6 h-6 text-emerald-500" />
                                 </div>
                                 <div>
                                   <Skeleton height={20} width={200} />
@@ -604,10 +624,10 @@ export default function AdminBeribadahPage() {
                                   {Array.from({ length: 5 }).map((_, i) => (
                                     <div
                                       key={i}
-                                      className="flex items-center justify-between gap-4 rounded-2xl bg-white/80 border border-green-50 px-4 py-4"
+                                      className="flex items-center justify-between gap-4 rounded-2xl bg-white/80 border border-emerald-50 px-4 py-4"
                                     >
                                       <div className="flex items-center gap-4 min-w-0">
-                                        <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
+                                        <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
                                           <Skeleton
                                             circle
                                             height={48}
@@ -697,11 +717,8 @@ export default function AdminBeribadahPage() {
                         <div className="flex-1">
                           <div className="bg-white rounded-2xl p-5 border border-gray-200">
                             <div className="flex items-start gap-3 mb-4">
-                              <div
-                                className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                                style={{ backgroundColor: "var(--secondary)" }}
-                              >
-                                <HandCoins className="w-6 h-6 text-white" />
+                              <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
+                                <HandCoins className="w-6 h-6 text-emerald-600" />
                               </div>
                               <div>
                                 <h3 className="text-lg font-semibold text-slate-800">
@@ -772,10 +789,7 @@ export default function AdminBeribadahPage() {
       {isModalOpen && selectedStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 pt-10 pb-6 sm:pb-10">
           <div className="relative w-full max-w-4xl rounded-3xl border border-slate-200 bg-white shadow-2xl">
-            <div
-              className="flex items-center justify-between gap-4 rounded-t-3xl px-6 py-5"
-              style={{ backgroundColor: "var(--secondary)" }}
-            >
+            <div className="flex items-center justify-between gap-4 rounded-t-3xl px-6 py-5 bg-emerald-500">
               <div>
                 <h2 className="text-xl font-semibold text-white">
                   Jurnal Beribadah

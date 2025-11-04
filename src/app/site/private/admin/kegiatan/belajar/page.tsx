@@ -51,14 +51,34 @@ export default function AdminBelajarPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/admin/kegiatan/belajar");
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
+        setLoading(true);
+        setError(null);
+        const token = localStorage.getItem("adminToken");
+        if (!token) {
+          throw new Error(
+            "Token admin tidak ditemukan, silakan login kembali."
+          );
         }
+
+        const response = await fetch("/api/admin/kegiatan/belajar", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.status === 401) {
+          throw new Error("Sesi admin berakhir, silakan login kembali.");
+        }
+
+        if (!response.ok) {
+          throw new Error("Gagal mengambil data");
+        }
+
         const result: BelajarStudent[] = await response.json();
         setStudents(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        setError(err instanceof Error ? err.message : "Terjadi kesalahan");
+        setStudents([]);
       } finally {
         setLoading(false);
       }

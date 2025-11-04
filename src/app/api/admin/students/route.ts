@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
       nama: student.nama,
       kelas: student.kelas,
       nisn: student.nisn,
+      walas: student.walas,
       isOnline: student.isOnline || false,
     }));
 

@@ -179,7 +179,7 @@ function TambahSiswaForm() {
                         htmlFor="walas"
                         className="block text-sm font-medium text-slate-700 mb-2"
                       >
-                        Walas (Guru Wali)
+                        Guru Wali
                       </label>
                       <input
                         type="text"
