@@ -15,10 +15,10 @@ interface UpdateStudentBody {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const studentId = params.id;
+    const { id: studentId } = await params;
     if (!studentId) {
       return NextResponse.json({ error: "ID tidak valid" }, { status: 400 });
     }
@@ -124,10 +124,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const studentId = params.id;
+    const { id: studentId } = await params;
     if (!studentId) {
       return NextResponse.json({ error: "ID tidak valid" }, { status: 400 });
     }
