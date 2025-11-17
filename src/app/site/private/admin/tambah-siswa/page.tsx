@@ -10,6 +10,7 @@ function TambahSiswaForm() {
   const { enqueueSnackbar } = useSnackbar();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nisn: "",
     nama: "",
@@ -41,6 +42,7 @@ function TambahSiswaForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setLoading(true);
       const response = await fetch("/api/admin/tambah-siswa", {
         method: "POST",
         headers: {
@@ -71,6 +73,8 @@ function TambahSiswaForm() {
       enqueueSnackbar("Terjadi kesalahan saat menambahkan siswa", {
         variant: "error",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -218,7 +222,10 @@ function TambahSiswaForm() {
                   <div className="flex justify-end pt-6 border-t border-slate-200">
                     <button
                       type="submit"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                      disabled={loading}
+                      className={`inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${
+                        loading ? "cursor-not-allowed" : "cursor-pointer"
+                      }`}
                     >
                       <Save className="w-5 h-5" />
                       Simpan Siswa

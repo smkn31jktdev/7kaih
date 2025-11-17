@@ -86,6 +86,10 @@ const menuItems = [
         href: "/site/private/admin/tambah-siswa",
       },
       {
+        label: "Sheets Tambah Siswa",
+        href: "/site/private/admin/tambah-siswa/excel",
+      },
+      {
         label: "Edit Siswa",
         href: "/site/private/admin/edit-siswa",
       },
@@ -119,6 +123,7 @@ export default function AdminSidebar({
   onMobileClose,
 }: AdminSidebarProps) {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -193,6 +198,42 @@ export default function AdminSidebar({
     });
   }, [pathname, openMenus]);
 
+  // Decide visibility for special menu items (Tambah Admin)
+  useEffect(() => {
+    // Only run on client
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      setIsSuperAdmin(false);
+      return;
+    }
+
+    // Call the me endpoint to check the logged-in admin email
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/admin/me", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        if (!res.ok) {
+          setIsSuperAdmin(false);
+          return;
+        }
+        const data = await res.json();
+        if (data?.user?.email === "smkn31jktdev@gmail.com") {
+          setIsSuperAdmin(true);
+        } else {
+          setIsSuperAdmin(false);
+        }
+      } catch {
+        setIsSuperAdmin(false);
+      }
+    })();
+  }, []);
+
   const renderMenuItem = (item: (typeof menuItems)[0]) => {
     const isOpen = openMenus.includes(item.id);
     const Icon = item.icon;
@@ -242,22 +283,33 @@ export default function AdminSidebar({
 
         {item.hasSubmenu && isOpen && item.submenu && !isCollapsed && (
           <div className="ml-12 mb-2 transition-all duration-300 ease-in-out">
-            {item.submenu.map((subItem, index) => {
-              const subActive = pathname === subItem.href;
-              return (
-                <Link
-                  key={index}
-                  href={subItem.href}
-                  className={`block px-6 py-2 text-sm ${
-                    subActive
-                      ? "bg-white/10 text-white font-semibold"
-                      : "text-white"
-                  } hover:text-white hover:bg-white/10 hover:scale-105 transition-all duration-200 rounded-md`}
-                >
-                  {subItem.label}
-                </Link>
-              );
-            })}
+            {item.submenu
+              .filter((subItem) => {
+                // Hide Tambahkan Admin link unless the logged-in email is the special one
+                if (
+                  subItem.href === "/site/private/admin/tambah-admin" &&
+                  !isSuperAdmin
+                ) {
+                  return false;
+                }
+                return true;
+              })
+              .map((subItem, index) => {
+                const subActive = pathname === subItem.href;
+                return (
+                  <Link
+                    key={index}
+                    href={subItem.href}
+                    className={`block px-6 py-2 text-sm ${
+                      subActive
+                        ? "bg-white/10 text-white font-semibold"
+                        : "text-white"
+                    } hover:text-white hover:bg-white/10 hover:scale-105 transition-all duration-200 rounded-md`}
+                  >
+                    {subItem.label}
+                  </Link>
+                );
+              })}
           </div>
         )}
       </div>

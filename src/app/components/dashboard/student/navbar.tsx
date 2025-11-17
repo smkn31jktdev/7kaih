@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, User, LayoutDashboard, Wrench, Bot, LogOut } from "lucide-react";
+import { Menu, User, LayoutDashboard, LogOut } from "lucide-react";
 
 interface StudentNavbarProps {
   onToggleSidebar?: () => void;
@@ -21,12 +21,10 @@ export default function StudentNavbar({
   };
 
   useEffect(() => {
-    // Load user from localStorage then fetch fresh data from server
     try {
       const token = localStorage.getItem("studentToken");
       if (!token) return;
 
-      // fetch fresh user data
       (async () => {
         try {
           const resp = await fetch("/api/auth/student/me", {
@@ -139,25 +137,11 @@ export default function StudentNavbar({
           </div>
 
           <a
-            href="#"
+            href="/site/student"
             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
           >
             <LayoutDashboard className="w-4 h-4 mr-3 text-gray-500" />
             Dashboard
-          </a>
-          <a
-            href="#"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
-          >
-            <Wrench className="w-4 h-4 mr-3 text-gray-500" />
-            Account settings
-          </a>
-          <a
-            href="#"
-            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
-          >
-            <Bot className="w-4 h-4 mr-3 text-gray-500" />
-            Chatbot Assistant
           </a>
           <div className="border-t border-gray-100 my-2"></div>
           <button

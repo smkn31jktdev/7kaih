@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminSidebar from "@/app/components/dashboard/admin/sidebar";
 import AdminNavbar from "@/app/components/dashboard/admin/navbar";
 import { UserPlus, Save } from "lucide-react";
 import { SnackbarProvider, useSnackbar } from "notistack";
+import { useRouter } from "next/navigation";
 
 function TambahAdminForm() {
   const { enqueueSnackbar } = useSnackbar();
+  const router = useRouter();
+  const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -39,10 +43,16 @@ function TambahAdminForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setLoading(true);
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("adminToken")
+          : null;
       const response = await fetch("/api/admin/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(formData),
       });
@@ -67,8 +77,64 @@ function TambahAdminForm() {
       enqueueSnackbar("Terjadi kesalahan saat menambahkan admin", {
         variant: "error",
       });
+    } finally {
+      setLoading(false);
     }
   };
+
+  // Guard - only show the form if the logged-in admin email is the allowed one
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (typeof window === "undefined") return;
+      const token = localStorage.getItem("adminToken");
+      if (!token) {
+        enqueueSnackbar("Anda tidak memiliki akses ke halaman ini", {
+          variant: "error",
+        });
+        setIsAllowed(false);
+        router.replace("/site/private/admin");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/auth/admin/me", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        if (!res.ok) {
+          enqueueSnackbar("Anda tidak memiliki akses ke halaman ini", {
+            variant: "error",
+          });
+          router.replace("/site/private/admin");
+          return;
+        }
+        const data = await res.json();
+        if (data?.user?.email !== "smkn31jktdev@gmail.com") {
+          enqueueSnackbar("Anda tidak memiliki akses ke halaman ini", {
+            variant: "error",
+          });
+          setIsAllowed(false);
+          router.replace("/site/private/admin");
+          return;
+        }
+        setIsAllowed(true);
+      } catch {
+        enqueueSnackbar("Terjadi kesalahan autentikasi", { variant: "error" });
+        setIsAllowed(false);
+        router.replace("/site/private/admin");
+      }
+    };
+
+    checkAuth();
+  }, [router, enqueueSnackbar]);
+
+  if (isAllowed === null) {
+    // Prevent brief flash of content until auth is determined
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -172,7 +238,11 @@ function TambahAdminForm() {
                   <div className="flex justify-end pt-6 border-t border-slate-200">
                     <button
                       type="submit"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                      disabled={loading}
+                      aria-busy={loading}
+                      className={`inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${
+                        loading ? "cursor-not-allowed" : "cursor-pointer"
+                      }`}
                     >
                       <Save className="w-5 h-5" />
                       Simpan Admin

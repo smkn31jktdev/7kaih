@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import jsPDF from "jspdf";
 import Skeleton from "react-loading-skeleton";
+import Select from "@/app/components/Select";
 
 interface MakanEntry {
   tanggal: string;
@@ -41,6 +42,8 @@ export default function AdminMakanPage() {
     null
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [availableMonths, setAvailableMonths] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,20 +85,28 @@ export default function AdminMakanPage() {
   }, []);
 
   const modalMonthLabel = useMemo(() => {
-    if (!selectedStudent || selectedStudent.entries.length === 0) {
-      return "-";
-    }
-
-    const firstDate = new Date(selectedStudent.entries[0].tanggal);
-    if (Number.isNaN(firstDate.getTime())) {
-      return selectedStudent.entries[0].tanggal;
-    }
-
+    if (selectedMonth === "all") return "Semua Bulan";
+    const [year, month] = selectedMonth.split("-");
     return new Intl.DateTimeFormat("id-ID", {
       month: "long",
       year: "numeric",
-    }).format(firstDate);
-  }, [selectedStudent]);
+    }).format(new Date(parseInt(year), parseInt(month) - 1));
+  }, [selectedMonth]);
+
+  const filteredEntries = useMemo(() => {
+    if (!selectedStudent) return [];
+    return selectedMonth === "all"
+      ? selectedStudent.entries
+      : selectedStudent.entries.filter((entry) => {
+          const date = new Date(entry.tanggal);
+          return (
+            `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+              2,
+              "0"
+            )}` === selectedMonth
+          );
+        });
+  }, [selectedStudent, selectedMonth]);
 
   if (loading) {
     return (
@@ -205,6 +216,19 @@ export default function AdminMakanPage() {
   const handleOpenModal = (student: MakanStudent) => {
     setSelectedStudent(student);
     setIsModalOpen(true);
+    const months = [
+      ...new Set(
+        student.entries.map((entry) => {
+          const date = new Date(entry.tanggal);
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+            2,
+            "0"
+          )}`;
+        })
+      ),
+    ].sort();
+    setAvailableMonths(months);
+    setSelectedMonth("all");
   };
 
   const handleCloseModal = () => {
@@ -274,7 +298,7 @@ export default function AdminMakanPage() {
       laukColWidth +
       sayurBuahColWidth +
       suplemenColWidth;
-    const rowsToRender = Math.max(selectedStudent.entries.length, 10);
+    const rowsToRender = Math.max(filteredEntries.length, 10);
 
     // (No-op for dashed lines — browser JSPDF may not support setLineDash in all builds.)
 
@@ -505,7 +529,7 @@ export default function AdminMakanPage() {
         doc.setLineWidth(0.3);
       }
 
-      const entry = selectedStudent.entries[index];
+      const entry = filteredEntries[index];
       const rowTop = currentY;
 
       doc.rect(marginX, rowTop, dateColWidth, rowHeight);
@@ -784,7 +808,7 @@ export default function AdminMakanPage() {
 
       {isModalOpen && selectedStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 pt-10 pb-6 sm:pb-10">
-          <div className="relative w-full max-w-4xl rounded-3xl border border-slate-200 bg-white shadow-2xl">
+          <div className="relative w-full max-w-5xl rounded-3xl border border-slate-200 bg-white shadow-2xl">
             <div className="flex items-center justify-between gap-4 rounded-t-3xl px-6 py-5 bg-gradient-to-r from-pink-500 to-rose-500">
               <div>
                 <h2 className="text-xl font-semibold text-white">
@@ -843,9 +867,20 @@ export default function AdminMakanPage() {
                   <p className="text-xs uppercase tracking-wide text-slate-500">
                     Bulan
                   </p>
-                  <p className="font-semibold text-slate-800">
-                    {modalMonthLabel}
-                  </p>
+                  <Select
+                    value={selectedMonth}
+                    onChange={setSelectedMonth}
+                    options={[
+                      { value: "all", label: "Semua Bulan" },
+                      ...availableMonths.map((month) => ({
+                        value: month,
+                        label: new Intl.DateTimeFormat("id-ID", {
+                          month: "long",
+                          year: "numeric",
+                        }).format(new Date(month + "-01")),
+                      })),
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -881,7 +916,7 @@ export default function AdminMakanPage() {
                         </td>
                       </tr>
                     ) : (
-                      selectedStudent.entries.map((entry, index) => (
+                      filteredEntries.map((entry, index) => (
                         <tr
                           key={`${entry.tanggal}-${index}`}
                           className="odd:bg-white even:bg-slate-50"

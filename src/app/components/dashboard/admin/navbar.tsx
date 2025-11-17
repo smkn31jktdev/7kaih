@@ -141,14 +141,14 @@ export default function AdminNavbar({
           </div>
 
           <a
-            href="#"
+            href="/site/private/admin"
             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
           >
             <LayoutDashboard className="w-4 h-4 mr-3 text-gray-500" />
             Dashboard
           </a>
           <a
-            href="#"
+            href="/site/private/admin/settings"
             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
           >
             <Wrench className="w-4 h-4 mr-3 text-gray-500" />
