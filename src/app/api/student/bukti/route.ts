@@ -67,7 +67,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await db.createCollection("bukti").catch(() => {});
+    // Cek apakah collection bukti sudah ada dengan konfigurasi yang benar
+    // Jika belum, drop dan recreate dengan indexing yang benar
+    try {
+      const collections = await db.listCollections();
+      const buktiExists = collections.some((c) => c.name === "bukti");
+
+      if (!buktiExists) {
+        // Buat collection baru dengan indexing yang benar
+        await db.createCollection("bukti", {
+          indexing: {
+            deny: ["imageData"], // Jangan index field imageData agar bisa menyimpan data besar
+          },
+        });
+      }
+    } catch (err) {
+      console.log("Collection check error:", err);
+    }
 
     // Dapatkan bulan saat ini
     const now = new Date();
@@ -108,17 +124,57 @@ export async function POST(request: NextRequest) {
       bulan: bulan,
       foto: fotoUrl, // Legacy path untuk kompatibilitas
       linkYouTube: linkYouTube,
-      // Field baru untuk deployment
+      // Field baru untuk deployment - simpan gambar langsung di collection bukti
       imageId: imageId,
       imageData: base64Data, // Simpan Base64 data di database
       imageMimeType: imageMimeType,
-      imageUrl: `data:${imageMimeType};base64,${base64Data}`, // Data URL untuk langsung ditampilkan
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    // Insert data baru
-    await buktiCollection.insertOne(buktiData);
+    // Insert data baru dengan retry mechanism
+    // Jika gagal karena indexing, drop collection dan recreate
+    try {
+      await buktiCollection.insertOne(buktiData);
+    } catch (insertError: unknown) {
+      const errorMessage =
+        insertError instanceof Error
+          ? insertError.message
+          : String(insertError);
+
+      // Cek apakah error karena indexed string size limit
+      if (
+        errorMessage.includes("indexed String value") &&
+        errorMessage.includes("exceeds maximum allowed")
+      ) {
+        console.log(
+          "Detected indexing issue, recreating collection with correct indexing..."
+        );
+
+        // Drop collection lama
+        try {
+          await db.dropCollection("bukti");
+          console.log("Collection bukti dropped successfully");
+        } catch (dropErr) {
+          console.log("Drop collection error (might not exist):", dropErr);
+        }
+
+        // Recreate collection dengan indexing yang benar
+        await db.createCollection("bukti", {
+          indexing: {
+            deny: ["imageData"], // Field imageData tidak diindex, bisa menyimpan data besar
+          },
+        });
+        console.log("Collection bukti recreated with correct indexing");
+
+        // Retry insert
+        await buktiCollection.insertOne(buktiData);
+        console.log("Data inserted successfully after recreation");
+      } else {
+        // Error lain, throw kembali
+        throw insertError;
+      }
+    }
 
     return NextResponse.json({
       message: "Bukti berhasil disimpan",
