@@ -3,8 +3,7 @@ import { verifyToken } from "@/app/utils/jwt";
 import { buktiCollection, studentCollection } from "@/app/lib/db";
 import db from "@/app/lib/db";
 import { Bukti } from "@/app/types/bukti";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: NextRequest) {
   try {
@@ -90,20 +89,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Simpan file foto ke folder uploads
-    const uploadDir = join(process.cwd(), "public", "uploads", "bukti");
-    await mkdir(uploadDir, { recursive: true });
-
-    const fileExtension = fotoFile.name.split(".").pop();
-    const fileName = `bukti_${payload.nisn}_${Date.now()}.${fileExtension}`;
-    const filePath = join(uploadDir, fileName);
-
-    // Convert file to buffer and save
+    // Convert file to Base64 untuk disimpan di database
     const bytes = await fotoFile.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+    const base64Data = buffer.toString("base64");
+    const imageMimeType = fotoFile.type;
+    const imageId = uuidv4();
 
-    // Buat URL untuk akses file
+    // Generate URL path (untuk kompatibilitas)
+    const fileExtension = fotoFile.name.split(".").pop();
+    const fileName = `bukti_${payload.nisn}_${Date.now()}.${fileExtension}`;
     const fotoUrl = `/uploads/bukti/${fileName}`;
 
     const buktiData: Bukti = {
@@ -111,8 +106,13 @@ export async function POST(request: NextRequest) {
       nama: student.nama,
       kelas: student.kelas,
       bulan: bulan,
-      foto: fotoUrl, // Dalam implementasi nyata, ini akan berupa URL dari storage
+      foto: fotoUrl, // Legacy path untuk kompatibilitas
       linkYouTube: linkYouTube,
+      // Field baru untuk deployment
+      imageId: imageId,
+      imageData: base64Data, // Simpan Base64 data di database
+      imageMimeType: imageMimeType,
+      imageUrl: `data:${imageMimeType};base64,${base64Data}`, // Data URL untuk langsung ditampilkan
       createdAt: new Date(),
       updatedAt: new Date(),
     };

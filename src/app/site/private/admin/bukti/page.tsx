@@ -14,6 +14,11 @@ interface Bukti {
   bulan: string;
   foto: string;
   linkYouTube: string;
+  // Field baru untuk deployment
+  imageUrl?: string;
+  imageId?: string;
+  imageData?: string;
+  imageMimeType?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -82,7 +87,16 @@ export default function AdminBuktiPage() {
   const openModal = (bukti: Bukti) => {
     setSelectedBukti(bukti);
     setIsModalOpen(true);
-    loadImage(bukti.foto);
+    // Gunakan imageData dari database langsung (sudah Base64)
+    if (bukti.imageData && bukti.imageMimeType) {
+      setImageDataUrl(`data:${bukti.imageMimeType};base64,${bukti.imageData}`);
+    } else if (bukti.imageUrl) {
+      // Fallback ke imageUrl jika tersedia
+      setImageDataUrl(bukti.imageUrl);
+    } else {
+      // Fallback ke load dari file untuk data lama
+      loadImageFromFile(bukti.foto);
+    }
   };
 
   const closeModal = () => {
@@ -92,7 +106,8 @@ export default function AdminBuktiPage() {
     setImageLoading(false);
   };
 
-  const loadImage = async (fotoPath: string) => {
+  // Fallback function untuk data lama yang masih menggunakan file lokal
+  const loadImageFromFile = async (fotoPath: string) => {
     if (!fotoPath || !fotoPath.startsWith("/uploads/bukti/")) {
       setImageDataUrl(null);
       return;
