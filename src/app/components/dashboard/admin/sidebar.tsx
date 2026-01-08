@@ -174,6 +174,7 @@ export default function AdminSidebar({
   }, [isMobileOpen, onMobileClose]);
 
   const toggleMenu = (menuId: string) => {
+    if (isCollapsed) return; // Don't toggle in collapsed mode
     setOpenMenus((prev) =>
       prev.includes(menuId)
         ? prev.filter((id) => id !== menuId)
@@ -181,9 +182,9 @@ export default function AdminSidebar({
     );
   };
 
-  // Highlight active menu based on current pathname
   const pathname = usePathname();
 
+  // Highlight active menu based on current pathname
   useEffect(() => {
     if (!pathname) return;
 
@@ -196,7 +197,7 @@ export default function AdminSidebar({
         }
       }
     });
-  }, [pathname, openMenus]);
+  });
 
   // Decide visibility for special menu items (Tambah Admin)
   useEffect(() => {
@@ -234,55 +235,82 @@ export default function AdminSidebar({
     })();
   }, []);
 
+  const isActive = (href: string) => {
+    if (!pathname) return false;
+    if (href === "/site/private/admin") {
+      return pathname === href;
+    }
+    return pathname === href || pathname.startsWith(href + "/");
+  };
+
   const renderMenuItem = (item: (typeof menuItems)[0]) => {
     const isOpen = openMenus.includes(item.id);
     const Icon = item.icon;
-    const isActive = !item.hasSubmenu && pathname === item.href;
+    const active = !item.hasSubmenu && isActive(item.href);
+    const hasActiveChild =
+      item.hasSubmenu &&
+      item.submenu?.some((sub) => pathname?.startsWith(sub.href));
 
     return (
       <div key={item.id} className="mb-1">
         <div
-          className={`flex items-center ${
-            isCollapsed ? "justify-center px-3" : "justify-between px-6"
-          } py-3 ${
-            isActive ? "bg-white/10 text-white font-semibold" : "text-white"
-          } hover:text-white hover:bg-white/10 hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer rounded-md group border-b border-white/10 ${
-            item.hasSubmenu ? "" : ""
-          }`}
           onClick={() => (item.hasSubmenu ? toggleMenu(item.id) : null)}
+          className={`flex items-center gap-4 px-4 py-3 cursor-pointer rounded-xl transition-all duration-200 relative overflow-hidden group ${
+            active || (hasActiveChild && isCollapsed)
+              ? "bg-white/10 text-white shadow-sm"
+              : "text-white/60 hover:bg-white/5 hover:text-white"
+          }`}
           title={isCollapsed ? item.label : undefined}
         >
+          {/* Active Indicator */}
+          {(active || (hasActiveChild && isCollapsed)) && (
+            <div className="absolute left-0 top-3 bottom-3 w-1 bg-[var(--primary)] rounded-r-full" />
+          )}
+
           <Link
             href={item.hasSubmenu ? "#" : item.href}
-            className={`flex items-center ${
-              isCollapsed ? "justify-center" : "flex-1"
-            }`}
-            onClick={(e) => item.hasSubmenu && e.preventDefault()}
+            className="flex items-center flex-1 gap-4"
+            onClick={(e) => {
+              if (item.hasSubmenu) e.preventDefault();
+            }}
           >
             <Icon
-              className={`w-5 h-5 ${
-                isCollapsed ? "" : "mr-3"
-              } text-white group-hover:text-white`}
+              className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 ${
+                active || (hasActiveChild && isCollapsed)
+                  ? "text-[var(--primary)] scale-110"
+                  : "group-hover:scale-110"
+              }`}
             />
+
             {!isCollapsed && (
-              <>
-                <span className="font-medium text-sm">{item.label}</span>
-              </>
+              <span
+                className={`font-medium flex-1 truncate ${
+                  active || hasActiveChild ? "text-white" : ""
+                }`}
+              >
+                {item.label}
+              </span>
             )}
           </Link>
+
+          {/* Chevron for submenu */}
           {item.hasSubmenu && !isCollapsed && (
-            <div className="ml-2">
+            <div className="text-white/40">
               {isOpen ? (
-                <ChevronDown className="w-4 h-4 text-white" />
+                <ChevronDown className="w-4 h-4" />
               ) : (
-                <ChevronRight className="w-4 h-4 text-white" />
+                <ChevronRight className="w-4 h-4" />
               )}
             </div>
           )}
         </div>
 
+        {/* Submenu Items */}
         {item.hasSubmenu && isOpen && item.submenu && !isCollapsed && (
-          <div className="ml-12 mb-2 transition-all duration-300 ease-in-out">
+          <div className="mt-1 ml-4 space-y-1 relative">
+            {/* Connective line */}
+            <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-white/10" />
+
             {item.submenu
               .filter((subItem) => {
                 // Hide Tambahkan Admin link unless the logged-in email is the special one
@@ -295,16 +323,18 @@ export default function AdminSidebar({
                 return true;
               })
               .map((subItem, index) => {
-                const subActive = pathname === subItem.href;
+                const subActive =
+                  pathname === subItem.href ||
+                  pathname?.startsWith(subItem.href + "/");
                 return (
                   <Link
                     key={index}
                     href={subItem.href}
-                    className={`block px-6 py-2 text-sm ${
+                    className={`block pl-8 pr-4 py-2 text-sm rounded-r-xl transition-all duration-200 ${
                       subActive
-                        ? "bg-white/10 text-white font-semibold"
-                        : "text-white"
-                    } hover:text-white hover:bg-white/10 hover:scale-105 transition-all duration-200 rounded-md`}
+                        ? "text-[var(--primary)] font-semibold bg-white/5"
+                        : "text-white/60 hover:text-white hover:bg-white/5"
+                    }`}
                   >
                     {subItem.label}
                   </Link>
@@ -323,73 +353,71 @@ export default function AdminSidebar({
         <div className="fixed inset-0 bg-black/50 z-40 md:hidden" />
       )}
 
-      <div
+      <aside
         id="mobile-sidebar"
-        className={`${
-          isCollapsed ? "w-16" : "w-64"
-        } bg-[var(--secondary)] h-screen overflow-y-auto overflow-x-hidden border-r border-white/6 transition-all duration-300 shadow-xl backdrop-blur-sm
-        ${
-          // Mobile positioning
-          isMobileOpen
-            ? "fixed left-0 top-0 z-50 md:relative md:z-auto"
-            : "fixed -left-64 top-0 z-50 md:relative md:left-0 md:z-auto"
-        } md:block`}
+        className={`fixed md:sticky top-0 h-screen flex flex-col justify-between bg-[var(--secondary)] border-r border-white/5 transition-all duration-300 ease-in-out shadow-2xl z-50 
+          ${isCollapsed ? "w-20 px-3" : "w-72 px-6"} py-8
+          ${isMobileOpen ? "left-0" : "-left-72 md:left-0"}
+          `}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {isMobileOpen && (
-          <div className="flex items-center justify-between p-4 border-b border-white/20 md:hidden">
-            <div className="relative w-15 h-15 flex-shrink-0">
-              <Image
-                src="/assets/img/7kaih.png"
-                alt="Admin Logo"
-                fill
-                className="object-contain"
-              />
-            </div>
+        <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden scrollbar-none">
+          {/* Mobile Close Button */}
+          {isMobileOpen && (
             <button
               onClick={onMobileClose}
-              className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+              className="absolute top-4 right-4 p-2 text-white hover:bg-white/10 rounded-lg transition-colors md:hidden"
               aria-label="Close sidebar"
             >
               <X className="w-6 h-6" />
             </button>
-          </div>
-        )}
+          )}
 
-        <div className="hidden md:flex items-center justify-center px-0 py-6 border-b border-white/20 bg-[var(--secondary)] backdrop-blur-sm">
-          <div className="flex items-center justify-center w-full">
-            <div
-              className={`relative ${
-                isCollapsed ? "w-10 h-10" : "w-24 h-24"
-              } flex-shrink-0 mx-auto transition-all duration-300`}
+          {/* Logo Section */}
+          <div
+            className={`flex items-center justify-center mb-12 ${
+              isMobileOpen ? "mt-8" : ""
+            }`}
+          >
+            <Link
+              href="/site/private/admin"
+              className="transition-transform duration-200 hover:scale-105"
             >
-              <Image
-                src="/assets/img/7kaih.png"
-                alt="FreeLinkd Logo"
-                fill
-                className="object-contain"
-              />
-            </div>
+              {!isCollapsed ? (
+                <div className="relative w-28 h-28">
+                  <Image
+                    src="/assets/img/7kaih.png"
+                    alt="Anak Hebat"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="relative w-10 h-10">
+                  <Image
+                    src="/assets/img/7kaih.png"
+                    alt="Anak Hebat"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              )}
+            </Link>
+          </div>
+
+          {/* Navigation Section */}
+          <div className="flex-1 space-y-2">
+            {!isCollapsed && (
+              <p className="text-white/30 text-[10px] uppercase tracking-[0.2em] font-bold px-4 mb-4">
+                Admin Menu
+              </p>
+            )}
+            <nav className="space-y-1.5">{menuItems.map(renderMenuItem)}</nav>
           </div>
         </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 py-6 overflow-x-hidden">
-          {/* Admin Menu Section */}
-          <div className="mb-8">
-            {!isCollapsed && (
-              <div className="px-6 mb-4 bg-[var(--secondary)] rounded-lg py-2 backdrop-blur-sm">
-                <h3 className="text-xs font-semibold text-white uppercase tracking-wider">
-                  Admin Menu
-                </h3>
-              </div>
-            )}
-            <div className="space-y-1">{menuItems.map(renderMenuItem)}</div>
-          </div>
-        </nav>
-      </div>
+      </aside>
     </>
   );
 }

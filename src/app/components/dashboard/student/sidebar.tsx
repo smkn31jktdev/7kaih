@@ -4,7 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, SquareActivity, FileText, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  SquareActivity,
+  FileText,
+  ChevronRight,
+  X,
+} from "lucide-react";
 
 const menuItems = [
   {
@@ -12,35 +18,33 @@ const menuItems = [
     label: "Dashboard",
     icon: LayoutDashboard,
     href: "/site/student",
-    hasSubmenu: false,
   },
   {
     id: "kegiatan",
     label: "Input Kegiatan",
     icon: SquareActivity,
     href: "/site/student/kegiatan",
-    hasSubmenu: false,
   },
   {
     id: "dokumentasi",
     label: "Dokumentasi",
     icon: FileText,
     href: "/site/student/bukti",
-    hasSubmenu: false,
   },
 ];
 
-interface AdminSidebarProps {
+interface SidebarProps {
   isCollapsed?: boolean;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
 }
 
-export default function AdminSidebar({
+export default function StudentSidebar({
   isCollapsed = false,
   isMobileOpen = false,
   onMobileClose,
-}: AdminSidebarProps) {
+}: SidebarProps) {
+  const pathname = usePathname();
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -90,36 +94,12 @@ export default function AdminSidebar({
     };
   }, [isMobileOpen, onMobileClose]);
 
-  const pathname = usePathname();
-
-  useEffect(() => {}, [pathname]);
-
-  const renderMenuItem = (item: (typeof menuItems)[0]) => {
-    const Icon = item.icon;
-    const isActive = pathname === item.href;
-
-    return (
-      <div key={item.id} className="mb-1">
-        <Link
-          href={item.href}
-          className={`flex items-center ${
-            isCollapsed ? "justify-center px-3" : "px-6"
-          } py-3 ${
-            isActive ? "bg-white/10 text-white font-semibold" : "text-white"
-          } hover:text-white hover:bg-white/10 hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer rounded-md group border-b border-white/10`}
-          title={isCollapsed ? item.label : undefined}
-        >
-          <Icon
-            className={`w-5 h-5 ${
-              isCollapsed ? "" : "mr-3"
-            } text-white group-hover:text-white`}
-          />
-          {!isCollapsed && (
-            <span className="font-medium text-sm">{item.label}</span>
-          )}
-        </Link>
-      </div>
-    );
+  const isActive = (href: string) => {
+    if (!pathname) return false;
+    if (href === "/site/student") {
+      return pathname === href;
+    }
+    return pathname === href || pathname.startsWith(href + "/");
   };
 
   return (
@@ -129,73 +109,114 @@ export default function AdminSidebar({
         <div className="fixed inset-0 bg-black/50 z-40 md:hidden" />
       )}
 
-      <div
+      <aside
         id="mobile-sidebar"
-        className={`${
-          isCollapsed ? "w-16" : "w-64"
-        } bg-[var(--secondary)] h-screen overflow-y-auto overflow-x-hidden border-r border-white/6 transition-all duration-300 shadow-xl backdrop-blur-sm
-        ${
-          // Mobile positioning
-          isMobileOpen
-            ? "fixed left-0 top-0 z-50 md:relative md:z-auto"
-            : "fixed -left-64 top-0 z-50 md:relative md:left-0 md:z-auto"
-        } md:block`}
+        className={`fixed md:sticky top-0 h-screen flex flex-col justify-between bg-[var(--secondary)] border-r border-white/5 transition-all duration-300 ease-in-out shadow-2xl z-50 
+          ${isCollapsed ? "w-20 px-3" : "w-72 px-6"} py-8
+          ${isMobileOpen ? "left-0" : "-left-72 md:left-0"}
+          `}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {isMobileOpen && (
-          <div className="flex items-center justify-between p-4 border-b border-white/20 md:hidden">
-            <div className="relative w-15 h-15 flex-shrink-0">
-              <Image
-                src="/assets/img/7kaih.png"
-                alt="Admin Logo"
-                fill
-                className="object-contain"
-              />
-            </div>
+        <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden scrollbar-none">
+          {/* Mobile Close Button */}
+          {isMobileOpen && (
             <button
               onClick={onMobileClose}
-              className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+              className="absolute top-4 right-4 p-2 text-white hover:bg-white/10 rounded-lg transition-colors md:hidden"
               aria-label="Close sidebar"
             >
               <X className="w-6 h-6" />
             </button>
-          </div>
-        )}
+          )}
 
-        <div className="hidden md:flex items-center justify-center px-0 py-6 border-b border-white/20 bg-[var(--secondary)] backdrop-blur-sm">
-          <div className="flex items-center justify-center w-full">
-            <div
-              className={`relative ${
-                isCollapsed ? "w-10 h-10" : "w-24 h-24"
-              } flex-shrink-0 mx-auto transition-all duration-300`}
+          {/* Logo Section */}
+          <div
+            className={`flex items-center justify-center mb-12 ${
+              isMobileOpen ? "mt-8" : ""
+            }`}
+          >
+            <Link
+              href="/site/student"
+              className="transition-transform duration-200 hover:scale-105"
             >
-              <Image
-                src="/assets/img/7kaih.png"
-                alt="FreeLinkd Logo"
-                fill
-                className="object-contain"
-              />
-            </div>
+              {!isCollapsed ? (
+                <div className="relative w-28 h-28">
+                  <Image
+                    src="/assets/img/7kaih.png"
+                    alt="Anak Hebat"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="relative w-10 h-10">
+                  <Image
+                    src="/assets/img/7kaih.png"
+                    alt="Anak Hebat"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              )}
+            </Link>
+          </div>
+
+          {/* Navigation Section */}
+          <div className="flex-1 space-y-2">
+            {!isCollapsed && (
+              <p className="text-white/30 text-[10px] uppercase tracking-[0.2em] font-bold px-4 mb-4">
+                Main Menu
+              </p>
+            )}
+            <nav className="space-y-1.5">
+              {menuItems.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link key={item.id} href={item.href} className="block group">
+                    <div
+                      className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 relative overflow-hidden ${
+                        active
+                          ? "bg-white/10 text-white shadow-sm"
+                          : "text-white/60 hover:bg-white/5 hover:text-white"
+                      }`}
+                      title={isCollapsed ? item.label : undefined}
+                    >
+                      {/* Active Indicator */}
+                      {active && (
+                        <div className="absolute left-0 top-3 bottom-3 w-1 bg-[var(--primary)] rounded-r-full" />
+                      )}
+
+                      <item.icon
+                        className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 ${
+                          active
+                            ? "text-[var(--primary)] scale-110"
+                            : "group-hover:scale-110"
+                        }`}
+                      />
+
+                      {!isCollapsed && (
+                        <span
+                          className={`font-medium flex-1 truncate ${
+                            active ? "text-white" : ""
+                          }`}
+                        >
+                          {item.label}
+                        </span>
+                      )}
+
+                      {!isCollapsed && active && (
+                        <ChevronRight className="w-4 h-4 text-white/40" />
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
         </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 py-6 overflow-x-hidden">
-          {/* Siswa Menu Section */}
-          <div className="mb-8">
-            {!isCollapsed && (
-              <div className="px-6 mb-4 bg-[var(--secondary)] rounded-lg py-2 backdrop-blur-sm">
-                <h3 className="text-xs font-semibold text-white uppercase tracking-wider">
-                  Menu Siswa
-                </h3>
-              </div>
-            )}
-            <div className="space-y-1">{menuItems.map(renderMenuItem)}</div>
-          </div>
-        </nav>
-      </div>
+      </aside>
     </>
   );
 }
