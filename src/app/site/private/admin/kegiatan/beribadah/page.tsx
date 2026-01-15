@@ -377,7 +377,6 @@ export default function AdminBeribadahPage() {
       PRAYER_COLUMNS.forEach((col) => {
         // doc.rect(currentX, rowTop, col.width, rowHeight);
         if (col.type === "boolean") {
-          // @ts-ignore
           if (entry[col.key]) {
             drawCheck(currentX + col.width / 2, rowTop + 6);
           }
@@ -677,7 +676,6 @@ export default function AdminBeribadahPage() {
                                 className="px-3 py-3 text-center"
                               >
                                 {col.type === "boolean" ? (
-                                  // @ts-ignore
                                   entry[col.key] ? (
                                     <Check className="w-3.5 h-3.5 text-emerald-500 mx-auto" />
                                   ) : (

@@ -9,7 +9,6 @@ import {
   LaptopMinimal,
   Wrench,
   ChevronDown,
-  ChevronRight,
   X,
   UserPlus,
   FileText,
@@ -192,8 +191,11 @@ export default function AdminSidebar({
     menuItems.forEach((item) => {
       if (item.hasSubmenu && item.submenu) {
         const match = item.submenu.some((si) => pathname.startsWith(si.href));
-        if (match && !openMenus.includes(item.id)) {
-          setOpenMenus((prev) => [...prev, item.id]);
+        if (match) {
+          setOpenMenus((prev) => {
+            if (!prev.includes(item.id)) return [...prev, item.id];
+            return prev;
+          });
         }
       }
     });

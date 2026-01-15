@@ -794,7 +794,7 @@ export default function AdminDashboard() {
                         </div>
                         {indicator.note && (
                           <div className="text-xs text-gray-500 bg-white p-3 rounded-xl border border-gray-100 italic">
-                            "{indicator.note}"
+                            &quot;{indicator.note}&quot;
                           </div>
                         )}
                       </div>

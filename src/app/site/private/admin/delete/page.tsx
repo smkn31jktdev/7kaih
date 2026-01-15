@@ -373,16 +373,6 @@ export default function DeletePage() {
     setPendingDelete(null);
   }, []);
 
-  const totalEntriesLabel = useMemo(() => {
-    if (totalEntries === null) {
-      return null;
-    }
-    if (totalEntries === 0) {
-      return "Belum ada catatan kegiatan untuk siswa ini.";
-    }
-    return `Total ${totalEntries} catatan kegiatan tersimpan.`;
-  }, [totalEntries]);
-
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };

@@ -246,8 +246,8 @@ function ExcelImportForm() {
                                 colSpan={6}
                                 className="px-6 py-12 text-center text-sm text-gray-400"
                               >
-                                Belum ada data dimuat. Klik tombol "Muat Data
-                                Sheet".
+                                Belum ada data dimuat. Klik tombol &quot;Muat Data
+                                Sheet&quot;.
                               </td>
                             </tr>
                           ) : (

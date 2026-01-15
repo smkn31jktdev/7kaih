@@ -62,42 +62,6 @@ export default function BuktiSiswa() {
   const [submittedBukti, setSubmittedBukti] = useState<BuktiData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchStudentData();
-    checkExistingBukti();
-
-    const now = new Date();
-    const monthNames = [
-      "Januari",
-      "Februari",
-      "Maret",
-      "April",
-      "Mei",
-      "Juni",
-      "Juli",
-      "Agustus",
-      "September",
-      "Oktober",
-      "November",
-      "Desember",
-    ];
-    setCurrentMonth(`${monthNames[now.getMonth()]} ${now.getFullYear()}`);
-  }, []);
-
-  useEffect(() => {
-    if (submittedBukti?.foto) {
-      loadImage(submittedBukti.foto);
-    }
-  }, [submittedBukti]);
-
-  useEffect(() => {
-    if (snackbar) {
-      setSnackbarVisible(true);
-      const hideTimer = setTimeout(() => setSnackbarVisible(false), 3000);
-      return () => clearTimeout(hideTimer);
-    }
-  }, [snackbar]);
-
   const fetchStudentData = useCallback(async () => {
     try {
       const token = localStorage.getItem("studentToken");
@@ -144,6 +108,28 @@ export default function BuktiSiswa() {
     } catch {}
   }, []);
 
+  useEffect(() => {
+    fetchStudentData();
+    checkExistingBukti();
+
+    const now = new Date();
+    const monthNames = [
+      "Januari",
+      "Februari",
+      "Maret",
+      "April",
+      "Mei",
+      "Juni",
+      "Juli",
+      "Agustus",
+      "September",
+      "Oktober",
+      "November",
+      "Desember",
+    ];
+    setCurrentMonth(`${monthNames[now.getMonth()]} ${now.getFullYear()}`);
+  }, [fetchStudentData, checkExistingBukti]);
+
   const loadImage = async (fotoPath: string) => {
     if (!fotoPath || !fotoPath.startsWith("/uploads/bukti/")) {
       setImageDataUrl(null);
@@ -171,6 +157,20 @@ export default function BuktiSiswa() {
       setImageLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (submittedBukti?.foto) {
+      loadImage(submittedBukti.foto);
+    }
+  }, [submittedBukti]);
+
+  useEffect(() => {
+    if (snackbar) {
+      setSnackbarVisible(true);
+      const hideTimer = setTimeout(() => setSnackbarVisible(false), 3000);
+      return () => clearTimeout(hideTimer);
+    }
+  }, [snackbar]);
 
   const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
   const toggleMobileSidebar = () =>
@@ -208,8 +208,9 @@ export default function BuktiSiswa() {
 
       setSnackbar({ message: data.message, type: "success" });
       setHasSubmittedThisMonth(true);
-    } catch (error: any) {
-      setSnackbar({ message: error.message || "Gagal", type: "error" });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Gagal";
+      setSnackbar({ message: msg, type: "error" });
     } finally {
       setIsSubmitting(false);
     }

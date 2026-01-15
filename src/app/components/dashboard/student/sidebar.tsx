@@ -10,7 +10,6 @@ import {
   FileText,
   ChevronRight,
   X,
-  LogOut,
 } from "lucide-react";
 
 const menuItems = [
