@@ -591,7 +591,7 @@ export default function KegiatanSiswa() {
         />
 
         <main className="flex-1 overflow-auto bg-gray-50/50">
-          <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10 mx-auto max-w-7xl">
+          <div className="w-full px-3 sm:px-4 lg:px-6 py-6 md:py-8">
             {/* Header */}
             <div className="mb-8 md:mb-12 text-center md:text-left">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mb-3">
@@ -603,268 +603,241 @@ export default function KegiatanSiswa() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Top Controls: Date & Info */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 space-y-6">
-                  <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-[var(--secondary)]" />
-                      Pilih Tanggal
-                    </label>
-                    <DatePicker
-                      value={formData.tanggal}
-                      onChange={(value) => {
-                        localStorage.setItem("selectedTanggal", value);
-                        setFormData((prev) => ({ ...prev, tanggal: value }));
-                      }}
-                    />
-                  </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* --- Row 1: Meta Data & Tidur/Bangun --- */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                {/* Card 1: Select Date */}
+                <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
+                  <label className="block text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-[var(--secondary)]" />
+                    Pilih Tanggal
+                  </label>
+                  <DatePicker
+                    value={formData.tanggal}
+                    onChange={(value) => {
+                      localStorage.setItem("selectedTanggal", value);
+                      setFormData((prev) => ({ ...prev, tanggal: value }));
+                    }}
+                  />
+                </div>
 
-                  {/* Student Info Card */}
-                  <div className="bg-[var(--secondary)]/5 rounded-3xl p-6 border border-[var(--secondary)]/10">
-                    <h3 className="text-sm font-bold text-[var(--secondary)] mb-4 uppercase tracking-wider flex items-center gap-2">
-                      <Users className="w-4 h-4" />
+                {/* Card 2: Student Info */}
+                <div className="bg-[var(--secondary)]/5 rounded-3xl p-6 border border-[var(--secondary)]/10 flex flex-col justify-center">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-white rounded-lg shadow-sm text-[var(--secondary)]">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-sm font-bold text-[var(--secondary)] uppercase tracking-wider">
                       Data Siswa
                     </h3>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex justify-between pb-2 border-b border-[var(--secondary)]/10">
-                        <span className="text-gray-500">Nama</span>
-                        <span className="font-semibold text-gray-800 text-right">
-                          {formData.nama}
-                        </span>
-                      </div>
-                      <div className="flex justify-between pb-2 border-b border-[var(--secondary)]/10">
-                        <span className="text-gray-500">NISN</span>
-                        <span className="font-semibold text-gray-800">
-                          {formData.nisn}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Kelas</span>
-                        <span className="font-semibold text-gray-800">
-                          {formData.kelas}
-                        </span>
-                      </div>
+                  </div>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between pb-2 border-b border-[var(--secondary)]/10">
+                      <span className="text-gray-500">Nama</span>
+                      <span className="font-semibold text-gray-800 text-right truncate pl-2">
+                        {formData.nama}
+                      </span>
+                    </div>
+                    <div className="flex justify-between pb-2 border-b border-[var(--secondary)]/10">
+                      <span className="text-gray-500">NISN</span>
+                      <span className="font-semibold text-gray-800">
+                        {formData.nisn}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Kelas</span>
+                      <span className="font-semibold text-gray-800">
+                        {formData.kelas}
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Main Activity Sections */}
-                <div className="lg:col-span-2 grid grid-cols-1 gap-6">
-                  {/* Bangun Pagi & Tidur Group */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <SectionCard title="Bangun Pagi" icon={Sun}>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Waktu Bangun
-                        </label>
-                        <TimePicker
-                          value={formData.bangunPagi.jam}
-                          onChange={(value) =>
-                            setFormData({
-                              ...formData,
-                              bangunPagi: {
-                                ...formData.bangunPagi,
-                                jam: value,
-                              },
-                            })
-                          }
-                          placeholder="00:00"
-                        />
-                      </div>
-                      <div className="bg-gray-50 rounded-xl p-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
-                          Membaca Doa Bangun Tidur?
-                        </label>
-                        <div className="flex gap-4">
-                          {[true, false].map((val) => (
-                            <label
-                              key={String(val)}
-                              className="flex items-center gap-2 cursor-pointer group"
-                            >
-                              <div
-                                className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                                  formData.bangunPagi.membacaDanBangunTidur ===
-                                  val
-                                    ? "border-[var(--secondary)] bg-[var(--secondary)]"
-                                    : "border-gray-300 bg-white group-hover:border-[var(--secondary)]"
-                                }`}
-                              >
-                                {formData.bangunPagi.membacaDanBangunTidur ===
-                                  val && (
-                                  <div className="w-2 h-2 rounded-full bg-white" />
-                                )}
-                              </div>
-                              <input
-                                type="radio"
-                                name="bangunTidur"
-                                className="hidden"
-                                checked={
-                                  formData.bangunPagi.membacaDanBangunTidur ===
-                                  val
-                                }
-                                onChange={() =>
-                                  setFormData({
-                                    ...formData,
-                                    bangunPagi: {
-                                      ...formData.bangunPagi,
-                                      membacaDanBangunTidur: val,
-                                    },
-                                  })
-                                }
-                              />
-                              <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
-                                {val ? "Ya" : "Tidak"}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                      <SaveButton
-                        onClick={() =>
-                          handleSectionSubmit("bangunPagi", formData.bangunPagi)
-                        }
-                      />
-                    </SectionCard>
-
-                    <SectionCard title="Tidur Malam" icon={Moon}>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Waktu Tidur
-                        </label>
-                        <TimePicker
-                          value={formData.tidur.jam}
-                          onChange={(value) =>
-                            setFormData({
-                              ...formData,
-                              tidur: {
-                                ...formData.tidur,
-                                jam: value,
-                              },
-                            })
-                          }
-                          placeholder="00:00"
-                        />
-                      </div>
-                      <div className="bg-gray-50 rounded-xl p-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
-                          Membaca Doa Sebelum Tidur?
-                        </label>
-                        <div className="flex gap-4">
-                          {[true, false].map((val) => (
-                            <label
-                              key={String(val)}
-                              className="flex items-center gap-2 cursor-pointer group"
-                            >
-                              <div
-                                className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                                  formData.tidur.membacaDanMasTidur === val
-                                    ? "border-[var(--secondary)] bg-[var(--secondary)]"
-                                    : "border-gray-300 bg-white group-hover:border-[var(--secondary)]"
-                                }`}
-                              >
-                                {formData.tidur.membacaDanMasTidur === val && (
-                                  <div className="w-2 h-2 rounded-full bg-white" />
-                                )}
-                              </div>
-                              <input
-                                type="radio"
-                                name="mauTidur"
-                                className="hidden"
-                                checked={
-                                  formData.tidur.membacaDanMasTidur === val
-                                }
-                                onChange={() =>
-                                  setFormData({
-                                    ...formData,
-                                    tidur: {
-                                      ...formData.tidur,
-                                      membacaDanMasTidur: val,
-                                    },
-                                  })
-                                }
-                              />
-                              <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
-                                {val ? "Ya" : "Tidak"}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                      <SaveButton
-                        onClick={() =>
-                          handleSectionSubmit("tidur", formData.tidur)
-                        }
-                      />
-                    </SectionCard>
+                {/* Card 3: Bangun Pagi */}
+                <SectionCard title="Bangun Pagi" icon={Sun} className="h-full">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Waktu Bangun
+                    </label>
+                    <TimePicker
+                      value={formData.bangunPagi.jam}
+                      onChange={(value) =>
+                        setFormData({
+                          ...formData,
+                          bangunPagi: {
+                            ...formData.bangunPagi,
+                            jam: value,
+                          },
+                        })
+                      }
+                      placeholder="00:00"
+                    />
                   </div>
-
-                  <SectionCard
-                    title="Beribadah"
-                    icon={HandCoins}
-                    className="border-t-4 border-t-[var(--secondary)]"
-                  >
-                    <div className="bg-blue-50/50 rounded-xl p-4 mb-4 border border-blue-100 flex gap-3 text-sm text-blue-800">
-                      <HelpCircle className="w-5 h-5 flex-shrink-0 text-blue-500" />
-                      <p>
-                        Tanda <strong>*</strong> wajib diisi oleh siswa muslim.
-                        Wanita haid tetap dihitung melaksanakan.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {BERIBADAH_BOOLEAN_FIELDS.map((item) => (
-                        <label
-                          key={item.key}
-                          className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
-                            formData.beribadah[item.key]
-                              ? "bg-[var(--secondary)]/5 border-[var(--secondary)]/30 shadow-sm"
-                              : "bg-white border-gray-200 hover:border-[var(--secondary)]/30 hover:bg-gray-50"
-                          }`}
-                        >
-                          <div
-                            className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                              formData.beribadah[item.key]
-                                ? "bg-[var(--secondary)] border-[var(--secondary)] text-white"
-                                : "bg-white border-gray-300"
-                            }`}
-                          >
-                            {formData.beribadah[item.key] && (
-                              <Save className="w-3 h-3" />
-                            )}
-                          </div>
+                  <div className="pt-2">
+                    <span className="block text-xs font-medium text-gray-500 mb-2">
+                      Membaca Doa?
+                    </span>
+                    <div className="flex gap-3">
+                      {[true, false].map((val) => (
+                        <label key={`bangun-${val}`} className="cursor-pointer">
                           <input
-                            type="checkbox"
-                            className="hidden"
-                            checked={formData.beribadah[item.key]}
-                            onChange={(e) =>
+                            type="radio"
+                            className="hidden peer"
+                            checked={
+                              formData.bangunPagi.membacaDanBangunTidur === val
+                            }
+                            onChange={() =>
                               setFormData({
                                 ...formData,
-                                beribadah: {
-                                  ...formData.beribadah,
-                                  [item.key]: e.target.checked,
+                                bangunPagi: {
+                                  ...formData.bangunPagi,
+                                  membacaDanBangunTidur: val,
                                 },
                               })
                             }
                           />
-                          <span
-                            className={`${
-                              formData.beribadah[item.key]
-                                ? "text-[var(--secondary)] font-semibold"
-                                : "text-gray-600"
-                            } text-sm leading-tight select-none`}
-                          >
-                            {item.label}
-                          </span>
+                          <div className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 peer-checked:bg-orange-50 peer-checked:text-orange-600 peer-checked:border-orange-200 transition-all">
+                            {val ? "Ya" : "Tidak"}
+                          </div>
                         </label>
                       ))}
                     </div>
+                  </div>
+                  <SaveButton
+                    onClick={() =>
+                      handleSectionSubmit("bangunPagi", formData.bangunPagi)
+                    }
+                  />
+                </SectionCard>
 
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Nominal Infaq / Sedekah (Rupiah)
-                      </label>
+                {/* Card 4: Tidur Malam */}
+                <SectionCard title="Tidur Malam" icon={Moon} className="h-full">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Waktu Tidur
+                    </label>
+                    <TimePicker
+                      value={formData.tidur.jam}
+                      onChange={(value) =>
+                        setFormData({
+                          ...formData,
+                          tidur: {
+                            ...formData.tidur,
+                            jam: value,
+                          },
+                        })
+                      }
+                      placeholder="00:00"
+                    />
+                  </div>
+                  <div className="pt-2">
+                    <span className="block text-xs font-medium text-gray-500 mb-2">
+                      Membaca Doa?
+                    </span>
+                    <div className="flex gap-3">
+                      {[true, false].map((val) => (
+                        <label key={`tidur-${val}`} className="cursor-pointer">
+                          <input
+                            type="radio"
+                            className="hidden peer"
+                            checked={formData.tidur.membacaDanMasTidur === val}
+                            onChange={() =>
+                              setFormData({
+                                ...formData,
+                                tidur: {
+                                  ...formData.tidur,
+                                  membacaDanMasTidur: val,
+                                },
+                              })
+                            }
+                          />
+                          <div className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 peer-checked:border-indigo-200 transition-all">
+                            {val ? "Ya" : "Tidak"}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <SaveButton
+                    onClick={() => handleSectionSubmit("tidur", formData.tidur)}
+                  />
+                </SectionCard>
+              </div>
+
+              {/* --- Row 2: Beribadah (Focus Area) --- */}
+              <SectionCard
+                title="Beribadah"
+                icon={HandCoins}
+                className="border-t-4 border-t-[var(--secondary)]"
+              >
+                <div className="bg-blue-50/50 rounded-xl p-4 mb-6 border border-blue-100 flex gap-3 text-sm text-blue-800 items-start">
+                  <HelpCircle className="w-5 h-5 flex-shrink-0 text-blue-500 mt-0.5" />
+                  <p>
+                    Tanda <strong>*</strong> wajib diisi oleh siswa muslim.
+                    Wanita haid tetap dihitung melaksanakan.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {BERIBADAH_BOOLEAN_FIELDS.map((item) => (
+                    <label
+                      key={item.key}
+                      className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer group hover:shadow-md ${
+                        formData.beribadah[item.key]
+                          ? "bg-[var(--secondary)]/5 border-[var(--secondary)]/30 shadow-sm"
+                          : "bg-white border-gray-200 hover:border-[var(--secondary)]/30 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div
+                        className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
+                          formData.beribadah[item.key]
+                            ? "bg-[var(--secondary)] border-[var(--secondary)] text-white"
+                            : "bg-white border-gray-300 group-hover:border-[var(--secondary)]"
+                        }`}
+                      >
+                        {formData.beribadah[item.key] && (
+                          <Save className="w-3 h-3" />
+                        )}
+                      </div>
+                      <input
+                        type="checkbox"
+                        className="hidden"
+                        checked={formData.beribadah[item.key]}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            beribadah: {
+                              ...formData.beribadah,
+                              [item.key]: e.target.checked,
+                            },
+                          })
+                        }
+                      />
+                      <span
+                        className={`${
+                          formData.beribadah[item.key]
+                            ? "text-[var(--secondary)] font-semibold"
+                            : "text-gray-600"
+                        } text-sm leading-tight select-none`}
+                      >
+                        {item.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="mt-8 pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-1">
+                      Infaq / Sedekah
+                    </label>
+                    <p className="text-xs text-gray-400 mb-3">
+                      Masukkan nominal rupiah jika anda bersedekah hari ini
+                    </p>
+                    <div className="relative">
+                      <span className="absolute left-4 top-3.5 text-gray-400 text-sm font-semibold">
+                        Rp
+                      </span>
                       <input
                         type="number"
                         min="0"
@@ -879,334 +852,404 @@ export default function KegiatanSiswa() {
                             },
                           })
                         }
-                        placeholder="Contoh: 2000"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm placeholder:text-gray-400"
+                        placeholder="0"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm font-medium placeholder:text-gray-300"
                       />
                     </div>
+                  </div>
+                  <div className="flex items-end justify-end h-full">
+                    <div className="w-full md:w-auto">
+                      <SaveButton
+                        onClick={() =>
+                          handleSectionSubmit("beribadah", formData.beribadah)
+                        }
+                        label="Simpan Data Ibadah"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </SectionCard>
+
+              {/* --- Row 3: Makan, Olahraga, Bermasyarakat --- */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Makan Sehat */}
+                <SectionCard
+                  title="Makan Sehat"
+                  icon={Utensils}
+                  className="h-full"
+                >
+                  <div className="space-y-4 flex-1">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                        Makanan Utama
+                      </label>
+                      <Select
+                        value={formData.makanSehat.jenisMakanan}
+                        onChange={(val) =>
+                          setFormData({
+                            ...formData,
+                            makanSehat: {
+                              ...formData.makanSehat,
+                              jenisMakanan: val,
+                            },
+                          })
+                        }
+                        options={MAKANAN_OPTIONS}
+                        placeholder="Pilih waktu makan..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                        Lauk Pauk
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.makanSehat.jenisLaukSayur}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            makanSehat: {
+                              ...formData.makanSehat,
+                              jenisLaukSayur: e.target.value,
+                            },
+                          })
+                        }
+                        placeholder="Ayam, Tahu, Sayur..."
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
+                      />
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-xl space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-700">
+                          Sayur / Buah?
+                        </span>
+                        <div className="flex gap-2">
+                          {[true, false].map((val) => (
+                            <label key={`sb-${val}`} className="cursor-pointer">
+                              <input
+                                type="radio"
+                                className="hidden peer"
+                                checked={
+                                  formData.makanSehat.makanSayurAtauBuah === val
+                                }
+                                onChange={() =>
+                                  setFormData({
+                                    ...formData,
+                                    makanSehat: {
+                                      ...formData.makanSehat,
+                                      makanSayurAtauBuah: val,
+                                    },
+                                  })
+                                }
+                              />
+                              <span className="px-2 py-1 rounded text-xs font-medium text-gray-500 peer-checked:bg-white peer-checked:text-pink-600 peer-checked:shadow-sm transition-all">
+                                {val ? "Ya" : "Tidak"}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm text-gray-700">
+                            Susu / Suplemen?
+                          </span>
+                          <span title="Pilih YA jika salah satu atau keduanya terpenuhi.">
+                            <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          {[true, false].map((val) => (
+                            <label
+                              key={`sup-${val}`}
+                              className="cursor-pointer"
+                            >
+                              <input
+                                type="radio"
+                                className="hidden peer"
+                                checked={
+                                  formData.makanSehat.minumSuplemen === val
+                                }
+                                onChange={() =>
+                                  setFormData({
+                                    ...formData,
+                                    makanSehat: {
+                                      ...formData.makanSehat,
+                                      minumSuplemen: val,
+                                    },
+                                  })
+                                }
+                              />
+                              <span className="px-2 py-1 rounded text-xs font-medium text-gray-500 peer-checked:bg-white peer-checked:text-pink-600 peer-checked:shadow-sm transition-all">
+                                {val ? "Ya" : "Tidak"}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4">
                     <SaveButton
                       onClick={() =>
-                        handleSectionSubmit("beribadah", formData.beribadah)
+                        handleSectionSubmit("makanSehat", formData.makanSehat)
                       }
                     />
-                  </SectionCard>
-
-                  {/* Makan Sehat & Olahraga */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <SectionCard title="Makan Sehat" icon={Utensils}>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Jenis Makanan
-                          </label>
-                          <Select
-                            value={formData.makanSehat.jenisMakanan}
-                            onChange={(val) =>
-                              setFormData({
-                                ...formData,
-                                makanSehat: {
-                                  ...formData.makanSehat,
-                                  jenisMakanan: val,
-                                },
-                              })
-                            }
-                            options={MAKANAN_OPTIONS}
-                            placeholder="Pilih waktu makan..."
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Menu Lauk
-                          </label>
-                          <input
-                            type="text"
-                            value={formData.makanSehat.jenisLaukSayur}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                makanSehat: {
-                                  ...formData.makanSehat,
-                                  jenisLaukSayur: e.target.value,
-                                },
-                              })
-                            }
-                            placeholder="Contoh: Ayam, Tahu, Tempe..."
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
-                          />
-                        </div>
-
-                        <div className="bg-gray-50 p-4 rounded-xl space-y-4">
-                          <div>
-                            <span className="block text-sm font-medium text-gray-700 mb-2">
-                              Makan Sayur / Buah?
-                            </span>
-                            <div className="flex gap-4">
-                              {[true, false].map((val) => (
-                                <label
-                                  key={`sb-${val}`}
-                                  className="flex items-center gap-2 cursor-pointer group"
-                                >
-                                  <div
-                                    className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                                      formData.makanSehat.makanSayurAtauBuah ===
-                                      val
-                                        ? "border-[var(--secondary)] bg-[var(--secondary)]"
-                                        : "border-gray-300 bg-white"
-                                    }`}
-                                  >
-                                    {formData.makanSehat.makanSayurAtauBuah ===
-                                      val && (
-                                      <div className="w-2 h-2 rounded-full bg-white" />
-                                    )}
-                                  </div>
-                                  <input
-                                    type="radio"
-                                    className="hidden"
-                                    checked={
-                                      formData.makanSehat.makanSayurAtauBuah ===
-                                      val
-                                    }
-                                    onChange={() =>
-                                      setFormData({
-                                        ...formData,
-                                        makanSehat: {
-                                          ...formData.makanSehat,
-                                          makanSayurAtauBuah: val,
-                                        },
-                                      })
-                                    }
-                                  />
-                                  <span className="text-sm text-gray-600">
-                                    {val ? "Ya" : "Tidak"}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="block text-sm font-medium text-gray-700">
-                                Minum Susu / Suplemen?
-                              </span>
-                              <span title="Pilih YA jika salah satu atau keduanya terpenuhi.">
-                                <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
-                              </span>
-                            </div>
-                            <div className="flex gap-4">
-                              {[true, false].map((val) => (
-                                <label
-                                  key={`sup-${val}`}
-                                  className="flex items-center gap-2 cursor-pointer group"
-                                >
-                                  <div
-                                    className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                                      formData.makanSehat.minumSuplemen === val
-                                        ? "border-[var(--secondary)] bg-[var(--secondary)]"
-                                        : "border-gray-300 bg-white"
-                                    }`}
-                                  >
-                                    {formData.makanSehat.minumSuplemen ===
-                                      val && (
-                                      <div className="w-2 h-2 rounded-full bg-white" />
-                                    )}
-                                  </div>
-                                  <input
-                                    type="radio"
-                                    className="hidden"
-                                    checked={
-                                      formData.makanSehat.minumSuplemen === val
-                                    }
-                                    onChange={() =>
-                                      setFormData({
-                                        ...formData,
-                                        makanSehat: {
-                                          ...formData.makanSehat,
-                                          minumSuplemen: val,
-                                        },
-                                      })
-                                    }
-                                  />
-                                  <span className="text-sm text-gray-600">
-                                    {val ? "Ya" : "Tidak"}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <SaveButton
-                        onClick={() =>
-                          handleSectionSubmit("makanSehat", formData.makanSehat)
-                        }
-                      />
-                    </SectionCard>
-
-                    <SectionCard title="Olahraga" icon={Dumbbell}>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Jenis Olahraga
-                          </label>
-                          <Select
-                            value={formData.olahraga.jenisOlahraga}
-                            onChange={(val) =>
-                              setFormData({
-                                ...formData,
-                                olahraga: {
-                                  ...formData.olahraga,
-                                  jenisOlahraga: val,
-                                  deskripsi: OLAGRAGA_DESKRIPSI_MAP[val] || "",
-                                },
-                              })
-                            }
-                            options={OLAGRAGA_OPTIONS}
-                            placeholder="Pilih aktivitas..."
-                          />
-                          {formData.olahraga.jenisOlahraga === "lainnya" && (
-                            <input
-                              type="text"
-                              value={formData.olahraga.deskripsi}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  olahraga: {
-                                    ...formData.olahraga,
-                                    deskripsi: e.target.value,
-                                  },
-                                })
-                              }
-                              placeholder="Sebutkan olahraga lainnya..."
-                              className="mt-3 w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
-                            />
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Durasi (Menit)
-                          </label>
-                          <div className="relative">
-                            <Clock className="absolute left-4 top-3.5 w-4 h-4 text-gray-400" />
-                            <input
-                              type="number"
-                              min="0"
-                              value={formData.olahraga.waktu}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  olahraga: {
-                                    ...formData.olahraga,
-                                    waktu: e.target.value,
-                                  },
-                                })
-                              }
-                              placeholder="30"
-                              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <SaveButton
-                        onClick={() =>
-                          handleSectionSubmit("olahraga", formData.olahraga)
-                        }
-                      />
-                    </SectionCard>
                   </div>
+                </SectionCard>
 
-                  {/* Bermasyarakat */}
-                  <SectionCard title="Bermasyarakat" icon={Users}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                          Jenis Kegiatan
-                        </label>
-                        <Select
-                          value={formData.bermasyarakat.deskripsi}
-                          onChange={(val) =>
-                            setFormData({
-                              ...formData,
-                              bermasyarakat: {
-                                ...formData.bermasyarakat,
-                                deskripsi: val,
-                              },
-                            })
-                          }
-                          options={BERMASYARAKAT_OPTIONS}
-                          placeholder="Pilih kegiatan sosial..."
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                          Tempat Kegiatan
-                        </label>
+                {/* Olahraga */}
+                <SectionCard
+                  title="Olahraga"
+                  icon={Dumbbell}
+                  className="h-full"
+                >
+                  <div className="space-y-4 flex-1">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                        Aktivitas Fisik
+                      </label>
+                      <Select
+                        value={formData.olahraga.jenisOlahraga}
+                        onChange={(val) =>
+                          setFormData({
+                            ...formData,
+                            olahraga: {
+                              ...formData.olahraga,
+                              jenisOlahraga: val,
+                              deskripsi: OLAGRAGA_DESKRIPSI_MAP[val] || "",
+                            },
+                          })
+                        }
+                        options={OLAGRAGA_OPTIONS}
+                        placeholder="Pilih aktivitas..."
+                      />
+                      {formData.olahraga.jenisOlahraga === "lainnya" && (
                         <input
                           type="text"
-                          value={formData.bermasyarakat.tempat}
+                          value={formData.olahraga.deskripsi}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              bermasyarakat: {
-                                ...formData.bermasyarakat,
-                                tempat: e.target.value,
+                              olahraga: {
+                                ...formData.olahraga,
+                                deskripsi: e.target.value,
                               },
                             })
                           }
-                          placeholder="Masjid, Balai Warga, dll"
-                          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
+                          placeholder="Sebutkan olahraga lainnya..."
+                          className="mt-3 w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                        Durasi (Menit)
+                      </label>
+                      <div className="relative">
+                        <Clock className="absolute left-4 top-3.5 w-4 h-4 text-gray-400" />
+                        <input
+                          type="number"
+                          min="0"
+                          value={formData.olahraga.waktu}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              olahraga: {
+                                ...formData.olahraga,
+                                waktu: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="30"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                          Waktu Pelaksanaan
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <SaveButton
+                      onClick={() =>
+                        handleSectionSubmit("olahraga", formData.olahraga)
+                      }
+                    />
+                  </div>
+                </SectionCard>
+
+                {/* Belajar */}
+                <SectionCard
+                  title="Belajar Mandiri"
+                  icon={BookOpen}
+                  className="h-full"
+                >
+                  <div className="space-y-6 flex-1">
+                    <div className="bg-orange-50/50 rounded-xl p-4 border border-orange-100 text-center">
+                      <span className="block text-sm font-medium text-gray-800 mb-3">
+                        Belajar mandiri hari ini?
+                      </span>
+                      <div className="flex justify-center gap-4">
+                        {[true, false].map((val) => (
+                          <label
+                            key={`bel-${val}`}
+                            className="flex items-center gap-2 cursor-pointer group px-4 py-2 bg-white rounded-lg border border-orange-100 shadow-sm hover:border-orange-300 transition-all"
+                          >
+                            <div
+                              className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
+                                formData.belajar.yaAtauTidak === val
+                                  ? "border-orange-500 bg-orange-500"
+                                  : "border-gray-300"
+                              }`}
+                            >
+                              {formData.belajar.yaAtauTidak === val && (
+                                <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                              )}
+                            </div>
+                            <input
+                              type="radio"
+                              className="hidden"
+                              checked={formData.belajar.yaAtauTidak === val}
+                              onChange={() =>
+                                setFormData({
+                                  ...formData,
+                                  belajar: {
+                                    ...formData.belajar,
+                                    yaAtauTidak: val,
+                                  },
+                                })
+                              }
+                            />
+                            <span className="text-sm text-gray-600 font-medium">
+                              {val ? "Ya" : "Tidak"}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {formData.belajar.yaAtauTidak && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                          Materi
                         </label>
-                        <TimePicker
-                          value={formData.bermasyarakat.waktu}
+                        <Select
+                          value={formData.belajar.deskripsi}
                           onChange={(val) =>
                             setFormData({
                               ...formData,
-                              bermasyarakat: {
-                                ...formData.bermasyarakat,
-                                waktu: val,
-                              },
+                              belajar: { ...formData.belajar, deskripsi: val },
                             })
                           }
-                          placeholder="00:00"
+                          options={BELAJAR_OPTIONS}
+                          placeholder="Topik belajar..."
                         />
                       </div>
-                      <div className="md:col-span-2 pt-2">
-                        <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-[var(--secondary)]/50 transition-all cursor-pointer">
-                          <div
-                            className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                              formData.bermasyarakat.paraf
-                                ? "bg-[var(--secondary)] border-[var(--secondary)]"
-                                : "bg-white border-gray-300"
-                            }`}
-                          >
-                            {formData.bermasyarakat.paraf && (
-                              <Save className="w-3 h-3 text-white" />
-                            )}
-                          </div>
-                          <input
-                            type="checkbox"
-                            className="hidden"
-                            checked={formData.bermasyarakat.paraf}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                bermasyarakat: {
-                                  ...formData.bermasyarakat,
-                                  paraf: e.target.checked,
-                                },
-                              })
-                            }
-                          />
-                          <span className="text-sm text-gray-600">
-                            Saya menyatakan kegiatan ini diketahui oleh Orang
-                            Tua / Wali / RT setempat (Paraf)
-                          </span>
-                        </label>
-                      </div>
+                    )}
+                  </div>
+                  <div className="mt-4">
+                    <SaveButton
+                      onClick={() =>
+                        handleSectionSubmit("belajar", formData.belajar)
+                      }
+                    />
+                  </div>
+                </SectionCard>
+              </div>
+
+              {/* --- Row 4: Bermasyarakat (Full Width) --- */}
+              <SectionCard title="Bermasyarakat" icon={Users}>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Jenis Kegiatan
+                    </label>
+                    <Select
+                      value={formData.bermasyarakat.deskripsi}
+                      onChange={(val) =>
+                        setFormData({
+                          ...formData,
+                          bermasyarakat: {
+                            ...formData.bermasyarakat,
+                            deskripsi: val,
+                          },
+                        })
+                      }
+                      options={BERMASYARAKAT_OPTIONS}
+                      placeholder="Pilih kegiatan sosial..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Tempat Kegiatan
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.bermasyarakat.tempat}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          bermasyarakat: {
+                            ...formData.bermasyarakat,
+                            tempat: e.target.value,
+                          },
+                        })
+                      }
+                      placeholder="Masjid, Balai Warga, dll"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                      Waktu Pelaksanaan
+                    </label>
+                    <TimePicker
+                      value={formData.bermasyarakat.waktu}
+                      onChange={(val) =>
+                        setFormData({
+                          ...formData,
+                          bermasyarakat: {
+                            ...formData.bermasyarakat,
+                            waktu: val,
+                          },
+                        })
+                      }
+                      placeholder="00:00"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-2">
+                  <label className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-gray-300 hover:bg-gray-50 transition-all cursor-pointer w-full md:w-auto flex-1">
+                    <div
+                      className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                        formData.bermasyarakat.paraf
+                          ? "bg-[var(--secondary)] border-[var(--secondary)]"
+                          : "bg-white border-gray-300"
+                      }`}
+                    >
+                      {formData.bermasyarakat.paraf && (
+                        <Save className="w-3 h-3 text-white" />
+                      )}
                     </div>
+                    <input
+                      type="checkbox"
+                      className="hidden"
+                      checked={formData.bermasyarakat.paraf}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          bermasyarakat: {
+                            ...formData.bermasyarakat,
+                            paraf: e.target.checked,
+                          },
+                        })
+                      }
+                    />
+                    <span className="text-sm text-gray-600">
+                      Saya menyatakan kegiatan ini diketahui oleh Orang Tua /
+                      Wali / RT setempat (Paraf)
+                    </span>
+                  </label>
+                  <div className="w-full md:w-auto">
                     <SaveButton
                       onClick={() =>
                         handleSectionSubmit(
@@ -1215,84 +1258,9 @@ export default function KegiatanSiswa() {
                         )
                       }
                     />
-                  </SectionCard>
-
-                  {/* Belajar */}
-                  <SectionCard title="Belajar Mandiri" icon={BookOpen}>
-                    <div className="space-y-6">
-                      <div className="bg-orange-50/50 rounded-xl p-4 border border-orange-100">
-                        <span className="block text-sm font-medium text-gray-800 mb-3">
-                          Apakah kamu belajar mandiri hari ini?
-                        </span>
-                        <div className="flex gap-4">
-                          {[true, false].map((val) => (
-                            <label
-                              key={`bel-${val}`}
-                              className="flex items-center gap-2 cursor-pointer group"
-                            >
-                              <div
-                                className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                                  formData.belajar.yaAtauTidak === val
-                                    ? "border-[var(--secondary)] bg-[var(--secondary)]"
-                                    : "border-gray-300 bg-white"
-                                }`}
-                              >
-                                {formData.belajar.yaAtauTidak === val && (
-                                  <div className="w-2 h-2 rounded-full bg-white" />
-                                )}
-                              </div>
-                              <input
-                                type="radio"
-                                className="hidden"
-                                checked={formData.belajar.yaAtauTidak === val}
-                                onChange={() =>
-                                  setFormData({
-                                    ...formData,
-                                    belajar: {
-                                      ...formData.belajar,
-                                      yaAtauTidak: val,
-                                    },
-                                  })
-                                }
-                              />
-                              <span className="text-sm text-gray-600">
-                                {val ? "Ya, saya belajar" : "Tidak"}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-
-                      {formData.belajar.yaAtauTidak && (
-                        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Materi yang dipelajari
-                          </label>
-                          <Select
-                            value={formData.belajar.deskripsi}
-                            onChange={(val) =>
-                              setFormData({
-                                ...formData,
-                                belajar: {
-                                  ...formData.belajar,
-                                  deskripsi: val,
-                                },
-                              })
-                            }
-                            options={BELAJAR_OPTIONS}
-                            placeholder="Topik belajar..."
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <SaveButton
-                      onClick={() =>
-                        handleSectionSubmit("belajar", formData.belajar)
-                      }
-                    />
-                  </SectionCard>
+                  </div>
                 </div>
-              </div>
+              </SectionCard>
             </form>
           </div>
         </main>
