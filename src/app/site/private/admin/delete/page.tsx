@@ -67,7 +67,7 @@ export default function DeletePage() {
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [isLoadingMonths, setIsLoadingMonths] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [totalEntries, setTotalEntries] = useState<number | null>(null);
+  const [, setTotalEntries] = useState<number | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<{
     studentName: string;

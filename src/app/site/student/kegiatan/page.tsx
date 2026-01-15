@@ -14,6 +14,11 @@ import {
   Dumbbell,
   HelpCircle,
   Sun,
+  Moon,
+  Users,
+  BookOpen,
+  Save,
+  Clock,
 } from "lucide-react";
 
 interface StudentData {
@@ -166,6 +171,51 @@ const BELAJAR_OPTIONS = [
   })),
 ];
 
+// Reusable Section Component for consistent styling
+const SectionCard = ({
+  title,
+  icon: Icon,
+  children,
+  className = "",
+}: {
+  title: string;
+  icon: React.ElementType;
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <div
+    className={`bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 hover:shadow-md transition-shadow duration-300 ${className}`}
+  >
+    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-50">
+      <div className="w-10 h-10 rounded-2xl bg-[var(--secondary)]/10 flex items-center justify-center text-[var(--secondary)]">
+        <Icon className="w-5 h-5" />
+      </div>
+      <h3 className="text-lg font-bold text-gray-800 tracking-tight">
+        {title}
+      </h3>
+    </div>
+    <div className="space-y-5">{children}</div>
+  </div>
+);
+
+// Unified Save Button
+const SaveButton = ({
+  onClick,
+  label = "Simpan Data",
+}: {
+  onClick: () => void;
+  label?: string;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="w-full mt-2 group relative flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--secondary)] text-white font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-[var(--secondary)]/20 active:scale-[0.98]"
+  >
+    <span>{label}</span>
+    <Save className="w-4 h-4 opacity-80 group-hover:scale-110 transition-transform" />
+  </button>
+);
+
 export default function KegiatanSiswa() {
   const router = useRouter();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -190,7 +240,6 @@ export default function KegiatanSiswa() {
 
   useEffect(() => {
     if (!showSuplemenHelp) return;
-
     function handleOutside(e: MouseEvent) {
       if (
         suplemenRef.current &&
@@ -200,22 +249,12 @@ export default function KegiatanSiswa() {
         setShowSuplemenHelp(false);
       }
     }
-
-    function handleEsc(e: KeyboardEvent) {
-      if (e.key === "Escape") setShowSuplemenHelp(false);
-    }
-
     document.addEventListener("mousedown", handleOutside);
-    document.addEventListener("keydown", handleEsc);
-    return () => {
-      document.removeEventListener("mousedown", handleOutside);
-      document.removeEventListener("keydown", handleEsc);
-    };
+    return () => document.removeEventListener("mousedown", handleOutside);
   }, [showSuplemenHelp]);
 
   useEffect(() => {
     if (!showBeribadahHelp) return;
-
     function handleOutside(e: MouseEvent) {
       if (
         beribadahRef.current &&
@@ -225,17 +264,8 @@ export default function KegiatanSiswa() {
         setShowBeribadahHelp(false);
       }
     }
-
-    function handleEsc(e: KeyboardEvent) {
-      if (e.key === "Escape") setShowBeribadahHelp(false);
-    }
-
     document.addEventListener("mousedown", handleOutside);
-    document.addEventListener("keydown", handleEsc);
-    return () => {
-      document.removeEventListener("mousedown", handleOutside);
-      document.removeEventListener("keydown", handleEsc);
-    };
+    return () => document.removeEventListener("mousedown", handleOutside);
   }, [showBeribadahHelp]);
 
   // Form state
@@ -278,7 +308,6 @@ export default function KegiatanSiswa() {
 
   useEffect(() => {
     fetchStudentData();
-    // Load saved tanggal from localStorage
     const savedTanggal = localStorage.getItem("selectedTanggal");
     if (savedTanggal) {
       setFormData((prev) => ({ ...prev, tanggal: savedTanggal }));
@@ -439,7 +468,6 @@ export default function KegiatanSiswa() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       const token = localStorage.getItem("studentToken");
       if (!token) {
@@ -464,7 +492,6 @@ export default function KegiatanSiswa() {
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.error || "Gagal menyimpan data");
       }
@@ -473,9 +500,6 @@ export default function KegiatanSiswa() {
         message: data.message,
         type: "success",
       });
-
-      // Refresh form atau redirect ke dashboard
-      // router.push("/site/student");
     } catch (error) {
       console.error("Error saving kegiatan:", error);
       setSnackbar({
@@ -500,7 +524,6 @@ export default function KegiatanSiswa() {
         return;
       }
 
-      // sanitize sectionData for olahraga to include jenisOlahraga
       const payloadSectionData = JSON.parse(
         JSON.stringify(sectionData)
       ) as Record<string, unknown>;
@@ -523,7 +546,6 @@ export default function KegiatanSiswa() {
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.error || "Gagal menyimpan data");
       }
@@ -533,7 +555,6 @@ export default function KegiatanSiswa() {
         type: "success",
       });
 
-      // Refresh data dari server
       fetchKegiatanByDate(formData.tanggal);
     } catch (error) {
       console.error(`Error saving ${section}:`, error);
@@ -547,1185 +568,762 @@ export default function KegiatanSiswa() {
     }
   };
 
-  const handleReset = () => {
-    setFormData({
-      tanggal: new Date().toISOString().split("T")[0],
-      nama: studentData.nama,
-      nisn: studentData.nisn,
-      kelas: studentData.kelas,
-      bangunPagi: {
-        jam: "",
-        membacaDanBangunTidur: false,
-      },
-      tidur: {
-        jam: "",
-        membacaDanMasTidur: false,
-      },
-      beribadah: createDefaultBeribadah(),
-      makanSehat: {
-        jenisMakanan: "",
-        jenisLaukSayur: "",
-        makanSayurAtauBuah: false,
-        minumSuplemen: false,
-      },
-      olahraga: {
-        jenisOlahraga: "",
-        deskripsi: "",
-        waktu: "",
-      },
-      bermasyarakat: {
-        deskripsi: "",
-        tempat: "",
-        waktu: "",
-        paraf: false,
-      },
-      belajar: {
-        yaAtauTidak: false,
-        deskripsi: "",
-      },
-    });
-  };
-
   if (isLoading) {
     return (
-      <div className="flex h-screen bg-gray-50">
-        {/* Sidebar */}
-        <StudentSidebar
-          isCollapsed={isSidebarCollapsed}
-          isMobileOpen={isMobileSidebarOpen}
-          onMobileClose={closeMobileSidebar}
-        />
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Navbar */}
-          <StudentNavbar
-            onToggleSidebar={toggleSidebar}
-            onToggleMobileSidebar={toggleMobileSidebar}
-          />
-
-          {/* Page Content */}
-          <main
-            className="flex-1 overflow-auto"
-            style={{ backgroundColor: "var(--background)" }}
-          >
-            <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                {/* Header */}
-                <div
-                  style={{ backgroundColor: "var(--secondary)" }}
-                  className="px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 lg:px-8 lg:py-8 rounded-tr-xl rounded-tl-xl"
-                >
-                  <div className="text-center">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 md:mb-3 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                      <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
-                      <span>Kegiatan Harian</span>
-                    </h1>
-                    <p className="text-blue-100 text-xs sm:text-sm md:text-base lg:text-lg">
-                      Catat kegiatan harianmu untuk mendapatkan poin
-                    </p>
-                  </div>
-                </div>
-
-                {/* Loading Content */}
-                <div className="p-4 sm:p-6 md:p-8 lg:p-10">
-                  <div className="flex h-64 items-center justify-center text-sm text-slate-500">
-                    Memuat data kegiatan...
-                  </div>
-                </div>
-              </div>
-            </div>
-          </main>
-        </div>
+      <div className="flex h-screen items-center justify-center bg-gray-50 text-gray-400">
+        <span className="loading loading-spinner loading-lg"></span> Loading...
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
+    <div className="flex h-screen bg-gray-50 font-poppins text-gray-800">
       <StudentSidebar
         isCollapsed={isSidebarCollapsed}
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={closeMobileSidebar}
       />
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Navbar */}
         <StudentNavbar
           onToggleSidebar={toggleSidebar}
           onToggleMobileSidebar={toggleMobileSidebar}
         />
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto">
-          <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-              {/* Header */}
-              <div
-                style={{ backgroundColor: "var(--secondary)" }}
-                className="px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 lg:px-8 lg:py-8 rounded-tr-xl rounded-tl-xl"
-              >
-                <div className="text-center">
-                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 md:mb-3 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                    <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
-                    <span>Kegiatan Harian</span>
-                  </h1>
-                  <p className="text-blue-100 text-xs sm:text-sm md:text-base lg:text-lg">
-                    Catat kegiatan harianmu untuk mendapatkan poin
-                  </p>
-                </div>
-              </div>
+        <main className="flex-1 overflow-auto bg-gray-50/50">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10 mx-auto max-w-7xl">
+            {/* Header */}
+            <div className="mb-8 md:mb-12 text-center md:text-left">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight mb-3">
+                Kegiatan Harian
+              </h1>
+              <p className="text-gray-500 text-sm sm:text-base max-w-2xl mx-auto md:mx-0 leading-relaxed">
+                Catat aktivitas positifmu setiap hari untuk membangun kebiasaan
+                baik dan mendapatkan poin prestasi.
+              </p>
+            </div>
 
-              {/* Form Content */}
-              <div className="p-4 sm:p-6 md:p-8 lg:p-10">
-                <form onSubmit={handleSubmit} className="space-y-8">
-                  {/* Basic Information Section */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 shadow-sm">
-                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 sm:mb-6 pb-2 border-b border-gray-200">
-                      Informasi Dasar
-                    </h2>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Top Controls: Date & Info */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1 space-y-6">
+                  <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-[var(--secondary)]" />
+                      Pilih Tanggal
+                    </label>
+                    <DatePicker
+                      value={formData.tanggal}
+                      onChange={(value) => {
+                        localStorage.setItem("selectedTanggal", value);
+                        setFormData((prev) => ({ ...prev, tanggal: value }));
+                      }}
+                    />
+                  </div>
 
-                    {/* Tanggal */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tanggal Kegiatan
-                      </label>
-                      <DatePicker
-                        value={formData.tanggal}
-                        onChange={(value) => {
-                          localStorage.setItem("selectedTanggal", value);
-
-                          setFormData({
-                            tanggal: value,
-                            nama: studentData.nama,
-                            nisn: studentData.nisn,
-                            kelas: studentData.kelas,
-                            bangunPagi: {
-                              jam: "",
-                              membacaDanBangunTidur: false,
-                            },
-                            tidur: {
-                              jam: "",
-                              membacaDanMasTidur: false,
-                            },
-                            beribadah: {
-                              berdoaUntukDiriDanOrtu: false,
-                              sholatFajar: false,
-                              sholatLimaWaktuBerjamaah: false,
-                              zikirSesudahSholat: false,
-                              sholatDhuha: false,
-                              sholatSunahRawatib: false,
-                              zakatInfaqSedekah: "",
-                            },
-                            makanSehat: {
-                              jenisMakanan: "",
-                              jenisLaukSayur: "",
-                              makanSayurAtauBuah: false,
-                              minumSuplemen: false,
-                            },
-                            olahraga: {
-                              jenisOlahraga: "",
-                              deskripsi: "",
-                              waktu: "",
-                            },
-                            bermasyarakat: {
-                              deskripsi: "",
-                              tempat: "",
-                              waktu: "",
-                              paraf: false,
-                            },
-                            belajar: {
-                              yaAtauTidak: false,
-                              deskripsi: "",
-                            },
-                          });
-                        }}
-                      />
-                    </div>
-
-                    {/* Student Info */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Nama Lengkap
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.nama}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                          readOnly
-                        />
+                  {/* Student Info Card */}
+                  <div className="bg-[var(--secondary)]/5 rounded-3xl p-6 border border-[var(--secondary)]/10">
+                    <h3 className="text-sm font-bold text-[var(--secondary)] mb-4 uppercase tracking-wider flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Data Siswa
+                    </h3>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between pb-2 border-b border-[var(--secondary)]/10">
+                        <span className="text-gray-500">Nama</span>
+                        <span className="font-semibold text-gray-800 text-right">
+                          {formData.nama}
+                        </span>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          NISN
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.nisn}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                          readOnly
-                        />
+                      <div className="flex justify-between pb-2 border-b border-[var(--secondary)]/10">
+                        <span className="text-gray-500">NISN</span>
+                        <span className="font-semibold text-gray-800">
+                          {formData.nisn}
+                        </span>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Kelas
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.kelas}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                          readOnly
-                        />
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Kelas</span>
+                        <span className="font-semibold text-gray-800">
+                          {formData.kelas}
+                        </span>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  {/* Daily Activities Sections */}
-                  <div className="space-y-6">
-                    {/* Bangun Pagi & Tidur */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                      {/* Bangun Pagi */}
-                      <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 shadow-sm">
-                        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 pb-3 border-b border-gray-200">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-                          </div>
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            Bangun Pagi
-                          </h3>
-                        </div>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Waktu Bangun
-                            </label>
-                            <TimePicker
-                              value={formData.bangunPagi.jam}
-                              onChange={(value) =>
-                                setFormData({
-                                  ...formData,
-                                  bangunPagi: {
-                                    ...formData.bangunPagi,
-                                    jam: value,
-                                  },
-                                })
-                              }
-                              placeholder="Pilih waktu bangun..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                              Membaca Doa Bangun Tidur
-                            </label>
-                            <div className="flex gap-4 sm:gap-6">
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name="bangunTidur"
-                                  checked={
-                                    formData.bangunPagi.membacaDanBangunTidur
-                                  }
-                                  onChange={() =>
-                                    setFormData({
-                                      ...formData,
-                                      bangunPagi: {
-                                        ...formData.bangunPagi,
-                                        membacaDanBangunTidur: true,
-                                      },
-                                    })
-                                  }
-                                  className="w-4 h-4 text-orange-600 focus:ring-orange-500"
-                                />
-                                <span className="text-xs sm:text-sm text-gray-700">
-                                  Ya
-                                </span>
-                              </label>
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name="bangunTidur"
-                                  checked={
-                                    !formData.bangunPagi.membacaDanBangunTidur
-                                  }
-                                  onChange={() =>
-                                    setFormData({
-                                      ...formData,
-                                      bangunPagi: {
-                                        ...formData.bangunPagi,
-                                        membacaDanBangunTidur: false,
-                                      },
-                                    })
-                                  }
-                                  className="w-4 h-4 text-orange-600 focus:ring-orange-500"
-                                />
-                                <span className="text-xs sm:text-sm text-gray-700">
-                                  Tidak
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div className="pt-3 sm:pt-4">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleSectionSubmit(
-                                  "bangunPagi",
-                                  formData.bangunPagi
-                                )
-                              }
-                              className="w-full bg-orange-600 text-white py-2 sm:py-2.5 px-4 rounded-lg hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-colors font-medium text-sm sm:text-base"
-                            >
-                              Simpan
-                            </button>
-                          </div>
-                        </div>
+                {/* Main Activity Sections */}
+                <div className="lg:col-span-2 grid grid-cols-1 gap-6">
+                  {/* Bangun Pagi & Tidur Group */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <SectionCard title="Bangun Pagi" icon={Sun}>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Waktu Bangun
+                        </label>
+                        <TimePicker
+                          value={formData.bangunPagi.jam}
+                          onChange={(value) =>
+                            setFormData({
+                              ...formData,
+                              bangunPagi: {
+                                ...formData.bangunPagi,
+                                jam: value,
+                              },
+                            })
+                          }
+                          placeholder="00:00"
+                        />
                       </div>
-
-                      {/* Tidur */}
-                      <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 shadow-sm">
-                        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 pb-3 border-b border-gray-200">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                            <svg
-                              className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                              />
-                            </svg>
-                          </div>
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            Tidur
-                          </h3>
-                        </div>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Waktu Tidur
-                            </label>
-                            <TimePicker
-                              value={formData.tidur.jam}
-                              onChange={(value) =>
-                                setFormData({
-                                  ...formData,
-                                  tidur: {
-                                    ...formData.tidur,
-                                    jam: value,
-                                  },
-                                })
-                              }
-                              placeholder="Pilih waktu tidur..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                              Membaca Doa Mau Tidur
-                            </label>
-                            <div className="flex gap-4 sm:gap-6">
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name="mauTidur"
-                                  checked={formData.tidur.membacaDanMasTidur}
-                                  onChange={() =>
-                                    setFormData({
-                                      ...formData,
-                                      tidur: {
-                                        ...formData.tidur,
-                                        membacaDanMasTidur: true,
-                                      },
-                                    })
-                                  }
-                                  className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
-                                />
-                                <span className="text-xs sm:text-sm text-gray-700">
-                                  Ya
-                                </span>
-                              </label>
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name="mauTidur"
-                                  checked={!formData.tidur.membacaDanMasTidur}
-                                  onChange={() =>
-                                    setFormData({
-                                      ...formData,
-                                      tidur: {
-                                        ...formData.tidur,
-                                        membacaDanMasTidur: false,
-                                      },
-                                    })
-                                  }
-                                  className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
-                                />
-                                <span className="text-xs sm:text-sm text-gray-700">
-                                  Tidak
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div className="pt-3 sm:pt-4">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleSectionSubmit("tidur", formData.tidur)
-                              }
-                              className="w-full bg-indigo-600 text-white py-2 sm:py-2.5 px-4 rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors font-medium text-sm sm:text-base"
-                            >
-                              Simpan
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Beribadah */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 shadow-sm">
-                      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 pb-3 border-b border-gray-200">
-                        <div
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center"
-                          style={{ backgroundColor: "var(--secondary)" }}
-                        >
-                          <HandCoins className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                        </div>
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                          Beribadah
-                        </h3>
-                      </div>
-                      <div className="mb-6">
-                        <div
-                          ref={beribadahRef}
-                          className="flex items-start justify-between mb-4 relative"
-                        >
-                          <p className="text-sm text-gray-600">
-                            Tandai indikator ibadah yang sudah dikerjakan hari
-                            ini:
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setShowBeribadahHelp(!showBeribadahHelp)
-                            }
-                            aria-expanded={showBeribadahHelp}
-                            aria-controls="beribadah-help"
-                            className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
-                            title="Informasi"
-                          >
-                            <HelpCircle className="w-5 h-5" />
-                          </button>
-
-                          <div
-                            id="beribadah-help"
-                            role="dialog"
-                            aria-hidden={!showBeribadahHelp}
-                            className={`absolute left-0 top-full mt-3 z-50 w-[min(28rem,100%)] transition-all duration-150 ${
-                              showBeribadahHelp
-                                ? "opacity-100 translate-y-0 pointer-events-auto"
-                                : "opacity-0 -translate-y-2 pointer-events-none"
-                            }`}
-                          >
-                            <div className="relative">
-                              <div className="absolute -top-2 left-6">
-                                <svg
-                                  width="20"
-                                  height="10"
-                                  viewBox="0 0 20 10"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    d="M0 10L10 0L20 10H0Z"
-                                    fill="#ffffff"
-                                    stroke="#e6e6e6"
-                                  />
-                                </svg>
-                              </div>
-
-                              <div className="mt-1 bg-white border border-gray-200 shadow-xl rounded-md p-3 text-sm text-gray-700 ring-1 ring-black/5">
-                                <p className="leading-relaxed">
-                                  tanda <strong>*</strong> diisi oleh
-                                  siswa/siswi beragama Islam, dan bagi wanita
-                                  muslim selama masa haid dihitung melaksanakan
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3">
-                          {BERIBADAH_BOOLEAN_FIELDS.map((item) => (
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          Membaca Doa Bangun Tidur?
+                        </label>
+                        <div className="flex gap-4">
+                          {[true, false].map((val) => (
                             <label
-                              key={item.key}
-                              className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                              key={String(val)}
+                              className="flex items-center gap-2 cursor-pointer group"
                             >
+                              <div
+                                className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                                  formData.bangunPagi.membacaDanBangunTidur ===
+                                  val
+                                    ? "border-[var(--secondary)] bg-[var(--secondary)]"
+                                    : "border-gray-300 bg-white group-hover:border-[var(--secondary)]"
+                                }`}
+                              >
+                                {formData.bangunPagi.membacaDanBangunTidur ===
+                                  val && (
+                                  <div className="w-2 h-2 rounded-full bg-white" />
+                                )}
+                              </div>
                               <input
-                                type="checkbox"
-                                checked={formData.beribadah[item.key]}
-                                onChange={(e) =>
+                                type="radio"
+                                name="bangunTidur"
+                                className="hidden"
+                                checked={
+                                  formData.bangunPagi.membacaDanBangunTidur ===
+                                  val
+                                }
+                                onChange={() =>
                                   setFormData({
                                     ...formData,
-                                    beribadah: {
-                                      ...formData.beribadah,
-                                      [item.key]: e.target.checked,
+                                    bangunPagi: {
+                                      ...formData.bangunPagi,
+                                      membacaDanBangunTidur: val,
                                     },
                                   })
                                 }
-                                className="w-4 h-4 text-green-600 focus:ring-green-500 rounded"
                               />
-                              <span className="text-xs sm:text-sm font-medium text-gray-700">
-                                {item.label}
+                              <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                {val ? "Ya" : "Tidak"}
                               </span>
                             </label>
                           ))}
                         </div>
-                        <div className="mt-6">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Membayar zakat, infaq, sedekah / bersedekah /
-                            beramal (nominal)
-                          </label>
+                      </div>
+                      <SaveButton
+                        onClick={() =>
+                          handleSectionSubmit("bangunPagi", formData.bangunPagi)
+                        }
+                      />
+                    </SectionCard>
+
+                    <SectionCard title="Tidur Malam" icon={Moon}>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Waktu Tidur
+                        </label>
+                        <TimePicker
+                          value={formData.tidur.jam}
+                          onChange={(value) =>
+                            setFormData({
+                              ...formData,
+                              tidur: {
+                                ...formData.tidur,
+                                jam: value,
+                              },
+                            })
+                          }
+                          placeholder="00:00"
+                        />
+                      </div>
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          Membaca Doa Sebelum Tidur?
+                        </label>
+                        <div className="flex gap-4">
+                          {[true, false].map((val) => (
+                            <label
+                              key={String(val)}
+                              className="flex items-center gap-2 cursor-pointer group"
+                            >
+                              <div
+                                className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                                  formData.tidur.membacaDanMasTidur === val
+                                    ? "border-[var(--secondary)] bg-[var(--secondary)]"
+                                    : "border-gray-300 bg-white group-hover:border-[var(--secondary)]"
+                                }`}
+                              >
+                                {formData.tidur.membacaDanMasTidur === val && (
+                                  <div className="w-2 h-2 rounded-full bg-white" />
+                                )}
+                              </div>
+                              <input
+                                type="radio"
+                                name="mauTidur"
+                                className="hidden"
+                                checked={
+                                  formData.tidur.membacaDanMasTidur === val
+                                }
+                                onChange={() =>
+                                  setFormData({
+                                    ...formData,
+                                    tidur: {
+                                      ...formData.tidur,
+                                      membacaDanMasTidur: val,
+                                    },
+                                  })
+                                }
+                              />
+                              <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">
+                                {val ? "Ya" : "Tidak"}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <SaveButton
+                        onClick={() =>
+                          handleSectionSubmit("tidur", formData.tidur)
+                        }
+                      />
+                    </SectionCard>
+                  </div>
+
+                  <SectionCard
+                    title="Beribadah"
+                    icon={HandCoins}
+                    className="border-t-4 border-t-[var(--secondary)]"
+                  >
+                    <div className="bg-blue-50/50 rounded-xl p-4 mb-4 border border-blue-100 flex gap-3 text-sm text-blue-800">
+                      <HelpCircle className="w-5 h-5 flex-shrink-0 text-blue-500" />
+                      <p>
+                        Tanda <strong>*</strong> wajib diisi oleh siswa muslim.
+                        Wanita haid tetap dihitung melaksanakan.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {BERIBADAH_BOOLEAN_FIELDS.map((item) => (
+                        <label
+                          key={item.key}
+                          className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
+                            formData.beribadah[item.key]
+                              ? "bg-[var(--secondary)]/5 border-[var(--secondary)]/30 shadow-sm"
+                              : "bg-white border-gray-200 hover:border-[var(--secondary)]/30 hover:bg-gray-50"
+                          }`}
+                        >
+                          <div
+                            className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                              formData.beribadah[item.key]
+                                ? "bg-[var(--secondary)] border-[var(--secondary)] text-white"
+                                : "bg-white border-gray-300"
+                            }`}
+                          >
+                            {formData.beribadah[item.key] && (
+                              <Save className="w-3 h-3" />
+                            )}
+                          </div>
                           <input
-                            type="number"
-                            min="0"
-                            step="1000"
-                            inputMode="numeric"
-                            value={formData.beribadah.zakatInfaqSedekah}
+                            type="checkbox"
+                            className="hidden"
+                            checked={formData.beribadah[item.key]}
                             onChange={(e) =>
                               setFormData({
                                 ...formData,
                                 beribadah: {
                                   ...formData.beribadah,
-                                  zakatInfaqSedekah: e.target.value,
+                                  [item.key]: e.target.checked,
                                 },
                               })
                             }
-                            placeholder="Masukkan nominal dalam rupiah"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                           />
-                          <p className="text-xs text-gray-500 mt-2">
-                            Kosongkan jika belum melakukan sedekah hari ini.
-                          </p>
-                        </div>
-                      </div>
-                      <div className="pt-3 sm:pt-4">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleSectionSubmit("beribadah", formData.beribadah)
-                          }
-                          className="w-full text-white py-2 sm:py-2.5 px-4 rounded-lg hover:opacity-90 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium text-sm sm:text-base"
-                          style={{ backgroundColor: "var(--secondary)" }}
-                        >
-                          Simpan
-                        </button>
-                      </div>
+                          <span
+                            className={`${
+                              formData.beribadah[item.key]
+                                ? "text-[var(--secondary)] font-semibold"
+                                : "text-gray-600"
+                            } text-sm leading-tight select-none`}
+                          >
+                            {item.label}
+                          </span>
+                        </label>
+                      ))}
                     </div>
 
-                    {/* Makan Sehat & Olahraga */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                      {/* Makan Sehat */}
-                      <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 shadow-sm">
-                        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 pb-3 border-b border-gray-200">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                            <Utensils className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" />
-                          </div>
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                            Makan Sehat
-                          </h3>
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Nominal Infaq / Sedekah (Rupiah)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1000"
+                        value={formData.beribadah.zakatInfaqSedekah}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            beribadah: {
+                              ...formData.beribadah,
+                              zakatInfaqSedekah: e.target.value,
+                            },
+                          })
+                        }
+                        placeholder="Contoh: 2000"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm placeholder:text-gray-400"
+                      />
+                    </div>
+                    <SaveButton
+                      onClick={() =>
+                        handleSectionSubmit("beribadah", formData.beribadah)
+                      }
+                    />
+                  </SectionCard>
+
+                  {/* Makan Sehat & Olahraga */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <SectionCard title="Makan Sehat" icon={Utensils}>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            Jenis Makanan
+                          </label>
+                          <Select
+                            value={formData.makanSehat.jenisMakanan}
+                            onChange={(val) =>
+                              setFormData({
+                                ...formData,
+                                makanSehat: {
+                                  ...formData.makanSehat,
+                                  jenisMakanan: val,
+                                },
+                              })
+                            }
+                            options={MAKANAN_OPTIONS}
+                            placeholder="Pilih waktu makan..."
+                          />
                         </div>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Jenis Makanan
-                            </label>
-                            <Select
-                              value={formData.makanSehat.jenisMakanan}
-                              onChange={(value) =>
-                                setFormData({
-                                  ...formData,
-                                  makanSehat: {
-                                    ...formData.makanSehat,
-                                    jenisMakanan: value,
-                                  },
-                                })
-                              }
-                              options={MAKANAN_OPTIONS}
-                              placeholder="Pilih jenis makanan..."
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Makan lauk
-                            </label>
-                            <input
-                              type="text"
-                              value={formData.makanSehat.jenisLaukSayur}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  makanSehat: {
-                                    ...formData.makanSehat,
-                                    jenisLaukSayur: e.target.value,
-                                  },
-                                })
-                              }
-                              placeholder="Contoh: Telor, daging, ayam, ikan, tahu, tempe dsb"
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                              Makan sayur atau Makan buah
-                            </label>
-                            <div className="flex gap-4 sm:gap-6">
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name="sayurBuah"
-                                  checked={
-                                    formData.makanSehat.makanSayurAtauBuah
-                                  }
-                                  onChange={() =>
-                                    setFormData({
-                                      ...formData,
-                                      makanSehat: {
-                                        ...formData.makanSehat,
-                                        makanSayurAtauBuah: true,
-                                      },
-                                    })
-                                  }
-                                  className="w-4 h-4 text-pink-600 focus:ring-pink-500"
-                                />
-                                <span className="text-xs sm:text-sm text-gray-700">
-                                  Ya
-                                </span>
-                              </label>
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name="sayurBuah"
-                                  checked={
-                                    !formData.makanSehat.makanSayurAtauBuah
-                                  }
-                                  onChange={() =>
-                                    setFormData({
-                                      ...formData,
-                                      makanSehat: {
-                                        ...formData.makanSehat,
-                                        makanSayurAtauBuah: false,
-                                      },
-                                    })
-                                  }
-                                  className="w-4 h-4 text-pink-600 focus:ring-pink-500"
-                                />
-                                <span className="text-xs sm:text-sm text-gray-700">
-                                  Tidak
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                          <div>
-                            <div
-                              ref={suplemenRef}
-                              className="flex items-start justify-between mb-1 relative"
-                            >
-                              <label className="block text-sm font-medium text-gray-700">
-                                Minum Susu dan/atau Suplemen
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setShowSuplemenHelp(!showSuplemenHelp)
-                                }
-                                aria-expanded={showSuplemenHelp}
-                                aria-controls="suplemen-help"
-                                className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none"
-                                title="Bantuan"
-                              >
-                                <HelpCircle className="w-5 h-5" />
-                              </button>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            Menu Lauk
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.makanSehat.jenisLaukSayur}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                makanSehat: {
+                                  ...formData.makanSehat,
+                                  jenisLaukSayur: e.target.value,
+                                },
+                              })
+                            }
+                            placeholder="Contoh: Ayam, Tahu, Tempe..."
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
+                          />
+                        </div>
 
-                              {/* Professional popover */}
-                              <div
-                                id="suplemen-help"
-                                role="dialog"
-                                aria-hidden={!showSuplemenHelp}
-                                className={`absolute left-0 top-full mt-3 z-50 w-[min(26rem,100%)] transition-all duration-150 ${
-                                  showSuplemenHelp
-                                    ? "opacity-100 translate-y-0 pointer-events-auto"
-                                    : "opacity-0 -translate-y-2 pointer-events-none"
-                                }`}
-                              >
-                                <div className="relative">
-                                  {/* Arrow */}
-                                  <div className="absolute -top-2 left-6">
-                                    <svg
-                                      width="20"
-                                      height="10"
-                                      viewBox="0 0 20 10"
-                                      fill="none"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                      <path
-                                        d="M0 10L10 0L20 10H0Z"
-                                        fill="#ffffff"
-                                        stroke="#e6e6e6"
-                                      />
-                                    </svg>
+                        <div className="bg-gray-50 p-4 rounded-xl space-y-4">
+                          <div>
+                            <span className="block text-sm font-medium text-gray-700 mb-2">
+                              Makan Sayur / Buah?
+                            </span>
+                            <div className="flex gap-4">
+                              {[true, false].map((val) => (
+                                <label
+                                  key={`sb-${val}`}
+                                  className="flex items-center gap-2 cursor-pointer group"
+                                >
+                                  <div
+                                    className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                                      formData.makanSehat.makanSayurAtauBuah ===
+                                      val
+                                        ? "border-[var(--secondary)] bg-[var(--secondary)]"
+                                        : "border-gray-300 bg-white"
+                                    }`}
+                                  >
+                                    {formData.makanSehat.makanSayurAtauBuah ===
+                                      val && (
+                                      <div className="w-2 h-2 rounded-full bg-white" />
+                                    )}
                                   </div>
-
-                                  <div className="mt-1 bg-white border border-gray-200 shadow-xl rounded-md p-3 text-sm text-gray-700 ring-1 ring-black/5">
-                                    <p className="leading-relaxed">
-                                      Jika hanya salah satu, misal hanya meminum
-                                      susu atau suplemen maka diisi dengan{" "}
-                                      <strong>ya</strong>, jika tidak keduanya
-                                      maka <strong>tidak</strong>.
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex gap-4 sm:gap-6">
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name="suplemen"
-                                  checked={formData.makanSehat.minumSuplemen}
-                                  onChange={() =>
-                                    setFormData({
-                                      ...formData,
-                                      makanSehat: {
-                                        ...formData.makanSehat,
-                                        minumSuplemen: true,
-                                      },
-                                    })
-                                  }
-                                  className="w-4 h-4 text-pink-600 focus:ring-pink-500"
-                                />
-                                <span className="text-xs sm:text-sm text-gray-700">
-                                  Ya
-                                </span>
-                              </label>
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="radio"
-                                  name="suplemen"
-                                  checked={!formData.makanSehat.minumSuplemen}
-                                  onChange={() =>
-                                    setFormData({
-                                      ...formData,
-                                      makanSehat: {
-                                        ...formData.makanSehat,
-                                        minumSuplemen: false,
-                                      },
-                                    })
-                                  }
-                                  className="w-4 h-4 text-pink-600 focus:ring-pink-500"
-                                />
-                                <span className="text-xs sm:text-sm text-gray-700">
-                                  Tidak
-                                </span>
-                              </label>
+                                  <input
+                                    type="radio"
+                                    className="hidden"
+                                    checked={
+                                      formData.makanSehat.makanSayurAtauBuah ===
+                                      val
+                                    }
+                                    onChange={() =>
+                                      setFormData({
+                                        ...formData,
+                                        makanSehat: {
+                                          ...formData.makanSehat,
+                                          makanSayurAtauBuah: val,
+                                        },
+                                      })
+                                    }
+                                  />
+                                  <span className="text-sm text-gray-600">
+                                    {val ? "Ya" : "Tidak"}
+                                  </span>
+                                </label>
+                              ))}
                             </div>
                           </div>
-                          <div className="pt-3 sm:pt-4">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleSectionSubmit(
-                                  "makanSehat",
-                                  formData.makanSehat
-                                )
-                              }
-                              className="w-full bg-pink-600 text-white py-2 sm:py-2.5 px-4 rounded-lg hover:bg-pink-700 focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 transition-colors font-medium text-sm sm:text-base"
-                            >
-                              Simpan
-                            </button>
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="block text-sm font-medium text-gray-700">
+                                Minum Susu / Suplemen?
+                              </span>
+                              <span title="Pilih YA jika salah satu atau keduanya terpenuhi.">
+                                <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+                              </span>
+                            </div>
+                            <div className="flex gap-4">
+                              {[true, false].map((val) => (
+                                <label
+                                  key={`sup-${val}`}
+                                  className="flex items-center gap-2 cursor-pointer group"
+                                >
+                                  <div
+                                    className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                                      formData.makanSehat.minumSuplemen === val
+                                        ? "border-[var(--secondary)] bg-[var(--secondary)]"
+                                        : "border-gray-300 bg-white"
+                                    }`}
+                                  >
+                                    {formData.makanSehat.minumSuplemen ===
+                                      val && (
+                                      <div className="w-2 h-2 rounded-full bg-white" />
+                                    )}
+                                  </div>
+                                  <input
+                                    type="radio"
+                                    className="hidden"
+                                    checked={
+                                      formData.makanSehat.minumSuplemen === val
+                                    }
+                                    onChange={() =>
+                                      setFormData({
+                                        ...formData,
+                                        makanSehat: {
+                                          ...formData.makanSehat,
+                                          minumSuplemen: val,
+                                        },
+                                      })
+                                    }
+                                  />
+                                  <span className="text-sm text-gray-600">
+                                    {val ? "Ya" : "Tidak"}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
+                      <SaveButton
+                        onClick={() =>
+                          handleSectionSubmit("makanSehat", formData.makanSehat)
+                        }
+                      />
+                    </SectionCard>
 
-                      {/* Olahraga */}
-                      <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 shadow-sm">
-                        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 pb-3 border-b border-gray-200">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                            <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
-                          </div>
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                            Olahraga
-                          </h3>
-                        </div>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                              Pilih jenis olahraga yang dilakukan
-                            </label>
-                            <Select
-                              value={formData.olahraga.jenisOlahraga}
-                              onChange={(value) =>
+                    <SectionCard title="Olahraga" icon={Dumbbell}>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            Jenis Olahraga
+                          </label>
+                          <Select
+                            value={formData.olahraga.jenisOlahraga}
+                            onChange={(val) =>
+                              setFormData({
+                                ...formData,
+                                olahraga: {
+                                  ...formData.olahraga,
+                                  jenisOlahraga: val,
+                                  deskripsi: OLAGRAGA_DESKRIPSI_MAP[val] || "",
+                                },
+                              })
+                            }
+                            options={OLAGRAGA_OPTIONS}
+                            placeholder="Pilih aktivitas..."
+                          />
+                          {formData.olahraga.jenisOlahraga === "lainnya" && (
+                            <input
+                              type="text"
+                              value={formData.olahraga.deskripsi}
+                              onChange={(e) =>
                                 setFormData({
                                   ...formData,
                                   olahraga: {
                                     ...formData.olahraga,
-                                    jenisOlahraga: value,
-                                    deskripsi:
-                                      OLAGRAGA_DESKRIPSI_MAP[value] || "",
+                                    deskripsi: e.target.value,
                                   },
                                 })
                               }
-                              options={OLAGRAGA_OPTIONS}
-                              placeholder="Pilih jenis olahraga..."
+                              placeholder="Sebutkan olahraga lainnya..."
+                              className="mt-3 w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
                             />
-                            {formData.olahraga.jenisOlahraga === "lainnya" && (
-                              <div className="mt-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  Jenis olahraga lainnya
-                                </label>
-                                <input
-                                  type="text"
-                                  value={formData.olahraga.deskripsi}
-                                  onChange={(e) =>
-                                    setFormData({
-                                      ...formData,
-                                      olahraga: {
-                                        ...formData.olahraga,
-                                        deskripsi: e.target.value,
-                                      },
-                                    })
-                                  }
-                                  placeholder="Masukkan jenis olahraga lainnya"
-                                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors"
-                                />
-                              </div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            Durasi (Menit)
+                          </label>
+                          <div className="relative">
+                            <Clock className="absolute left-4 top-3.5 w-4 h-4 text-gray-400" />
+                            <input
+                              type="number"
+                              min="0"
+                              value={formData.olahraga.waktu}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  olahraga: {
+                                    ...formData.olahraga,
+                                    waktu: e.target.value,
+                                  },
+                                })
+                              }
+                              placeholder="30"
+                              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <SaveButton
+                        onClick={() =>
+                          handleSectionSubmit("olahraga", formData.olahraga)
+                        }
+                      />
+                    </SectionCard>
+                  </div>
+
+                  {/* Bermasyarakat */}
+                  <SectionCard title="Bermasyarakat" icon={Users}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Jenis Kegiatan
+                        </label>
+                        <Select
+                          value={formData.bermasyarakat.deskripsi}
+                          onChange={(val) =>
+                            setFormData({
+                              ...formData,
+                              bermasyarakat: {
+                                ...formData.bermasyarakat,
+                                deskripsi: val,
+                              },
+                            })
+                          }
+                          options={BERMASYARAKAT_OPTIONS}
+                          placeholder="Pilih kegiatan sosial..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Tempat Kegiatan
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.bermasyarakat.tempat}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              bermasyarakat: {
+                                ...formData.bermasyarakat,
+                                tempat: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="Masjid, Balai Warga, dll"
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                          Waktu Pelaksanaan
+                        </label>
+                        <TimePicker
+                          value={formData.bermasyarakat.waktu}
+                          onChange={(val) =>
+                            setFormData({
+                              ...formData,
+                              bermasyarakat: {
+                                ...formData.bermasyarakat,
+                                waktu: val,
+                              },
+                            })
+                          }
+                          placeholder="00:00"
+                        />
+                      </div>
+                      <div className="md:col-span-2 pt-2">
+                        <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-gray-50 hover:bg-white hover:border-[var(--secondary)]/50 transition-all cursor-pointer">
+                          <div
+                            className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                              formData.bermasyarakat.paraf
+                                ? "bg-[var(--secondary)] border-[var(--secondary)]"
+                                : "bg-white border-gray-300"
+                            }`}
+                          >
+                            {formData.bermasyarakat.paraf && (
+                              <Save className="w-3 h-3 text-white" />
                             )}
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Durasi (menit)
-                            </label>
-                            <div className="relative">
-                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg
-                                  className="w-5 h-5 text-gray-400"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                  />
-                                </svg>
-                              </div>
-                              <input
-                                type="number"
-                                min={0}
-                                step={1}
-                                value={formData.olahraga.waktu}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    olahraga: {
-                                      ...formData.olahraga,
-                                      waktu: e.target.value,
-                                    },
-                                  })
-                                }
-                                placeholder="Contoh: 30"
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors"
-                              />
-                            </div>
-                          </div>
-                          <div className="pt-3 sm:pt-4">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleSectionSubmit(
-                                  "olahraga",
-                                  formData.olahraga
-                                )
-                              }
-                              className="w-full bg-yellow-600 text-white py-2 sm:py-2.5 px-4 rounded-lg hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-colors font-medium text-sm sm:text-base"
-                            >
-                              Simpan
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Bermasyarakat */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 shadow-sm">
-                      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 pb-3 border-b border-gray-200">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-cyan-100 rounded-lg flex items-center justify-center">
-                          <svg
-                            className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                            />
-                          </svg>
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          Bermasyarakat
-                        </h3>
-                      </div>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-3">
-                            Pilih jenis kegiatan bermasyarakat yang dilakukan
-                          </label>
-                          <Select
-                            value={formData.bermasyarakat.deskripsi}
-                            onChange={(value) =>
+                          <input
+                            type="checkbox"
+                            className="hidden"
+                            checked={formData.bermasyarakat.paraf}
+                            onChange={(e) =>
                               setFormData({
                                 ...formData,
                                 bermasyarakat: {
                                   ...formData.bermasyarakat,
-                                  deskripsi: value,
+                                  paraf: e.target.checked,
                                 },
                               })
                             }
-                            options={BERMASYARAKAT_OPTIONS}
-                            placeholder="Pilih jenis kegiatan bermasyarakat..."
                           />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Tempat
-                            </label>
-                            <input
-                              type="text"
-                              value={formData.bermasyarakat.tempat}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  bermasyarakat: {
-                                    ...formData.bermasyarakat,
-                                    tempat: e.target.value,
-                                  },
-                                })
-                              }
-                              placeholder="Contoh: Masjid, sekolah, taman"
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Waktu
-                            </label>
-                            <TimePicker
-                              value={formData.bermasyarakat.waktu}
-                              onChange={(value) =>
-                                setFormData({
-                                  ...formData,
-                                  bermasyarakat: {
-                                    ...formData.bermasyarakat,
-                                    waktu: value,
-                                  },
-                                })
-                              }
-                              placeholder="Pilih waktu..."
-                            />
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between pt-4">
-                          <label className="flex items-center gap-3 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={formData.bermasyarakat.paraf}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  bermasyarakat: {
-                                    ...formData.bermasyarakat,
-                                    paraf: e.target.checked,
-                                  },
-                                })
-                              }
-                              className="w-4 h-4 text-cyan-600 focus:ring-cyan-500 rounded"
-                            />
-                            <span className="text-xs sm:text-sm font-medium text-gray-700">
-                              Paraf Orang Tua/Wali/RT
-                            </span>
-                          </label>
-                          <div className="flex gap-2 sm:gap-3">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleSectionSubmit(
-                                  "bermasyarakat",
-                                  formData.bermasyarakat
-                                )
-                              }
-                              className="bg-cyan-600 text-white py-2 sm:py-2.5 px-4 sm:px-6 rounded-lg hover:bg-cyan-700 focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-colors font-medium text-sm sm:text-base"
-                            >
-                              Simpan
-                            </button>
-                          </div>
-                        </div>
+                          <span className="text-sm text-gray-600">
+                            Saya menyatakan kegiatan ini diketahui oleh Orang
+                            Tua / Wali / RT setempat (Paraf)
+                          </span>
+                        </label>
                       </div>
                     </div>
+                    <SaveButton
+                      onClick={() =>
+                        handleSectionSubmit(
+                          "bermasyarakat",
+                          formData.bermasyarakat
+                        )
+                      }
+                    />
+                  </SectionCard>
 
-                    {/* Belajar */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 shadow-sm">
-                      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 pb-3 border-b border-gray-200">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                          <svg
-                            className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                            />
-                          </svg>
+                  {/* Belajar */}
+                  <SectionCard title="Belajar Mandiri" icon={BookOpen}>
+                    <div className="space-y-6">
+                      <div className="bg-orange-50/50 rounded-xl p-4 border border-orange-100">
+                        <span className="block text-sm font-medium text-gray-800 mb-3">
+                          Apakah kamu belajar mandiri hari ini?
+                        </span>
+                        <div className="flex gap-4">
+                          {[true, false].map((val) => (
+                            <label
+                              key={`bel-${val}`}
+                              className="flex items-center gap-2 cursor-pointer group"
+                            >
+                              <div
+                                className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                                  formData.belajar.yaAtauTidak === val
+                                    ? "border-[var(--secondary)] bg-[var(--secondary)]"
+                                    : "border-gray-300 bg-white"
+                                }`}
+                              >
+                                {formData.belajar.yaAtauTidak === val && (
+                                  <div className="w-2 h-2 rounded-full bg-white" />
+                                )}
+                              </div>
+                              <input
+                                type="radio"
+                                className="hidden"
+                                checked={formData.belajar.yaAtauTidak === val}
+                                onChange={() =>
+                                  setFormData({
+                                    ...formData,
+                                    belajar: {
+                                      ...formData.belajar,
+                                      yaAtauTidak: val,
+                                    },
+                                  })
+                                }
+                              />
+                              <span className="text-sm text-gray-600">
+                                {val ? "Ya, saya belajar" : "Tidak"}
+                              </span>
+                            </label>
+                          ))}
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          Belajar
-                        </h3>
                       </div>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Apakah belajar hari ini?
-                          </label>
-                          <div className="flex items-center gap-3 sm:gap-4">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                              <input
-                                type="radio"
-                                name="belajar"
-                                checked={formData.belajar.yaAtauTidak === true}
-                                onChange={() =>
-                                  setFormData({
-                                    ...formData,
-                                    belajar: {
-                                      ...formData.belajar,
-                                      yaAtauTidak: true,
-                                    },
-                                  })
-                                }
-                                className="w-4 h-4 text-purple-600 focus:ring-purple-500"
-                              />
-                              <span className="text-xs sm:text-sm font-medium text-gray-700">
-                                Ya
-                              </span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                              <input
-                                type="radio"
-                                name="belajar"
-                                checked={formData.belajar.yaAtauTidak === false}
-                                onChange={() =>
-                                  setFormData({
-                                    ...formData,
-                                    belajar: {
-                                      ...formData.belajar,
-                                      yaAtauTidak: false,
-                                    },
-                                  })
-                                }
-                                className="w-4 h-4 text-purple-600 focus:ring-purple-500"
-                              />
-                              <span className="text-xs sm:text-sm font-medium text-gray-700">
-                                Tidak
-                              </span>
-                            </label>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-3">
-                            Pilih jenis kegiatan belajar yang dilakukan
+
+                      {formData.belajar.yaAtauTidak && (
+                        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            Materi yang dipelajari
                           </label>
                           <Select
                             value={formData.belajar.deskripsi}
-                            onChange={(value) =>
+                            onChange={(val) =>
                               setFormData({
                                 ...formData,
                                 belajar: {
                                   ...formData.belajar,
-                                  deskripsi: value,
+                                  deskripsi: val,
                                 },
                               })
                             }
                             options={BELAJAR_OPTIONS}
-                            placeholder="Pilih jenis kegiatan belajar..."
+                            placeholder="Topik belajar..."
                           />
                         </div>
-                        <div className="pt-3 sm:pt-4">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleSectionSubmit("belajar", formData.belajar)
-                            }
-                            className="w-full bg-purple-600 text-white py-2 sm:py-2.5 px-4 rounded-lg hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors font-medium text-sm sm:text-base"
-                          >
-                            Simpan
-                          </button>
-                        </div>
-                      </div>
+                      )}
                     </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end pt-4 sm:pt-6 border-t border-gray-200">
-                    <button
-                      type="button"
-                      onClick={handleReset}
-                      className="order-2 sm:order-1 px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors text-sm sm:text-base"
-                    >
-                      Reset Form
-                    </button>
-                    <button
-                      type="submit"
-                      className="order-1 sm:order-2 px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg text-white font-semibold hover:opacity-90 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors text-sm sm:text-base"
-                      style={{ backgroundColor: "var(--secondary)" }}
-                    >
-                      Simpan Semua Data
-                    </button>
-                  </div>
-                </form>
+                    <SaveButton
+                      onClick={() =>
+                        handleSectionSubmit("belajar", formData.belajar)
+                      }
+                    />
+                  </SectionCard>
+                </div>
               </div>
-            </div>
+            </form>
           </div>
         </main>
       </div>
 
-      {/* Snackbar */}
+      {/* Snackbar Notification */}
       <div
-        className={`fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 transform transition-all duration-300 z-50 ${
+        className={`fixed bottom-6 left-1/2 -translate-x-1/2 transform transition-all duration-300 z-[100] ${
           snackbarVisible
             ? "translate-y-0 opacity-100"
-            : "-translate-y-6 opacity-0"
-        } ${
-          snackbar?.type === "success"
-            ? "bg-emerald-500"
-            : snackbar?.type === "error"
-            ? "bg-rose-500"
-            : "bg-gray-500"
-        } text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg sm:rounded-xl shadow-lg pointer-events-none text-sm sm:text-base max-w-[90vw] sm:max-w-md text-center`}
-        aria-live="assertive"
+            : "translate-y-6 opacity-0"
+        }`}
       >
-        {snackbar?.message}
+        {snackbar && (
+          <div
+            className={`px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3 border ${
+              snackbar.type === "success"
+                ? "bg-white text-emerald-600 border-emerald-100"
+                : "bg-white text-rose-600 border-rose-100"
+            }`}
+          >
+            <div
+              className={`w-2 h-2 rounded-full ${
+                snackbar.type === "success" ? "bg-emerald-500" : "bg-rose-500"
+              }`}
+            />
+            <span className="font-medium text-sm text-gray-800">
+              {snackbar.message}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
