@@ -448,7 +448,6 @@ export default function KegiatanSiswa() {
         return;
       }
 
-      // sanitize outgoing data: ensure olahraga.jenisOlahraga is included
       const outgoing = JSON.parse(JSON.stringify(formData)) as Record<
         string,
         unknown
@@ -660,10 +659,7 @@ export default function KegiatanSiswa() {
         />
 
         {/* Page Content */}
-        <main
-          className="flex-1 overflow-auto"
-          style={{ backgroundColor: "var(--background)" }}
-        >
+        <main className="flex-1 overflow-auto">
           <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
               {/* Header */}

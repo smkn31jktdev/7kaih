@@ -10,6 +10,7 @@ import {
   FileText,
   ChevronRight,
   X,
+  LogOut,
 } from "lucide-react";
 
 const menuItems = [
@@ -48,7 +49,6 @@ export default function StudentSidebar({
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
-  // Handle swipe gestures
   const minSwipeDistance = 50;
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -106,14 +106,14 @@ export default function StudentSidebar({
     <>
       {/* Mobile Overlay */}
       {isMobileOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" />
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden" />
       )}
 
       <aside
         id="mobile-sidebar"
-        className={`fixed md:sticky top-0 h-screen flex flex-col justify-between bg-[var(--secondary)] border-r border-white/5 transition-all duration-300 ease-in-out shadow-2xl z-50 
+        className={`fixed md:sticky top-0 h-screen flex flex-col justify-between bg-white border-r border-gray-100 transition-all duration-300 ease-in-out z-50 
           ${isCollapsed ? "w-20 px-3" : "w-72 px-6"} py-8
-          ${isMobileOpen ? "left-0" : "-left-72 md:left-0"}
+          ${isMobileOpen ? "left-0 shadow-2xl" : "-left-72 md:left-0"}
           `}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
@@ -124,17 +124,17 @@ export default function StudentSidebar({
           {isMobileOpen && (
             <button
               onClick={onMobileClose}
-              className="absolute top-4 right-4 p-2 text-white hover:bg-white/10 rounded-lg transition-colors md:hidden"
+              className="absolute top-4 right-4 p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors md:hidden"
               aria-label="Close sidebar"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
           )}
 
           {/* Logo Section */}
           <div
             className={`flex items-center justify-center mb-12 ${
-              isMobileOpen ? "mt-8" : ""
+              isMobileOpen ? "mt-4" : ""
             }`}
           >
             <Link
@@ -142,21 +142,23 @@ export default function StudentSidebar({
               className="transition-transform duration-200 hover:scale-105"
             >
               {!isCollapsed ? (
-                <div className="relative w-28 h-28">
+                <div className="relative w-32 h-32">
                   <Image
                     src="/assets/img/7kaih.png"
                     alt="Anak Hebat"
                     fill
-                    className="object-contain"
+                    className="object-contain drop-shadow-sm"
+                    priority
                   />
                 </div>
               ) : (
-                <div className="relative w-10 h-10">
+                <div className="relative w-12 h-12">
                   <Image
                     src="/assets/img/7kaih.png"
                     alt="Anak Hebat"
                     fill
                     className="object-contain"
+                    priority
                   />
                 </div>
               )}
@@ -166,48 +168,40 @@ export default function StudentSidebar({
           {/* Navigation Section */}
           <div className="flex-1 space-y-2">
             {!isCollapsed && (
-              <p className="text-white/30 text-[10px] uppercase tracking-[0.2em] font-bold px-4 mb-4">
-                Main Menu
+              <p className="text-gray-400 text-[11px] uppercase tracking-wider font-bold px-4 mb-4">
+                Menu Utama
               </p>
             )}
-            <nav className="space-y-1.5">
+            <nav className="space-y-2">
               {menuItems.map((item) => {
                 const active = isActive(item.href);
                 return (
                   <Link key={item.id} href={item.href} className="block group">
                     <div
-                      className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 relative overflow-hidden ${
+                      className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 ease-out relative overflow-hidden ${
                         active
-                          ? "bg-white/10 text-white shadow-sm"
-                          : "text-white/60 hover:bg-white/5 hover:text-white"
+                          ? "bg-[var(--secondary)] text-white shadow-lg shadow-[var(--secondary)]/20"
+                          : "text-gray-500 hover:bg-gray-50 hover:text-[var(--secondary)]"
                       }`}
                       title={isCollapsed ? item.label : undefined}
                     >
-                      {/* Active Indicator */}
-                      {active && (
-                        <div className="absolute left-0 top-3 bottom-3 w-1 bg-[var(--primary)] rounded-r-full" />
-                      )}
-
                       <item.icon
-                        className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 ${
+                        className={`w-[22px] h-[22px] flex-shrink-0 transition-transform duration-300 ${
                           active
-                            ? "text-[var(--primary)] scale-110"
-                            : "group-hover:scale-110"
+                            ? "scale-110"
+                            : "group-hover:scale-115 text-gray-400 group-hover:text-[var(--secondary)]"
                         }`}
+                        strokeWidth={active ? 2.5 : 2}
                       />
 
                       {!isCollapsed && (
-                        <span
-                          className={`font-medium flex-1 truncate ${
-                            active ? "text-white" : ""
-                          }`}
-                        >
+                        <span className="font-semibold tracking-wide flex-1 truncate">
                           {item.label}
                         </span>
                       )}
 
                       {!isCollapsed && active && (
-                        <ChevronRight className="w-4 h-4 text-white/40" />
+                        <ChevronRight className="w-4 h-4 text-white/80 animate-pulse" />
                       )}
                     </div>
                   </Link>
@@ -215,6 +209,20 @@ export default function StudentSidebar({
               })}
             </nav>
           </div>
+
+          {/* Bottom logout or extra section could go here */}
+          {!isCollapsed && (
+            <div className="mt-auto px-4">
+              <div className="bg-gradient-to-br from-[var(--primary)]/10 to-[var(--secondary)]/10 rounded-2xl p-4 border border-[var(--primary)]/20">
+                <p className="text-xs text-gray-600 font-medium mb-1">
+                  Butuh Bantuan?
+                </p>
+                <p className="text-[10px] text-gray-500 leading-relaxed">
+                  Hubungi wali siswa jika mengalami kendala.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </aside>
     </>

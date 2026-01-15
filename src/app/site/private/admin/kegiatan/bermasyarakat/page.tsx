@@ -10,9 +10,10 @@ import {
   User,
   X,
   ArrowDownToLine,
+  Search,
+  Filter,
 } from "lucide-react";
 import jsPDF from "jspdf";
-import Skeleton from "react-loading-skeleton";
 import Select from "@/app/components/Select";
 
 const BERMASYARAKAT_DESKRIPSI_MAP: Record<string, string> = {
@@ -24,12 +25,12 @@ const BERMASYARAKAT_DESKRIPSI_MAP: Record<string, string> = {
   "khotib-penceramah":
     "Menjadi khotib / penceramah / petugas pembimbing keagamaan",
   "mengajar-ngaji": "Mengajar ngaji / ta'lim / membimbing kelompok belajar",
-  lainnya: "",
+  lainnya: "Lainnya",
 };
 
 interface BermasyarakatEntry {
   tanggal: string;
-  deskripsi: string;
+  jenisKegiatan: string;
   tempat: string;
   waktu: string;
   paraf: boolean;
@@ -47,7 +48,6 @@ export default function AdminBermasyarakatPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Sidebar state
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] =
@@ -55,6 +55,7 @@ export default function AdminBermasyarakatPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [availableMonths, setAvailableMonths] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,110 +120,16 @@ export default function AdminBermasyarakatPage() {
         });
   }, [selectedStudent, selectedMonth]);
 
-  if (loading) {
-    return (
-      <div className="flex h-screen bg-gray-50">
-        <AdminSidebar
-          isCollapsed={isSidebarCollapsed}
-          isMobileOpen={isMobileSidebarOpen}
-          onMobileClose={() => setIsMobileSidebarOpen(false)}
-        />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <AdminNavbar
-            onToggleSidebar={() => setIsSidebarCollapsed((s) => !s)}
-            onToggleMobileSidebar={() => setIsMobileSidebarOpen((s) => !s)}
-          />
-          <main
-            className="flex-1 overflow-auto"
-            style={{ backgroundColor: "var(--background)" }}
-          >
-            {/* Header Section */}
-            <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6 md:mb-8">
-                <div
-                  style={{ backgroundColor: "var(--secondary)" }}
-                  className="px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 rounded-tr-xl rounded-tl-xl"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="w-full text-center">
-                      <Skeleton height={32} width={300} className="mb-2" />
-                      <Skeleton height={20} width={400} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-2 sm:p-4">
-                  <div className="flex flex-col gap-6 xl:flex-row">
-                    <div className="flex-1 space-y-6">
-                      {/* Data Bermasyarakat Container */}
-                      <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-4 sm:p-6">
-                        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-                          <div className="flex-1">
-                            <div className="bg-white rounded-2xl p-5 border border-indigo-100">
-                              <div className="flex items-start gap-3 mb-4">
-                                <div className="w-12 h-12 rounded-2xl bg-cyan-100 flex items-center justify-center">
-                                  <Users className="w-6 h-6 text-cyan-600" />
-                                </div>
-                                <div>
-                                  <Skeleton height={20} width={200} />
-                                  <Skeleton height={16} width={250} />
-                                </div>
-                              </div>
-
-                              <div className="h-64 md:h-72 lg:h-[18rem] overflow-y-auto overscroll-contain scrollbar-hide">
-                                <div className="space-y-3">
-                                  {Array.from({ length: 5 }).map((_, i) => (
-                                    <div
-                                      key={i}
-                                      className="flex items-center justify-between gap-4 rounded-2xl bg-white/80 border border-cyan-50 px-4 py-4"
-                                    >
-                                      <div className="flex items-center gap-4 min-w-0">
-                                        <div className="w-12 h-12 rounded-xl bg-cyan-100 flex items-center justify-center shrink-0">
-                                          <Skeleton
-                                            circle
-                                            height={48}
-                                            width={48}
-                                          />
-                                        </div>
-                                        <div className="min-w-0">
-                                          <Skeleton height={16} width={120} />
-                                          <Skeleton height={12} width={80} />
-                                        </div>
-                                      </div>
-                                      <Skeleton height={32} width={80} />
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </main>
-        </div>
-      </div>
+  const filteredStudents = useMemo(() => {
+    if (!searchQuery) return students;
+    const lower = searchQuery.toLowerCase();
+    return students.filter(
+      (s) =>
+        s.nama.toLowerCase().includes(lower) ||
+        s.nisn.includes(lower) ||
+        s.kelas.toLowerCase().includes(lower)
     );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-screen bg-gray-50">
-        <AdminSidebar
-          isCollapsed={isSidebarCollapsed}
-          isMobileOpen={isMobileSidebarOpen}
-          onMobileClose={() => setIsMobileSidebarOpen(false)}
-        />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-red-500">Error: {error}</div>
-        </div>
-      </div>
-    );
-  }
+  }, [students, searchQuery]);
 
   const handleOpenModal = (student: BermasyarakatStudent) => {
     setSelectedStudent(student);
@@ -247,6 +154,10 @@ export default function AdminBermasyarakatPage() {
     setSelectedStudent(null);
   };
 
+  const getDeskripsiLabel = (key: string) => {
+    return BERMASYARAKAT_DESKRIPSI_MAP[key] || key;
+  };
+
   const handleDownloadPDF = async () => {
     if (!selectedStudent) return;
 
@@ -256,352 +167,148 @@ export default function AdminBermasyarakatPage() {
       format: "a4",
     });
 
-    // Try to load Poppins font to match other PDFs; if it fails, fallback to default
     try {
       const regularUrl =
         "https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrFJA.ttf";
       const boldUrl =
         "https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z1xlFQ.ttf";
+
       const [regularResponse, boldResponse] = await Promise.all([
         fetch(regularUrl),
         fetch(boldUrl),
       ]);
+
       const regularBuffer = await regularResponse.arrayBuffer();
       const boldBuffer = await boldResponse.arrayBuffer();
+
       const regularBase64 = btoa(
         String.fromCharCode(...new Uint8Array(regularBuffer))
       );
       const boldBase64 = btoa(
         String.fromCharCode(...new Uint8Array(boldBuffer))
       );
+
       doc.addFileToVFS("Poppins-Regular.ttf", regularBase64);
       doc.addFileToVFS("Poppins-Bold.ttf", boldBase64);
+
       doc.addFont("Poppins-Regular.ttf", "Poppins", "normal");
       doc.addFont("Poppins-Bold.ttf", "Poppins", "bold");
-    } catch (err) {
-      console.error("Could not load Poppins fonts, using defaults", err);
+    } catch (error) {
+      console.error(
+        "Failed to load Poppins font, using default Helvetica",
+        error
+      );
     }
-
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const marginX = 20;
-    const tableWidth = 170;
     const tableTop = 95;
     const headerMainHeight = 9;
-    const headerSubHeight = 9;
     const rowHeight = 12;
 
-    // Column widths (sum should be tableWidth)
-    const dateColWidth = 40;
-    const descColWidth = 70;
-    const tempatColWidth = 30;
-    const waktuColWidth = 20;
-    const parafColWidth = 10;
+    const dateColWidth = 35;
+    const jenisColWidth = 60;
+    const tempatColWidth = 40;
+    const waktuColWidth = 35;
+    const tableWidth =
+      dateColWidth + jenisColWidth + tempatColWidth + waktuColWidth;
 
-    const rowsToRender = Math.max(filteredEntries.length, 10);
+    // Header
+    doc.setFont("Poppins", "bold");
+    doc.setFontSize(14);
+    doc.text("SMK NEGERI 31 JAKARTA", pageWidth / 2, 20, { align: "center" });
 
-    const renderBaseLayout = () => {
-      const pageCenterX = pageWidth / 2;
-      doc.setFillColor(255, 255, 255);
-      doc.rect(0, 0, pageWidth, pageHeight, "F");
+    doc.setFontSize(24);
+    doc.text("JURNAL KEBIASAAN BAIK", pageWidth / 2, 35, { align: "center" });
 
-      // Header - school + title
+    doc.setFont("Poppins", "normal");
+    doc.setFontSize(16);
+    doc.text("Bermasyarakat", pageWidth / 2, 45, { align: "center" });
+
+    // Info Box
+    doc.setFillColor(250, 250, 250);
+    doc.rect(marginX, 60, pageWidth - 2 * marginX, 25, "F");
+    doc.setFontSize(11);
+    doc.setTextColor(50, 50, 50);
+
+    doc.text(`Nama: ${selectedStudent.nama}`, marginX + 5, 70);
+    doc.text(`Kelas: ${selectedStudent.kelas || "-"}`, marginX + 5, 78);
+    doc.text(`Periode: ${modalMonthLabel}`, marginX + 5, 86);
+
+    // Table Header
+    const renderHeader = (y: number) => {
+      doc.setFillColor(240, 240, 240);
+      doc.rect(marginX, y, tableWidth, 10, "F");
       doc.setFont("Poppins", "bold");
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(14);
-      doc.text("SMK NEGERI 31 JAKARTA", pageCenterX, 20, { align: "center" });
-
-      doc.setFontSize(24);
-      doc.text("JURNAL KEBIASAAN BAIK", pageCenterX, 35, { align: "center" });
-
-      doc.setFont("Poppins", "normal");
-      doc.setFontSize(16);
-      doc.text("Bermasyarakat", pageCenterX, 45, { align: "center" });
-
-      // Student info box
-      doc.setFillColor(250, 250, 250);
-      doc.rect(marginX, 60, pageWidth - 2 * marginX, 25, "F");
-      doc.setDrawColor(22, 62, 130);
-      doc.setLineWidth(0.5);
-      doc.rect(marginX, 60, pageWidth - 2 * marginX, 25);
-
-      doc.setFont("Poppins", "bold");
-      doc.setTextColor(22, 62, 130);
-      doc.setFontSize(11);
-      const infoStartY = 70;
-      const infoSpacing = 5;
-      const labelX = marginX + 5;
-      const valueX = marginX + 38;
-      doc.text("Nama Siswa", labelX, infoStartY);
-      doc.text("Kelas", labelX, infoStartY + infoSpacing);
-      doc.text("Periode", labelX, infoStartY + infoSpacing * 2);
-      doc.setFont("Poppins", "bold");
-      doc.setTextColor(45, 45, 45);
-      doc.text(selectedStudent.nama || "-", valueX, infoStartY);
-      doc.text(selectedStudent.kelas || "-", valueX, infoStartY + infoSpacing);
-      doc.text(modalMonthLabel || "-", valueX, infoStartY + infoSpacing * 2);
-    };
-
-    const renderTableHeader = () => {
-      const startX = marginX;
-      const startY = tableTop;
-      doc.setDrawColor(0, 0, 0);
-      doc.setLineWidth(0.6);
-      doc.setFillColor(230, 236, 247);
-      doc.rect(startX, startY, tableWidth, headerMainHeight, "F");
-      doc.setFillColor(244, 247, 255);
-      doc.rect(
-        startX,
-        startY + headerMainHeight,
-        tableWidth,
-        headerSubHeight,
-        "F"
-      );
-      doc.rect(startX, startY, tableWidth, headerMainHeight + headerSubHeight);
-
-      // vertical separators
-      let curX = startX;
-      curX += dateColWidth;
-      doc.line(curX, startY, curX, startY + headerMainHeight + headerSubHeight);
-      curX += descColWidth;
-      doc.line(curX, startY, curX, startY + headerMainHeight + headerSubHeight);
-      curX += tempatColWidth;
-      // draw vertical separator after 'Tempat'
-      doc.line(curX, startY, curX, startY + headerMainHeight + headerSubHeight);
-      curX += waktuColWidth;
-      // draw vertical separator after 'Waktu' (before Paraf)
-      doc.line(curX, startY, curX, startY + headerMainHeight + headerSubHeight);
-
-      doc.setFont("Poppins", "bold");
-      doc.setTextColor(45, 45, 45);
       doc.setFontSize(10);
-      const combinedHeaderCenter =
-        startY + (headerMainHeight + headerSubHeight) / 2 + 1;
+      doc.setTextColor(50, 50, 50);
 
-      doc.text(
-        "Hari/Tanggal",
-        startX + dateColWidth / 2,
-        combinedHeaderCenter,
-        { align: "center" }
-      );
-      doc.text(
-        "Deskripsi Kegiatan",
-        startX + dateColWidth + descColWidth / 2,
-        combinedHeaderCenter,
-        { align: "center" }
-      );
-      doc.text(
-        "Tempat",
-        startX + dateColWidth + descColWidth + tempatColWidth / 2,
-        combinedHeaderCenter,
-        { align: "center" }
-      );
+      doc.text("Hari/Tanggal", marginX + 5, y + 7);
+      doc.text("Jenis Kegiatan", marginX + dateColWidth + 5, y + 7);
+      doc.text("Tempat", marginX + dateColWidth + jenisColWidth + 5, y + 7);
       doc.text(
         "Waktu",
-        startX +
-          dateColWidth +
-          descColWidth +
-          tempatColWidth +
-          waktuColWidth / 2,
-        combinedHeaderCenter,
-        { align: "center" }
-      );
-      doc.text(
-        "Paraf",
-        startX +
-          dateColWidth +
-          descColWidth +
-          tempatColWidth +
-          waktuColWidth +
-          parafColWidth / 2,
-        combinedHeaderCenter,
-        { align: "center" }
+        marginX + dateColWidth + jenisColWidth + tempatColWidth + 5,
+        y + 7
       );
 
-      return startY + headerMainHeight + headerSubHeight;
+      return y + 10;
     };
 
-    const renderRow = (entry: BermasyarakatEntry, rowTop: number) => {
-      // borders for each cell are drawn by the caller per sub-row to keep
-      // line thickness and alignment stable. This function only draws content.
+    let currentY = tableTop;
+    currentY = renderHeader(currentY);
+    doc.setFont("Poppins", "normal");
 
-      doc.setFont("Poppins", "normal");
-      doc.setFontSize(11);
-      // date text
+    filteredEntries.forEach((entry) => {
+      if (currentY > pageHeight - 20) {
+        doc.addPage();
+        currentY = 20;
+        currentY = renderHeader(currentY);
+        doc.setFont("Poppins", "normal");
+      }
+
+      // Handle multiline text for 'Jenis Kegiatan'
+      const jenisText = getDeskripsiLabel(entry.jenisKegiatan) || "-";
+      const splitJenis = doc.splitTextToSize(jenisText, jenisColWidth - 5);
+      const splitHeight = splitJenis.length * 5; // approx height
+      const dynamicRowHeight = Math.max(rowHeight, splitHeight + 6);
+
+      // Draw row lines would be better, but simpler: just text placement
+
+      doc.text(formatDisplayDate(entry.tanggal), marginX + 5, currentY + 8);
+
+      doc.text(splitJenis, marginX + dateColWidth + 5, currentY + 8);
+
       doc.text(
-        formatDisplayDate(entry.tanggal),
-        marginX + 3,
-        rowTop + rowHeight / 2 + 1,
-        { align: "left", maxWidth: dateColWidth - 6 }
-      );
-
-      const descText =
-        BERMASYARAKAT_DESKRIPSI_MAP[entry.deskripsi] || entry.deskripsi || "-";
-      const descLines = doc.splitTextToSize(descText, descColWidth - 6);
-      doc.text(descLines, marginX + dateColWidth + 3, rowTop + 4);
-
-      const tempatLines = doc.splitTextToSize(
         entry.tempat || "-",
-        tempatColWidth - 6
+        marginX + dateColWidth + jenisColWidth + 5,
+        currentY + 8,
+        { maxWidth: tempatColWidth - 5 }
       );
-      doc.text(
-        tempatLines,
-        marginX + dateColWidth + descColWidth + 3,
-        rowTop + 4
-      );
-
       doc.text(
         entry.waktu || "-",
-        marginX +
-          dateColWidth +
-          descColWidth +
-          tempatColWidth +
-          waktuColWidth / 2,
-        rowTop + rowHeight / 2 + 1,
-        { align: "center" }
+        marginX + dateColWidth + jenisColWidth + tempatColWidth + 5,
+        currentY + 8
       );
 
-      if (entry.paraf) {
-        // small check mark for paraf
-        doc.setDrawColor(0, 0, 0);
-        doc.setLineWidth(0.3);
-        const cx =
-          marginX +
-          dateColWidth +
-          descColWidth +
-          tempatColWidth +
-          waktuColWidth +
-          parafColWidth / 2;
-        const cy = rowTop + rowHeight / 2;
-        doc.line(cx - 2, cy - 0.5, cx - 0.5, cy + 1);
-        doc.line(cx - 0.5, cy + 1, cx + 2, cy - 1.5);
-      }
-
-      return Math.max(descLines.length, tempatLines.length) * 5 + 5;
-    };
-
-    renderBaseLayout();
-    let currentY = renderTableHeader();
-    doc.setFont("Poppins", "normal");
-    doc.setFontSize(11);
-    doc.setTextColor(45, 45, 45);
-    doc.setLineWidth(0.3);
-
-    for (let index = 0; index < rowsToRender; index += 1) {
-      const entry = filteredEntries[index];
-
-      if (entry) {
-        // compute required height for this row
-        const descText =
-          BERMASYARAKAT_DESKRIPSI_MAP[entry.deskripsi] ||
-          entry.deskripsi ||
-          "-";
-        const descLines = doc.splitTextToSize(descText, descColWidth - 6);
-        const tempatLines = doc.splitTextToSize(
-          entry.tempat || "-",
-          tempatColWidth - 6
-        );
-        const neededHeight =
-          Math.max(descLines.length, tempatLines.length) * 5 + 5;
-
-        if (currentY + neededHeight > pageHeight - marginX) {
-          doc.addPage();
-          renderBaseLayout();
-          currentY = renderTableHeader();
-          doc.setFont("Poppins", "normal");
-          doc.setFontSize(11);
-          doc.setTextColor(45, 45, 45);
-        }
-
-        // render rows: draw borders for each column on every sub-row so the
-        // table remains visually stable (no missing vertical separators).
-        const linesUsed = Math.max(Math.ceil(neededHeight / rowHeight), 1);
-        for (let r = 0; r < linesUsed; r += 1) {
-          const top = currentY + r * rowHeight;
-          // draw cell rectangles (one rectangle per column) for this sub-row
-          doc.rect(marginX, top, dateColWidth, rowHeight);
-          doc.rect(marginX + dateColWidth, top, descColWidth, rowHeight);
-          doc.rect(
-            marginX + dateColWidth + descColWidth,
-            top,
-            tempatColWidth,
-            rowHeight
-          );
-          doc.rect(
-            marginX + dateColWidth + descColWidth + tempatColWidth,
-            top,
-            waktuColWidth,
-            rowHeight
-          );
-          doc.rect(
-            marginX +
-              dateColWidth +
-              descColWidth +
-              tempatColWidth +
-              waktuColWidth,
-            top,
-            parafColWidth,
-            rowHeight
-          );
-        }
-
-        // draw content at currentY (only on the first sub-row)
-        renderRow(entry, currentY);
-
-        // advance by number of sub-rows actually used
-        currentY += linesUsed * rowHeight;
-      } else {
-        // Render empty row
-        const neededHeight = rowHeight;
-
-        if (currentY + neededHeight > pageHeight - marginX) {
-          doc.addPage();
-          renderBaseLayout();
-          currentY = renderTableHeader();
-          doc.setFont("Poppins", "normal");
-          doc.setFontSize(11);
-          doc.setTextColor(45, 45, 45);
-        }
-
-        // draw cell rectangles for empty row
-        doc.rect(marginX, currentY, dateColWidth, rowHeight);
-        doc.rect(marginX + dateColWidth, currentY, descColWidth, rowHeight);
-        doc.rect(
-          marginX + dateColWidth + descColWidth,
-          currentY,
-          tempatColWidth,
-          rowHeight
-        );
-        doc.rect(
-          marginX + dateColWidth + descColWidth + tempatColWidth,
-          currentY,
-          waktuColWidth,
-          rowHeight
-        );
-        doc.rect(
-          marginX +
-            dateColWidth +
-            descColWidth +
-            tempatColWidth +
-            waktuColWidth,
-          currentY,
-          parafColWidth,
-          rowHeight
-        );
-
-        currentY += rowHeight;
-      }
-    }
+      doc.setDrawColor(230, 230, 230);
+      doc.line(
+        marginX,
+        currentY + dynamicRowHeight,
+        pageWidth - marginX,
+        currentY + dynamicRowHeight
+      );
+      currentY += dynamicRowHeight;
+    });
 
     const safeFileName = selectedStudent.nama
-      ? selectedStudent.nama.replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase()
-      : "siswa";
+      .replace(/[^a-zA-Z0-9]+/g, "-")
+      .toLowerCase();
     doc.save(`jurnal-bermasyarakat-${safeFileName}.pdf`);
   };
 
   const formatDisplayDate = (value: string) => {
     const parsed = new Date(value);
-
     if (!Number.isNaN(parsed.getTime())) {
       return new Intl.DateTimeFormat("id-ID", {
         weekday: "long",
@@ -610,278 +317,264 @@ export default function AdminBermasyarakatPage() {
         year: "numeric",
       }).format(parsed);
     }
-
     return value;
   };
 
   if (loading) {
     return (
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-gray-50 font-poppins text-gray-800">
         <AdminSidebar
           isCollapsed={isSidebarCollapsed}
           isMobileOpen={isMobileSidebarOpen}
           onMobileClose={() => setIsMobileSidebarOpen(false)}
         />
-        <div className="flex-1 flex items-center justify-center">
-          <div>Loading...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-screen bg-gray-50">
-        <AdminSidebar
-          isCollapsed={isSidebarCollapsed}
-          isMobileOpen={isMobileSidebarOpen}
-          onMobileClose={() => setIsMobileSidebarOpen(false)}
-        />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-red-500">Error: {error}</div>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <AdminNavbar
+            onToggleSidebar={() => setIsSidebarCollapsed((s) => !s)}
+            onToggleMobileSidebar={() => setIsMobileSidebarOpen((s) => !s)}
+          />
+          <div className="flex-1 p-8 flex items-center justify-center">
+            <div className="text-center">
+              <div className="loading loading-spinner loading-lg text-[var(--secondary)] mb-4"></div>
+              <p className="text-gray-500">Memuat data bermasyarakat...</p>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 font-poppins text-gray-800">
       <AdminSidebar
         isCollapsed={isSidebarCollapsed}
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={() => setIsMobileSidebarOpen(false)}
       />
+
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminNavbar
           onToggleSidebar={() => setIsSidebarCollapsed((s) => !s)}
           onToggleMobileSidebar={() => setIsMobileSidebarOpen((s) => !s)}
         />
-        <main
-          className="flex-1 overflow-auto"
-          style={{ backgroundColor: "var(--background)" }}
-        >
-          {/* Header Section */}
-          <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6 md:mb-8">
-              <div className="px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 rounded-tr-xl rounded-tl-xl bg-gradient-to-r from-cyan-500 to-cyan-600">
-                <div className="flex items-center justify-between">
-                  <div className="w-full text-center">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 md:mb-3 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                      <Users className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
-                      <span>Data Bermasyarakat Siswa</span>
-                    </h1>
-                    <p className="text-cyan-100 text-xs sm:text-sm md:text-base lg:text-lg max-w-3xl mx-auto">
-                      Pantau aktivitas bermasyarakat siswa.
-                    </p>
-                  </div>
+
+        <main className="flex-1 overflow-auto bg-gray-50/50 p-4 md:p-6">
+          <div className="space-y-6">
+            {/* Header Card */}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
+                <div className="w-16 h-16 rounded-2xl bg-[var(--secondary)]/10 flex items-center justify-center text-[var(--secondary)]">
+                  <Users className="w-8 h-8" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                    Bermasyarakat
+                  </h1>
+                  <p className="text-gray-500">
+                    Rekapitulasi aktivitas sosial dan bermasyarakat siswa.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden">
+              {/* Toolbar */}
+              <div className="p-4 md:p-6 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center">
+                <div className="relative w-full sm:w-96">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Cari siswa berdasarkan nama atau NISN..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Filter className="w-4 h-4" />
+                  <span>
+                    Total: <strong>{filteredStudents.length}</strong> Siswa
+                  </span>
                 </div>
               </div>
 
-              <div className="p-2 sm:p-4">
-                <div className="flex flex-col gap-6 xl:flex-row">
-                  <div className="flex-1 space-y-6">
-                    {/* Data Bermasyarakat Container */}
-                    <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-4 sm:p-6">
-                      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-                        <div className="flex-1">
-                          <div className="bg-white rounded-2xl p-5 border border-cyan-100">
-                            <div className="flex items-start gap-3 mb-4">
-                              <div className="w-12 h-12 rounded-2xl bg-cyan-100 flex items-center justify-center">
-                                <Users className="w-6 h-6 text-cyan-600" />
-                              </div>
-                              <div>
-                                <h3 className="text-lg font-semibold text-slate-800">
-                                  Daftar Siswa Bermasyarakat
-                                </h3>
-                                <p className="text-sm text-slate-500">
-                                  Pilih siswa untuk melihat jurnal harian mereka
-                                </p>
-                              </div>
+              {/* List */}
+              <div className="max-h-[600px] overflow-y-auto">
+                {filteredStudents.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                    <Users className="w-16 h-16 mb-4 opacity-20" />
+                    <p>Tidak ada data siswa ditemukan.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1">
+                    {filteredStudents.map((student) => (
+                      <div
+                        key={student.nisn}
+                        className={`group flex items-center justify-between p-4 md:p-6 hover:bg-gray-50 transition-all cursor-pointer border-b border-gray-100 last:border-0`}
+                        onClick={() => handleOpenModal(student)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-lg group-hover:bg-[var(--secondary)] group-hover:text-white transition-colors">
+                            {student.nama.charAt(0)}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-gray-900 group-hover:text-[var(--secondary)] transition-colors">
+                              {student.nama}
+                            </h3>
+                            <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+                              <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-medium uppercase tracking-wide">
+                                {student.kelas || "Tanpa Kelas"}
+                              </span>
+                              <span>•</span>
+                              <span>{student.nisn}</span>
+                              <span>•</span>
+                              <span>{student.entries.length} Catatan</span>
                             </div>
-
-                            {students.length === 0 ? (
-                              <div className="flex h-32 items-center justify-center text-sm text-slate-500">
-                                Belum ada data bermasyarakat.
-                              </div>
-                            ) : (
-                              <div className="h-64 md:h-72 lg:h-[18rem] overflow-y-auto overscroll-contain scrollbar-hide">
-                                <div className="space-y-3">
-                                  {students.map((student) => (
-                                    <div
-                                      key={student.nisn}
-                                      className="flex items-center justify-between gap-4 rounded-2xl bg-white/80 border border-cyan-50 px-4 py-4 hover:bg-cyan-50/50 transition-colors"
-                                    >
-                                      <div className="flex items-center gap-4 min-w-0">
-                                        <div className="w-12 h-12 rounded-xl bg-cyan-100 flex items-center justify-center shrink-0">
-                                          <User className="w-6 h-6 text-cyan-600" />
-                                        </div>
-                                        <div className="min-w-0">
-                                          <p className="text-sm font-semibold text-slate-800 truncate">
-                                            {student.nama}
-                                          </p>
-                                          <p className="text-xs text-slate-500 truncate">
-                                            {student.kelas ||
-                                              "Kelas belum diisi"}
-                                          </p>
-                                        </div>
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleOpenModal(student)}
-                                        className="flex items-center gap-2 rounded-full bg-cyan-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
-                                      >
-                                        Detail
-                                        <MoveRight className="w-4 h-4" />
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
                           </div>
                         </div>
+                        <div className="flex items-center gap-4">
+                          <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-[var(--secondary)] hover:border-[var(--secondary)] hover:bg-[var(--secondary)]/5 transition-all">
+                            <MoveRight className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
         </main>
       </div>
 
+      {/* Detail Modal */}
       {isModalOpen && selectedStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 pt-10 pb-6 sm:pb-10">
-          <div className="relative w-full max-w-5xl rounded-3xl border border-slate-200 bg-white shadow-2xl">
-            <div className="flex items-center justify-between gap-4 rounded-t-3xl px-6 py-5 bg-gradient-to-r from-cyan-500 to-cyan-600">
-              <div>
-                <h2 className="text-xl font-semibold text-white">
-                  Jurnal Bermasyarakat
-                </h2>
-                <p className="text-sm text-white/80">
-                  Data kebiasaan dari kebiasaan_hebat
-                </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-5xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--secondary)]/10 flex items-center justify-center text-[var(--secondary)]">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Detail Jurnal Siswa
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    {selectedStudent.nama}
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  type="button"
                   onClick={handleDownloadPDF}
-                  className="rounded-full bg-white/20 p-2 text-white transition hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  className="p-2.5 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-all border border-transparent hover:border-gray-200"
                   title="Download PDF"
                 >
-                  <ArrowDownToLine className="h-5 w-5" />
+                  <ArrowDownToLine className="w-5 h-5" />
                 </button>
                 <button
-                  type="button"
                   onClick={handleCloseModal}
-                  className="rounded-full bg-white/20 p-2 text-white transition hover:bg-white/30 focus:outline-none focus-visible:ring-white"
+                  className="p-2.5 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            <div className="space-y-6 px-6 py-6">
-              <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-4">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">
-                    Nama
-                  </p>
-                  <p className="font-semibold text-slate-800">
-                    {selectedStudent.nama}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">
-                    NISN
-                  </p>
-                  <p className="font-semibold text-slate-800">
-                    {selectedStudent.nisn}
-                  </p>
-                </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">
+            {/* Fixed Stats Section */}
+            <div className="p-6 border-b border-gray-100 bg-gray-50/30">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-2xl">
+                  <label className="text-xs font-bold text-blue-400 uppercase tracking-wider block mb-1">
                     Kelas
-                  </p>
-                  <p className="font-semibold text-slate-800">
+                  </label>
+                  <p className="font-bold text-blue-900 text-lg">
                     {selectedStudent.kelas || "-"}
                   </p>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-xs uppercase tracking-wide text-slate-500">
-                    Bulan
+                <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-2xl">
+                  <label className="text-xs font-bold text-emerald-400 uppercase tracking-wider block mb-1">
+                    Total Entri
+                  </label>
+                  <p className="font-bold text-emerald-900 text-lg">
+                    {selectedStudent.entries.length} Hari
                   </p>
+                </div>
+                <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl">
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                    Filter Bulan
+                  </label>
                   <Select
                     value={selectedMonth}
                     onChange={setSelectedMonth}
                     options={[
                       { value: "all", label: "Semua Bulan" },
-                      ...availableMonths.map((month) => ({
-                        value: month,
+                      ...availableMonths.map((m) => ({
+                        value: m,
                         label: new Intl.DateTimeFormat("id-ID", {
                           month: "long",
                           year: "numeric",
-                        }).format(new Date(month + "-01")),
+                        }).format(new Date(m + "-01")),
                       })),
                     ]}
+                    placeholder="Pilih Bulan"
                   />
                 </div>
               </div>
+            </div>
 
-              <div className="overflow-y-auto max-h-96 rounded-2xl border border-slate-200">
-                <table className="min-w-full table-fixed">
-                  <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-600">
+            <div className="flex-1 flex flex-col overflow-hidden p-6 md:p-8">
+              <div className="border border-gray-200 rounded-2xl flex-1 overflow-auto relative">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-gray-50 text-gray-500 font-semibold border-b border-gray-200 sticky top-0 z-10">
                     <tr>
-                      <th className="w-1/5 border-r border-slate-200 px-4 py-3 text-left">
-                        Hari/Tanggal
-                      </th>
-                      <th className="w-1/3 border-r border-slate-200 px-4 py-3 text-left">
-                        Deskripsi Kegiatan
-                      </th>
-                      <th className="w-1/5 border-r border-slate-200 px-4 py-3 text-left">
-                        Tempat
-                      </th>
-                      <th className="w-1/5 border-r border-slate-200 px-4 py-3 text-left">
-                        Waktu
-                      </th>
-                      <th className="w-1/5 px-4 py-3 text-center">Paraf</th>
+                      <th className="px-6 py-4 min-w-[150px]">Hari/Tanggal</th>
+                      <th className="px-6 py-4">Jenis Kegiatan</th>
+                      <th className="px-6 py-4">Tempat</th>
+                      <th className="px-6 py-4">Waktu</th>
+                      <th className="px-6 py-4 text-center">Paraf</th>
                     </tr>
                   </thead>
-                  <tbody className="text-sm text-slate-700">
-                    {selectedStudent.entries.length === 0 ? (
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredEntries.length === 0 ? (
                       <tr>
                         <td
                           colSpan={5}
-                          className="px-4 py-6 text-center text-slate-500"
+                          className="px-6 py-12 text-center text-gray-400"
                         >
-                          Belum ada catatan bermasyarakat.
+                          Tidak ada data untuk periode ini.
                         </td>
                       </tr>
                     ) : (
-                      filteredEntries.map((entry, index) => (
+                      filteredEntries.map((entry, i) => (
                         <tr
-                          key={`${entry.tanggal}-${index}`}
-                          className="odd:bg-white even:bg-slate-50"
+                          key={i}
+                          className="hover:bg-gray-50 transition-colors"
                         >
-                          <td className="border-t border-slate-200 px-4 py-3 align-top">
+                          <td className="px-6 py-4 font-medium text-gray-900">
                             {formatDisplayDate(entry.tanggal)}
                           </td>
-                          <td className="border-t border-slate-200 px-4 py-3 align-top">
-                            {BERMASYARAKAT_DESKRIPSI_MAP[entry.deskripsi] ||
-                              entry.deskripsi ||
-                              "-"}
+                          <td className="px-6 py-4 text-gray-600">
+                            {getDeskripsiLabel(entry.jenisKegiatan)}
                           </td>
-                          <td className="border-t border-slate-200 px-4 py-3 align-top">
+                          <td className="px-6 py-4 text-gray-600">
                             {entry.tempat || "-"}
                           </td>
-                          <td className="border-t border-slate-200 px-4 py-3 align-top">
+                          <td className="px-6 py-4 text-gray-600">
                             {entry.waktu || "-"}
                           </td>
-                          <td className="border-t border-slate-200 px-4 py-3 text-center align-top">
+                          <td className="px-6 py-4 text-center">
                             {entry.paraf ? (
-                              <Check className="mx-auto h-4 w-4 text-emerald-600" />
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">
+                                <Check className="w-3.5 h-3.5" /> Sudah
+                              </span>
                             ) : (
-                              <span className="text-slate-300">-</span>
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-bold">
+                                Belum
+                              </span>
                             )}
                           </td>
                         </tr>
@@ -890,16 +583,15 @@ export default function AdminBermasyarakatPage() {
                   </tbody>
                 </table>
               </div>
+            </div>
 
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="rounded-full bg-slate-200 px-5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-                >
-                  Tutup
-                </button>
-              </div>
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+              <button
+                onClick={handleCloseModal}
+                className="px-6 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold hover:bg-gray-100 transition-colors text-sm shadow-sm"
+              >
+                Tutup
+              </button>
             </div>
           </div>
         </div>

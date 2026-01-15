@@ -6,13 +6,12 @@ import StudentSidebar from "@/app/components/dashboard/student/sidebar";
 import StudentNavbar from "@/app/components/dashboard/student/navbar";
 import { useSessionTimeout } from "@/app/lib/useSessionTimeout";
 import {
-  LayoutDashboard,
-  Users,
   Activity,
-  CircleCheck,
-  CircleX,
+  CheckCircle2,
+  XCircle,
   School,
-  // Book,
+  Clock,
+  CalendarDays,
 } from "lucide-react";
 
 interface KegiatanData {
@@ -79,12 +78,24 @@ export default function StudentDashboard() {
     kelas: string;
   } | null>(null);
   const [isLoadingStudent, setIsLoadingStudent] = useState(true);
+  const [currentDate, setCurrentDate] = useState("");
 
   useSessionTimeout({
     timeoutMinutes: 30,
     redirectPath: "/site/student/login?expired=1",
     tokenKey: "studentToken",
   });
+
+  useEffect(() => {
+    const now = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    setCurrentDate(now.toLocaleDateString("id-ID", options));
+  }, []);
 
   const fetchKegiatanHariIni = useCallback(async () => {
     try {
@@ -164,13 +175,13 @@ export default function StudentDashboard() {
     if (kegiatan.bangunPagi?.jam) {
       activities.push({
         name: "Bangun Pagi",
-        time: `Hari ini bangun jam, ${kegiatan.bangunPagi.jam}`,
+        time: `Jam ${kegiatan.bangunPagi.jam}`,
         completed: true,
       });
     } else {
       activities.push({
         name: "Bangun Pagi",
-        time: "Belum selesai",
+        time: "--:--",
         completed: false,
       });
     }
@@ -184,13 +195,13 @@ export default function StudentDashboard() {
     if (hasBeribadah) {
       activities.push({
         name: "Beribadah",
-        time: `Hari ini sudah beribadah`,
+        time: "Tercatat",
         completed: true,
       });
     } else {
       activities.push({
         name: "Beribadah",
-        time: "Belum selesai",
+        time: "-",
         completed: false,
       });
     }
@@ -200,29 +211,28 @@ export default function StudentDashboard() {
       kegiatan.makanSehat?.jenisMakanan ||
       kegiatan.makanSehat?.jenisLaukSayur
     ) {
+      let desc = "Tercatat";
       const mealTypeMap: Record<string, string> = {
         sahur: "Sahur",
-        sarapan: "Sarapan Pagi",
-        siang: "Makan Siang",
-        malam: "Makan Malam",
+        sarapan: "Sarapan",
+        siang: "Siang",
+        malam: "Malam",
       };
-      const mealType = kegiatan.makanSehat.jenisMakanan
-        ? mealTypeMap[kegiatan.makanSehat.jenisMakanan] ||
-          kegiatan.makanSehat.jenisMakanan
-        : "";
+      if (kegiatan.makanSehat.jenisMakanan) {
+        desc =
+          mealTypeMap[kegiatan.makanSehat.jenisMakanan] ||
+          kegiatan.makanSehat.jenisMakanan;
+      }
+
       activities.push({
         name: "Makan Sehat",
-        time: `Hari ini makan sehat${mealType ? ` (${mealType})` : ""}${
-          kegiatan.makanSehat.jenisLaukSayur
-            ? ` dengan ${kegiatan.makanSehat.jenisLaukSayur}`
-            : ""
-        }`,
+        time: desc,
         completed: true,
       });
     } else {
       activities.push({
         name: "Makan Sehat",
-        time: "Belum selesai",
+        time: "-",
         completed: false,
       });
     }
@@ -231,15 +241,13 @@ export default function StudentDashboard() {
     if (kegiatan.olahraga?.deskripsi) {
       activities.push({
         name: "Olahraga",
-        time: `Hari ini berolahraga ${kegiatan.olahraga.deskripsi} selama, ${
-          kegiatan.olahraga.waktu || ""
-        } menit`,
+        time: `${kegiatan.olahraga.waktu || "0"} menit`,
         completed: true,
       });
     } else {
       activities.push({
         name: "Olahraga",
-        time: "Belum selesai",
+        time: "-",
         completed: false,
       });
     }
@@ -248,13 +256,13 @@ export default function StudentDashboard() {
     if (kegiatan.belajar?.yaAtauTidak) {
       activities.push({
         name: "Belajar",
-        time: `Hari ini belajar ${kegiatan.belajar.deskripsi || ""}`,
+        time: "Tercatat",
         completed: true,
       });
     } else {
       activities.push({
         name: "Belajar",
-        time: "Belum selesai",
+        time: "-",
         completed: false,
       });
     }
@@ -263,15 +271,13 @@ export default function StudentDashboard() {
     if (kegiatan.bermasyarakat?.deskripsi) {
       activities.push({
         name: "Bermasyarakat",
-        time: `Hari ini ${kegiatan.bermasyarakat.deskripsi || ""} di ${
-          kegiatan.bermasyarakat.tempat || ""
-        }`,
+        time: "Tercatat",
         completed: true,
       });
     } else {
       activities.push({
         name: "Bermasyarakat",
-        time: "Belum selesai",
+        time: "-",
         completed: false,
       });
     }
@@ -280,13 +286,13 @@ export default function StudentDashboard() {
     if (kegiatan.tidur?.jam) {
       activities.push({
         name: "Tidur",
-        time: `Hari ini tidur jam, ${kegiatan.tidur.jam}`,
+        time: `Jam ${kegiatan.tidur.jam}`,
         completed: true,
       });
     } else {
       activities.push({
         name: "Tidur",
-        time: "Belum selesai",
+        time: "--:--",
         completed: false,
       });
     }
@@ -312,7 +318,7 @@ export default function StudentDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 font-poppins text-gray-800">
       {/* Sidebar */}
       <StudentSidebar
         isCollapsed={isSidebarCollapsed}
@@ -329,180 +335,198 @@ export default function StudentDashboard() {
         />
 
         {/* Page Content */}
-        <main
-          className="flex-1 overflow-auto"
-          style={{ backgroundColor: "var(--background)" }}
-        >
-          {/* Header Section */}
-          <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6 md:mb-8">
-              <div
-                style={{ backgroundColor: "var(--secondary)" }}
-                className="px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 rounded-tr-xl rounded-tl-xl"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-full text-center">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 md:mb-3 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                      <LayoutDashboard className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
-                      <span>Dashboard Siswa</span>
-                    </h1>
-                    <p className="text-blue-100 text-xs sm:text-sm md:text-base lg:text-lg max-w-3xl mx-auto">
-                      Pantau aktivitas harian dan poin kebiasaanmu dengan mudah.
-                    </p>
-                  </div>
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="w-full mx-auto space-y-6">
+            {/* Header / Welcome Section */}
+            <div className="flex flex-col items-center md:flex-row md:items-center justify-between gap-4">
+              <div className="text-center md:text-left">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
+                  Dashboard
+                </h1>
+                <p className="text-gray-500 mt-1 flex items-center justify-center md:justify-start gap-2 text-sm md:text-base">
+                  <CalendarDays className="w-4 h-4" />
+                  {currentDate}
+                </p>
+              </div>
+              <div className="hidden md:block">
+                <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[var(--secondary)]" />
+                  <span className="text-sm font-medium text-gray-600">
+                    Selamat Beraktivitas!
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Profile & Quick Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Profile Card */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center text-center relative overflow-hidden group hover:shadow-md transition-all duration-300">
+                <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-[var(--secondary)] to-teal-400 opacity-10"></div>
+                <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-[var(--secondary)] to-teal-400 rounded-full flex items-center justify-center mb-4 shadow-sm text-white">
+                  <span className="text-2xl font-bold">
+                    {studentData?.nama
+                      ? studentData.nama.charAt(0).toUpperCase()
+                      : "?"}
+                  </span>
+                </div>
+                <h2 className="text-lg font-bold text-gray-900 line-clamp-1 relative z-10">
+                  {isLoadingStudent
+                    ? "Memuat..."
+                    : studentData?.nama || "Siswa"}
+                </h2>
+                <div className="flex items-center gap-2 mt-1 text-sm text-gray-500 relative z-10">
+                  <School className="w-3.5 h-3.5" />
+                  <span>
+                    {isLoadingStudent
+                      ? "..."
+                      : `${studentData?.kelas || "-"} • ${
+                          studentData?.nisn || "-"
+                        }`}
+                  </span>
                 </div>
               </div>
 
-              <div className="p-2 sm:p-4">
-                <div className="flex flex-col gap-6 xl:flex-row">
-                  <div className="flex-1 space-y-6">
-                    {/* Statistics Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-green-100/40 rounded-3xl p-6 border border-green-100 shadow-sm">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-green-600 text-sm font-medium mb-1">
-                              Kegiatan Hari Ini
-                            </p>
-                            <p className="text-3xl font-bold text-green-800">
-                              {isLoadingKegiatan
-                                ? "..."
-                                : `${
-                                    getActivities().filter((a) => a.completed)
-                                      .length
-                                  }/7`}
-                            </p>
-                            <p className="text-sm text-green-600">
-                              Kebiasaan selesai
-                            </p>
-                          </div>
-                          <div className="w-14 h-14 bg-white/70 rounded-2xl flex items-center justify-center">
-                            <Activity className="w-7 h-7 text-green-600" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100/40 rounded-3xl p-6 border border-blue-100 shadow-sm">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-blue-600 text-sm font-medium mb-1">
-                              Nama Siswa
-                            </p>
-                            <p className="text-3xl font-bold text-blue-800">
-                              {isLoadingStudent
-                                ? "..."
-                                : studentData?.nama || "N/A"}
-                            </p>
-                            <p className="text-sm text-blue-600">
-                              Nama lengkap
-                            </p>
-                          </div>
-                          <div className="w-14 h-14 bg-white/70 rounded-2xl flex items-center justify-center">
-                            <Users className="w-7 h-7 text-blue-600" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-100/40 rounded-3xl p-6 border border-orange-100 shadow-sm">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-orange-600 text-sm font-medium mb-1">
-                              NISN dan Kelas
-                            </p>
-                            <p className="text-3xl font-bold text-orange-800">
-                              {isLoadingStudent
-                                ? "..."
-                                : `${studentData?.nisn || "N/A"} - ${
-                                    studentData?.kelas || "N/A"
-                                  }`}
-                            </p>
-                            <p className="text-sm text-orange-600">
-                              NISN dan Kelas
-                            </p>
-                          </div>
-                          <div className="w-14 h-14 bg-white/70 rounded-2xl flex items-center justify-center">
-                            <School className="w-7 h-7 text-orange-600" />
-                          </div>
-                        </div>
-                      </div>
+              {/* Progress Card */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col md:col-span-2 relative overflow-hidden group hover:shadow-md transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
+                      <Activity className="w-5 h-5" />
                     </div>
-
-                    {/* Recent Activities */}
-                    <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-4 sm:p-6">
-                      <div className="bg-gradient-to-r from-indigo-50 via-blue-50 to-white rounded-2xl p-5 border border-indigo-100">
-                        <div className="flex items-start gap-3 mb-4">
-                          <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center">
-                            <Activity className="w-6 h-6 text-indigo-500" />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-slate-800">
-                              Aktivitas Terbaru
-                            </h3>
-                            <p className="text-sm text-slate-500">
-                              Ringkasan aktivitas harianmu hari ini (
-                              {new Date().toLocaleDateString("id-ID", {
-                                weekday: "long",
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                              })}
-                              )
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          {isLoadingKegiatan ? (
-                            <div className="text-center py-4">
-                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 mx-auto"></div>
-                              <p className="mt-2 text-sm text-slate-500">
-                                Memuat aktivitas...
-                              </p>
-                            </div>
-                          ) : (
-                            getActivities().map((activity, index) => (
-                              <div
-                                key={index}
-                                className={`flex items-center gap-4 rounded-2xl bg-white/80 border px-4 py-4 hover:bg-opacity-50 transition-colors ${
-                                  activity.completed
-                                    ? "border-green-50 hover:bg-green-50/50"
-                                    : "border-gray-50 hover:bg-gray-50/50"
-                                }`}
-                              >
-                                <div className="w-12 h-12 rounded-xl flex items-center justify-center">
-                                  {activity.completed ? (
-                                    <CircleCheck className="w-7 h-7 text-green-600 bg-green-100 rounded-full p-1" />
-                                  ) : (
-                                    <CircleX className="w-7 h-7 text-gray-400 bg-gray-100 rounded-full p-1" />
-                                  )}
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-sm font-semibold text-slate-800">
-                                    {activity.name}
-                                  </p>
-                                  <p className="text-xs text-slate-500">
-                                    {activity.time}
-                                  </p>
-                                </div>
-                                <div
-                                  className={`w-2 h-2 rounded-full ${
-                                    activity.completed
-                                      ? "bg-green-500"
-                                      : "bg-gray-400"
-                                  }`}
-                                ></div>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-gray-900">
+                        Progres Harian
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Selesaikan kebiasaan baikmu
+                      </p>
                     </div>
                   </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-bold text-gray-900">
+                      {isLoadingKegiatan
+                        ? "-"
+                        : getActivities().filter((a) => a.completed).length}
+                    </span>
+                    <span className="text-gray-400 text-sm">/7</span>
+                  </div>
                 </div>
+
+                <div className="mt-auto">
+                  <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                    <div
+                      className="bg-[var(--secondary)] h-full rounded-full transition-all duration-1000 ease-out"
+                      style={{
+                        width: `${
+                          isLoadingKegiatan
+                            ? 0
+                            : (getActivities().filter((a) => a.completed)
+                                .length /
+                                7) *
+                              100
+                        }%`,
+                      }}
+                    ></div>
+                  </div>
+                  <p className="text-right text-xs text-gray-400 mt-2">
+                    {isLoadingKegiatan
+                      ? "Sedang memuat data..."
+                      : getActivities().filter((a) => a.completed).length === 7
+                      ? "Luar biasa! Semua kegiatan selesai!"
+                      : "Ayo selesaikan kegiatanmu!"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Activities List */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-6 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h3 className="text-lg font-bold text-gray-900">
+                  Aktivitas Hari Ini
+                </h3>
+                <button
+                  onClick={() => router.push("/site/student/kegiatan")}
+                  className="w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-[var(--secondary)] text-white text-sm font-medium hover:bg-teal-600 transition-all shadow-sm hover:shadow-md active:scale-95 cursor-pointer"
+                >
+                  Isi Kegiatan &rarr;
+                </button>
+              </div>
+
+              <div className="p-0">
+                {isLoadingKegiatan ? (
+                  <div className="p-8 text-center text-gray-400">
+                    <div className="animate-spin w-6 h-6 border-2 border-[var(--secondary)] border-t-transparent rounded-full mx-auto mb-2"></div>
+                    Memuat data...
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-50">
+                    <div className="divide-y divide-gray-50">
+                      {getActivities()
+                        .slice(0, 4)
+                        .map((activity, idx) => (
+                          <ActivityRow key={idx} activity={activity} />
+                        ))}
+                    </div>
+                    <div className="divide-y divide-gray-50">
+                      {getActivities()
+                        .slice(4)
+                        .map((activity, idx) => (
+                          <ActivityRow key={idx} activity={activity} />
+                        ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </main>
+      </div>
+    </div>
+  );
+}
+
+function ActivityRow({
+  activity,
+}: {
+  activity: { name: string; time: string; completed: boolean };
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between p-4 hover:bg-gray-50 transition-colors ${
+        activity.completed ? "opacity-100" : "opacity-60"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+            activity.completed
+              ? "bg-green-100 text-green-600"
+              : "bg-gray-100 text-gray-400"
+          }`}
+        >
+          {activity.completed ? (
+            <CheckCircle2 className="w-4 h-4" />
+          ) : (
+            <XCircle className="w-4 h-4" />
+          )}
+        </div>
+        <div>
+          <p className="font-medium text-gray-900 text-sm">{activity.name}</p>
+          <p className="text-xs text-gray-500">{activity.time}</p>
+        </div>
+      </div>
+      <div>
+        <span
+          className={`text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full ${
+            activity.completed
+              ? "bg-green-50 text-green-600"
+              : "bg-gray-100 text-gray-400"
+          }`}
+        >
+          {activity.completed ? "Selesai" : "Belum"}
+        </span>
       </div>
     </div>
   );

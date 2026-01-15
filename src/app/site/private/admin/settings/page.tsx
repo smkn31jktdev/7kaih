@@ -3,7 +3,16 @@
 import { useState, useEffect } from "react";
 import AdminSidebar from "@/app/components/dashboard/admin/sidebar";
 import AdminNavbar from "@/app/components/dashboard/admin/navbar";
-import { CheckCircle, Lock, Mail, User, Wrench } from "lucide-react";
+import {
+  CheckCircle,
+  Lock,
+  User,
+  Shield,
+  Info,
+  Loader2,
+  Save,
+  X,
+} from "lucide-react";
 
 export default function AdminSettingsPage() {
   const [name, setName] = useState("");
@@ -153,278 +162,199 @@ export default function AdminSettingsPage() {
           onToggleSidebar={() => setIsSidebarCollapsed((s) => !s)}
           onToggleMobileSidebar={() => setIsMobileSidebarOpen((s) => !s)}
         />
-        <main
-          className="flex-1 overflow-auto"
-          style={{ backgroundColor: "var(--background)" }}
-        >
-          {/* Reduce horizontal padding so content uses more space */}
-          <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6 md:mb-8">
+        <main className="flex-1 overflow-auto bg-gray-50/50">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+            {/* Header */}
+            <div className="mb-8 md:mb-10 w-full text-center md:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-2">
+                Pengaturan Akun
+              </h1>
+              <p className="text-gray-500 text-sm md:text-base mx-auto md:mx-0">
+                Kelola informasi profil, email, dan keamanan akun Anda.
+              </p>
+            </div>
+
+            {/* Alert Messages */}
+            {message && (
               <div
-                style={{ backgroundColor: "var(--secondary)" }}
-                className="px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 rounded-tr-xl rounded-tl-xl"
+                className={`w-full mb-6 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${
+                  message.type === "success"
+                    ? "bg-emerald-50 border border-emerald-100 text-emerald-700"
+                    : "bg-red-50 border border-red-100 text-red-700"
+                }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="w-full text-center">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 md:mb-3 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                      <Wrench className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
-                      <span>Pengaturan Akun</span>
-                    </h1>
-                    <p className="text-blue-100 text-xs sm:text-sm md:text-base lg:text-lg max-w-3xl mx-auto">
-                      Kelola detail akun Anda, perbarui email atau ubah kata
-                      sandi dengan aman.
-                    </p>
+                {message.type === "success" ? (
+                  <CheckCircle className="w-5 h-5" />
+                ) : (
+                  <Info className="w-5 h-5" />
+                )}
+                <p className="font-medium text-sm">{message.text}</p>
+              </div>
+            )}
+
+            {initialLoading ? (
+              <div className="flex flex-col items-center justify-center h-64">
+                <Loader2 className="w-8 h-8 text-[var(--secondary)] animate-spin mb-4" />
+                <p className="text-gray-500 text-sm">Memuat pengaturan...</p>
+              </div>
+            ) : (
+              <div className="w-full">
+                {/* Profile Summary Card */}
+                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 mb-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                  <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-4xl font-bold text-[var(--secondary)] border-4 border-white shadow-sm ring-1 ring-gray-100">
+                    {name ? name.charAt(0).toUpperCase() : "A"}
+                  </div>
+                  <div className="text-center sm:text-left flex-1">
+                    <h2 className="text-xl font-bold text-gray-900">
+                      {name || "Administrator"}
+                    </h2>
+                    <p className="text-gray-500 text-sm mb-3">{email}</p>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-100">
+                      <CheckCircle className="w-3 h-3" />
+                      Akun Terverifikasi
+                    </span>
                   </div>
                 </div>
-              </div>
 
-              <div className="p-2 sm:p-4">
-                {message && (
-                  <div
-                    className={`mb-4 p-3 rounded-lg ${
-                      message.type === "success"
-                        ? "bg-green-50 border border-green-200 text-green-800"
-                        : "bg-red-50 border border-red-200 text-red-800"
-                    }`}
-                  >
-                    {message.text}
-                  </div>
-                )}
+                <form onSubmit={handleSave} className="space-y-8">
+                  {/* Section 1: Personal Info */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-gray-100 mb-4">
+                      <User className="w-5 h-5 text-gray-400" />
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Informasi Pribadi
+                      </h3>
+                    </div>
 
-                {initialLoading ? (
-                  <div className="flex flex-col items-center justify-center h-96">
-                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mb-4"></div>
-                    <p className="text-slate-500 text-sm">
-                      Memuat pengaturan Anda...
-                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700">
+                          Nama Lengkap
+                        </label>
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
+                          placeholder="Nama Lengkap"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
+                          placeholder="nama@sekolah.sch.id"
+                        />
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <div className="w-full">
-                    {/* Profile Section */}
-                    <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6 border border-indigo-100">
-                      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+
+                  {/* Section 2: Security */}
+                  <div className="space-y-4 pt-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-gray-100 mb-4">
+                      <Shield className="w-5 h-5 text-gray-400" />
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Keamanan
+                      </h3>
+                    </div>
+
+                    <div className="bg-orange-50 rounded-xl p-4 flex gap-3 text-orange-800 text-sm mb-6">
+                      <Info className="w-5 h-5 flex-shrink-0" />
+                      <p>
+                        Kosongkan kolom di bawah jika Anda tidak ingin mengubah
+                        kata sandi saat ini.
+                      </p>
+                    </div>
+
+                    <div className="space-y-5 w-full">
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-700">
+                          Kata Sandi Saat Ini
+                        </label>
                         <div className="relative">
-                          <div
-                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center text-white font-bold text-xl sm:text-2xl shadow-xl"
-                            style={{ backgroundColor: "var(--foreground)" }}
-                          >
-                            {name ? name.charAt(0).toUpperCase() : "A"}
-                          </div>
-                          <div className="absolute -bottom-2 -right-2 w-6 h-6 sm:w-8 sm:h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
-                            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                          </div>
+                          <input
+                            type="password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
+                            placeholder="••••••••"
+                          />
+                          <Lock className="w-5 h-5 text-gray-400 absolute left-3.5 top-3.5" />
                         </div>
-                        <div className="flex-1 text-center sm:text-left">
-                          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-1">
-                            {name || "Pengguna Admin"}
-                          </h2>
-                          <p className="text-indigo-600 font-medium mb-2 text-sm sm:text-base">
-                            {email || "admin@anakhebat.com"}
-                          </p>
-                          <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-slate-600">
-                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                            <span>Akun Aktif</span>
-                          </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-gray-700">
+                            Kata Sandi Baru
+                          </label>
+                          <input
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
+                            placeholder="••••••••"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-gray-700">
+                            Konfirmasi Kata Sandi
+                          </label>
+                          <input
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
+                            placeholder="••••••••"
+                          />
                         </div>
                       </div>
                     </div>
-
-                    {/* Settings Form */}
-                    <form
-                      onSubmit={handleSave}
-                      className="space-y-4 sm:space-y-6"
-                    >
-                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
-                        {/* Personal Information Card */}
-                        <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                          <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-200">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
-                                <User className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
-                              </div>
-                              <div>
-                                <h3 className="text-base sm:text-lg font-semibold text-slate-800">
-                                  Informasi Pribadi
-                                </h3>
-                                <p className="text-xs sm:text-sm text-slate-500">
-                                  Perbarui detail profil dasar Anda
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="p-4 sm:p-6 space-y-4">
-                            <div>
-                              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                Nama Lengkap
-                              </label>
-                              <div className="relative">
-                                <input
-                                  value={name}
-                                  onChange={(e) => setName(e.target.value)}
-                                  placeholder="Masukkan nama lengkap Anda"
-                                  className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                                />
-                                <User className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 absolute left-3 sm:left-4 top-3 sm:top-4" />
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                Alamat Email
-                              </label>
-                              <div className="relative">
-                                <input
-                                  value={email}
-                                  onChange={(e) => setEmail(e.target.value)}
-                                  placeholder="Masukkan alamat email Anda"
-                                  className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                                />
-                                <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 absolute left-3 sm:left-4 top-3 sm:top-4" />
-                              </div>
-                              <p className="mt-2 text-xs text-slate-500 flex items-center gap-1">
-                                <CheckCircle className="w-3 h-3" />
-                                Digunakan untuk login dan notifikasi penting
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Security Settings Card */}
-                        <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                          <div className="bg-gradient-to-r from-orange-50 to-red-50 px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-200">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                                <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-                              </div>
-                              <div>
-                                <h3 className="text-base sm:text-lg font-semibold text-slate-800">
-                                  Pengaturan Keamanan
-                                </h3>
-                                <p className="text-xs sm:text-sm text-slate-500">
-                                  Ubah kata sandi akun Anda
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="p-4 sm:p-6 space-y-4">
-                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4">
-                              <p className="text-xs sm:text-sm text-amber-800 flex items-center gap-2">
-                                <Lock className="w-3 h-3 sm:w-4 sm:h-4" />
-                                Biarkan kolom kata sandi kosong untuk
-                                mempertahankan kata sandi saat ini
-                              </p>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                Kata Sandi Saat Ini
-                              </label>
-                              <div className="relative">
-                                <input
-                                  type="password"
-                                  value={currentPassword}
-                                  onChange={(e) =>
-                                    setCurrentPassword(e.target.value)
-                                  }
-                                  placeholder="Masukkan kata sandi saat ini"
-                                  className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                                />
-                                <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 absolute left-3 sm:left-4 top-3 sm:top-4" />
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                Kata Sandi Baru
-                              </label>
-                              <div className="relative">
-                                <input
-                                  type="password"
-                                  value={newPassword}
-                                  onChange={(e) =>
-                                    setNewPassword(e.target.value)
-                                  }
-                                  placeholder="Masukkan kata sandi baru"
-                                  className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                                />
-                                <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 absolute left-3 sm:left-4 top-3 sm:top-4" />
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                Konfirmasi Kata Sandi Baru
-                              </label>
-                              <div className="relative">
-                                <input
-                                  type="password"
-                                  value={confirmPassword}
-                                  onChange={(e) =>
-                                    setConfirmPassword(e.target.value)
-                                  }
-                                  placeholder="Konfirmasi kata sandi baru"
-                                  className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-slate-300 rounded-xl text-sm bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                                />
-                                <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 absolute left-3 sm:left-4 top-3 sm:top-4" />
-                              </div>
-                              <p className="mt-2 text-xs text-slate-500">
-                                Kata sandi minimal 8 karakter
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
-                        <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-4">
-                          <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 text-center sm:text-left">
-                            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
-                            Semua perubahan secara otomatis disinkronkan dengan
-                            database
-                          </div>
-                          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setMessage(null);
-                                setName("");
-                                setEmail("");
-                                setCurrentPassword("");
-                                setNewPassword("");
-                                setConfirmPassword("");
-                              }}
-                              className="px-4 sm:px-6 py-2 sm:py-3 rounded-xl border-2 border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 hover:border-slate-400 transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
-                            >
-                              Reset Formulir
-                            </button>
-                            <button
-                              type="submit"
-                              disabled={loading}
-                              className="px-6 sm:px-8 py-2 sm:py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold shadow-lg hover:shadow-xl hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base w-full sm:w-auto"
-                            >
-                              {loading ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent"></div>
-                                  Menyimpan Perubahan...
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
-                                  Simpan Perubahan
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </form>
                   </div>
-                )}
+
+                  {/* Actions */}
+                  <div className="pt-8 flex flex-col md:flex-row gap-6 items-center justify-end border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMessage(null);
+                        setName("");
+                        setEmail("");
+                        setCurrentPassword("");
+                        setNewPassword("");
+                        setConfirmPassword("");
+                      }}
+                      className="flex items-center gap-2 text-gray-500 font-medium hover:text-red-500 transition-colors group text-sm cursor-pointer"
+                    >
+                      <X className="w-5 h-5 group-hover:text-red-500 transition-colors" />
+                      <span>Batalkan</span>
+                    </button>
+
+                    <div className="hidden md:block w-px h-8 bg-gray-200"></div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="group relative flex items-center gap-3 px-6 py-2.5 rounded-xl bg-[var(--secondary)] text-white font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-[var(--secondary)]/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <span>Simpan Perubahan</span>
+                      <div className="bg-white/20 rounded-full p-1 backdrop-blur-sm group-hover:bg-white/30 transition-colors">
+                        {loading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4" />
+                        )}
+                      </div>
+                    </button>
+                  </div>
+                </form>
               </div>
-            </div>
+            )}
           </div>
         </main>
       </div>

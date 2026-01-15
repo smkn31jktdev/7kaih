@@ -5,11 +5,12 @@ import AdminSidebar from "@/app/components/dashboard/admin/sidebar";
 import AdminNavbar from "@/app/components/dashboard/admin/navbar";
 import { useSessionTimeout } from "@/app/lib/useSessionTimeout";
 import {
-  LayoutDashboard,
   Users,
-  Activity,
   FileText,
-  ArrowDownToLine,
+  User,
+  Mail,
+  ChevronRight,
+  Download,
   X,
 } from "lucide-react";
 import jsPDF from "jspdf";
@@ -493,329 +494,246 @@ export default function AdminDashboard() {
           onToggleSidebar={toggleSidebar}
           onToggleMobileSidebar={toggleMobileSidebar}
         />
-        <main
-          className="flex-1 overflow-auto"
-          style={{ backgroundColor: "var(--background)" }}
-        >
+        <main className="flex-1 overflow-auto bg-gray-50/50">
           {/* Header Section */}
-          <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6 md:mb-8">
-              <div
-                style={{ backgroundColor: "var(--secondary)" }}
-                className="px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 rounded-tr-xl rounded-tl-xl"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-full text-center">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 md:mb-3 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                      <LayoutDashboard className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
-                      <span>Dashboard Admin</span>
-                    </h1>
-                    <p className="text-blue-100 text-xs sm:text-sm md:text-base lg:text-lg max-w-3xl mx-auto">
-                      Pantau aktivitas sistem dan kelola data pengguna dengan
-                      mudah.
-                    </p>
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+            <div className="mb-8 md:mb-10 text-center md:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-2">
+                Dashboard Overview
+              </h1>
+              <p className="text-gray-500 text-sm md:text-base max-w-2xl mx-auto md:mx-0">
+                Pantau aktivitas sistem sekolah dan kelola data siswa dengan
+                mudah dalam satu tampilan.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-6 xl:flex-row animate-in fade-in slide-in-from-bottom-8 duration-700">
+              <div className="flex-1 space-y-6">
+                {/* Admin Status Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  {/* Admin Profile */}
+                  <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                      <User className="w-6 h-6" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-500 mb-0.5">
+                        Admin Aktif
+                      </p>
+                      {adminLoading ? (
+                        <div className="h-5 w-24 bg-gray-100 rounded animate-pulse" />
+                      ) : (
+                        <p className="text-base font-bold text-gray-900 truncate">
+                          {adminName || "Admin"}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Total Students */}
+                  <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center text-teal-600">
+                      <Users className="w-6 h-6" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-500 mb-0.5">
+                        Total Siswa
+                      </p>
+                      {adminLoading ? (
+                        <div className="h-5 w-16 bg-gray-100 rounded animate-pulse" />
+                      ) : (
+                        <p className="text-base font-bold text-gray-900">
+                          {studentCount} Siswa
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Admin Email */}
+                  <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+                      <Mail className="w-6 h-6" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-500 mb-0.5">
+                        Email Terdaftar
+                      </p>
+                      {adminLoading ? (
+                        <div className="h-5 w-32 bg-gray-100 rounded animate-pulse" />
+                      ) : (
+                        <p
+                          className="text-base font-bold text-gray-900 truncate"
+                          title={adminEmail}
+                        >
+                          {adminEmail || "-"}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="p-6 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-600">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          Laporan Bulanan
+                        </h3>
+                      </div>
+                    </div>
+
+                    <div className="w-full sm:w-64">
+                      <Select
+                        value={selectedSummaryMonth ?? ""}
+                        onChange={handleSummaryMonthChange}
+                        options={summaryMonths.map((month) => ({
+                          value: month.key,
+                          label: month.label,
+                        }))}
+                        placeholder={
+                          summaryMonths.length === 0
+                            ? "Menunggu data..."
+                            : "Pilih Bulan"
+                        }
+                        disabled={summaryMonths.length === 0 || summaryLoading}
+                        className="text-sm"
+                        searchable
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-0">
+                    {summaryLoading ? (
+                      <div className="p-8 space-y-4">
+                        {[1, 2, 3].map((i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between gap-4 p-4 border border-gray-100 rounded-2xl bg-gray-50/50"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+                              <div className="space-y-2">
+                                <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                                <div className="h-3 w-20 bg-gray-200 rounded animate-pulse" />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : summaries.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-300">
+                          <FileText className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-gray-900 font-medium mb-1">
+                          Belum ada laporan
+                        </h3>
+                        <p className="text-gray-500 text-sm">
+                          Pilih bulan lain atau tunggu data masuk.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-gray-50 max-h-[500px] overflow-y-auto">
+                        {summaries.map((summary) => (
+                          <div
+                            key={summary.nisn}
+                            className="group flex items-center justify-between p-4 sm:p-5 hover:bg-gray-50 transition-colors cursor-pointer"
+                            onClick={() => openSummaryModal(summary)}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-bold text-sm">
+                                {summary.nama.charAt(0)}
+                              </div>
+                              <div>
+                                <h4 className="font-semibold text-gray-900 group-hover:text-[var(--secondary)] transition-colors">
+                                  {summary.nama}
+                                </h4>
+                                <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
+                                  <span>{summary.kelas}</span>
+                                  <span className="w-1 h-1 rounded-full bg-gray-300" />
+                                  <span>{summary.nisn}</span>
+                                </p>
+                              </div>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-gray-400" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="p-2 sm:p-4">
-                <div className="flex flex-col gap-6 xl:flex-row">
-                  <div className="flex-1 space-y-6">
-                    {/* Recent Activity + Student List Container */}
-                    <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-4 sm:p-6">
-                      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-                        <div className="flex-1">
-                          <div className="bg-gradient-to-r from-indigo-50 via-blue-50 to-white rounded-2xl p-5 border border-indigo-100">
-                            <div className="flex items-start gap-3 mb-4">
-                              <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center">
-                                <Activity className="w-6 h-6 text-indigo-500" />
-                              </div>
-                              <div>
-                                <h3 className="text-lg font-semibold text-slate-800">
-                                  Informasi Admin
-                                </h3>
-                                <p className="text-sm text-slate-500">
-                                  Ringkasan informasi admin
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              {adminLoading ? (
-                                // Admin Info Skeleton Loading
-                                <>
-                                  <div className="flex items-center gap-4 rounded-2xl bg-white/80 border border-emerald-50 px-4 py-4">
-                                    <div className="w-12 h-12 rounded-xl bg-gray-200 animate-pulse"></div>
-                                    <div className="flex-1">
-                                      <div className="h-4 bg-gray-200 rounded animate-pulse w-32 mb-1"></div>
-                                      <div className="h-3 bg-gray-200 rounded animate-pulse w-24"></div>
-                                    </div>
-                                    <div className="w-2 h-2 bg-gray-200 rounded-full animate-pulse"></div>
-                                  </div>
-
-                                  <div className="flex items-center gap-4 rounded-2xl bg-white/80 border border-indigo-50 px-4 py-4">
-                                    <div className="w-12 h-12 rounded-xl bg-gray-200 animate-pulse"></div>
-                                    <div className="flex-1">
-                                      <div className="h-4 bg-gray-200 rounded animate-pulse w-28 mb-1"></div>
-                                      <div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div>
-                                    </div>
-                                    <div className="w-2 h-2 bg-gray-200 rounded-full animate-pulse"></div>
-                                  </div>
-
-                                  <div className="flex items-center gap-4 rounded-2xl bg-white/80 border border-orange-50 px-4 py-4">
-                                    <div className="w-12 h-12 rounded-xl bg-gray-200 animate-pulse"></div>
-                                    <div className="flex-1">
-                                      <div className="h-4 bg-gray-200 rounded animate-pulse w-24 mb-1"></div>
-                                      <div className="h-3 bg-gray-200 rounded animate-pulse w-36"></div>
-                                    </div>
-                                    <div className="w-2 h-2 bg-gray-200 rounded-full animate-pulse"></div>
-                                  </div>
-                                </>
-                              ) : (
-                                // Actual Admin Info Content
-                                <>
-                                  <div className="flex items-center gap-4 rounded-2xl bg-white/80 border border-emerald-50 px-4 py-4 hover:bg-emerald-50/50 transition-colors">
-                                    <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-                                      <Activity className="w-6 h-6 text-emerald-600" />
-                                    </div>
-                                    <div className="flex-1">
-                                      <p className="text-sm font-semibold text-slate-800">
-                                        Nama Admin/Guru
-                                      </p>
-                                      <p className="text-xs text-slate-500">
-                                        {adminName || "Belum diatur"}
-                                      </p>
-                                    </div>
-                                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                                  </div>
-
-                                  <div className="flex items-center gap-4 rounded-2xl bg-white/80 border border-indigo-50 px-4 py-4 hover:bg-indigo-50/50 transition-colors">
-                                    <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                                      <Users className="w-6 h-6 text-blue-600" />
-                                    </div>
-                                    <div className="flex-1">
-                                      <p className="text-sm font-semibold text-slate-800">
-                                        Banyak Siswa
-                                      </p>
-                                      <p className="text-xs text-slate-500">
-                                        {studentCount} siswa terdaftar
-                                      </p>
-                                    </div>
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                  </div>
-
-                                  <div className="flex items-center gap-4 rounded-2xl bg-white/80 border border-orange-50 px-4 py-4 hover:bg-orange-50/50 transition-colors">
-                                    <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-                                      <Activity className="w-6 h-6 text-orange-500" />
-                                    </div>
-                                    <div className="flex-1">
-                                      <p className="text-sm font-semibold text-slate-800">
-                                        Email Admin
-                                      </p>
-                                      <p className="text-xs text-slate-500">
-                                        {adminEmail || "Belum diatur"}
-                                      </p>
-                                    </div>
-                                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Student List Section */}
-                        <div className="w-full lg:w-[320px] xl:w-[360px] flex-shrink-0">
-                          <div className="bg-white border border-slate-200 rounded-2xl h-full p-5">
-                            <div className="flex items-center gap-3 mb-6">
-                              <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
-                                <Users className="w-5 h-5 text-slate-600" />
-                              </div>
-                              <h3 className="text-lg font-semibold text-slate-800">
-                                List Siswa
-                              </h3>
-                            </div>
-                            <div className="h-64 md:h-72 lg:h-[18rem] overflow-y-auto overscroll-contain scrollbar-hide">
-                              {studentsLoading ? (
-                                // Student List Skeleton Loading
-                                <div className="space-y-2">
-                                  {[...Array(6)].map((_, i) => (
-                                    <div
-                                      key={i}
-                                      className="flex items-center gap-3 py-3 px-2 rounded-lg border-b border-slate-200/70 last:border-b-0"
-                                    >
-                                      <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="h-4 bg-gray-200 rounded animate-pulse w-24 mb-1"></div>
-                                        <div className="h-3 bg-gray-200 rounded animate-pulse w-16"></div>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-gray-200 rounded-full animate-pulse"></div>
-                                        <div className="h-3 bg-gray-200 rounded animate-pulse w-12"></div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : students.length === 0 ? (
-                                <div className="flex h-full items-center justify-center text-sm text-slate-500">
-                                  Belum ada data siswa.
-                                </div>
-                              ) : (
-                                <ul className="space-y-2">
-                                  {students.map((student) => (
-                                    <li
-                                      key={student.id}
-                                      className="flex items-center gap-3 py-3 px-2 rounded-lg hover:bg-slate-50 transition-colors border-b border-slate-200/70 last:border-b-0"
-                                    >
-                                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
-                                        {student.nama.charAt(0)}
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-slate-700 truncate">
-                                          {student.nama}
-                                        </p>
-                                        <p className="text-xs text-slate-500">
-                                          {student.kelas}
-                                        </p>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <div
-                                          className={`w-2 h-2 rounded-full ${
-                                            student.isOnline
-                                              ? "bg-green-500"
-                                              : "bg-gray-400"
-                                          }`}
-                                        ></div>
-                                        <span className="text-xs text-slate-500">
-                                          {student.isOnline
-                                            ? "Online"
-                                            : "Offline"}
-                                        </span>
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+              {/* Sidebar Right: Student List */}
+              <div className="w-full xl:w-96 flex-shrink-0">
+                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden h-full">
+                  <div className="p-6 border-b border-gray-50">
+                    <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                      <Users className="w-5 h-5 text-gray-400" />
+                      List Siswa
+                    </h3>
                   </div>
-                </div>
-                {/* Summary Report Container */}
-                <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-4 sm:p-6">
-                  <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-                    <div className="flex-1">
-                      <div className="bg-gradient-to-r from-violet-50 via-purple-50 to-white rounded-2xl p-5 border border-violet-100">
-                        <div className="flex items-start gap-3 mb-4">
-                          <div className="w-12 h-12 rounded-2xl bg-violet-100 flex items-center justify-center">
-                            <FileText className="w-6 h-6 text-violet-600" />
+                  <div className="p-2 h-[500px] overflow-y-auto">
+                    {studentsLoading ? (
+                      <div className="space-y-2 p-2">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <div
+                            key={i}
+                            className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 animate-pulse"
+                          >
+                            <div className="w-8 h-8 rounded-full bg-gray-200" />
+                            <div className="flex-1 space-y-2">
+                              <div className="h-3 w-24 bg-gray-200 rounded" />
+                              <div className="h-2 w-16 bg-gray-200 rounded" />
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-slate-800">
-                              Rangkuman Laporan Siswa
-                            </h3>
-                            <p className="text-sm text-slate-500">
-                              Pilih siswa untuk melihat laporan 7 kebiasaan baik
-                              dan unduh PDF resmi.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-                          <div className="text-sm text-slate-600">
-                            {selectedSummaryMonth && selectedSummaryMonthLabel
-                              ? `Menampilkan laporan bulan ${selectedSummaryMonthLabel}`
-                              : summaryMonths.length > 0
-                              ? "Pilih bulan untuk melihat laporan."
-                              : "Belum ada data bulan tersedia."}
-                          </div>
-                          <div className="w-full sm:w-64">
-                            <Select
-                              value={selectedSummaryMonth ?? ""}
-                              onChange={handleSummaryMonthChange}
-                              options={summaryMonths.map((month) => ({
-                                value: month.key,
-                                label: month.label,
-                              }))}
-                              placeholder={
-                                summaryMonths.length === 0
-                                  ? "Tidak ada data bulan"
-                                  : "Pilih bulan laporan"
-                              }
-                              disabled={
-                                summaryMonths.length === 0 || summaryLoading
-                              }
-                              className="text-sm"
-                              searchable
+                        ))}
+                      </div>
+                    ) : students.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full text-center p-6 text-gray-400">
+                        <Users className="w-12 h-12 mb-3 opacity-20" />
+                        <p className="text-sm">Belum ada siswa terdaftar</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        {students.map((student) => (
+                          <div
+                            key={student.id}
+                            className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors group"
+                          >
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm ${
+                                student.isOnline
+                                  ? "bg-green-500"
+                                  : "bg-gray-300"
+                              }`}
+                            >
+                              {student.nama.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate group-hover:text-[var(--secondary)] transition-colors">
+                                {student.nama}
+                              </p>
+                              <p className="text-xs text-gray-400 truncate">
+                                {student.kelas}
+                              </p>
+                            </div>
+                            <div
+                              className={`w-2 h-2 rounded-full ${
+                                student.isOnline
+                                  ? "bg-green-500"
+                                  : "bg-gray-200"
+                              }`}
+                              title={student.isOnline ? "Online" : "Offline"}
                             />
                           </div>
-                        </div>
-
-                        {summaryLoading ? (
-                          // Summary Skeleton Loading
-                          <div className="space-y-3">
-                            {[...Array(4)].map((_, i) => (
-                              <div
-                                key={i}
-                                className="flex items-center justify-between gap-4 rounded-2xl bg-white/80 border border-violet-50 px-4 py-4"
-                              >
-                                <div className="flex items-center gap-4 min-w-0">
-                                  <div className="w-12 h-12 rounded-xl bg-gray-200 animate-pulse shrink-0"></div>
-                                  <div className="min-w-0">
-                                    <div className="h-4 bg-gray-200 rounded animate-pulse w-24 mb-1"></div>
-                                    <div className="h-3 bg-gray-200 rounded animate-pulse w-32"></div>
-                                  </div>
-                                </div>
-                                <div className="h-8 bg-gray-200 rounded-full animate-pulse w-24"></div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : summaryError ? (
-                          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-                            {summaryError}
-                          </div>
-                        ) : summaries.length === 0 ? (
-                          <div className="flex h-32 items-center justify-center text-sm text-slate-500">
-                            Belum ada rangkuman laporan.
-                          </div>
-                        ) : (
-                          <div className="h-64 md:h-72 lg:h-[18rem] overflow-y-auto overscroll-contain scrollbar-hide">
-                            <div className="space-y-3">
-                              {summaries.map((summary) => (
-                                <div
-                                  key={summary.nisn}
-                                  className="flex items-center justify-between gap-4 rounded-2xl bg-white/80 border border-violet-50 px-4 py-4 hover:bg-violet-50/50 transition-colors"
-                                >
-                                  <div className="flex items-center gap-4 min-w-0">
-                                    <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
-                                      <FileText className="w-6 h-6 text-violet-700" />
-                                    </div>
-                                    <div className="min-w-0">
-                                      <p className="text-sm font-semibold text-slate-800 truncate">
-                                        {summary.nama}
-                                      </p>
-                                      <p className="text-xs text-slate-500 truncate">
-                                        {summary.kelas || "-"} •{" "}
-                                        {summary.monthLabel}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => openSummaryModal(summary)}
-                                    className="rounded-full bg-violet-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2"
-                                  >
-                                    Lihat Laporan
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                        ))}
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -823,160 +741,83 @@ export default function AdminDashboard() {
           </div>
         </main>
       </div>
+
+      {/* Summary Modal */}
       {isSummaryModalOpen && selectedSummary && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 pt-10 pb-6 sm:pb-10">
-          <div className="relative w-full max-w-5xl rounded-3xl border border-slate-200 bg-white shadow-2xl max-h-[90vh] flex flex-col">
-            <div
-              className="flex items-center justify-between gap-4 rounded-t-3xl px-6 py-5 flex-shrink-0"
-              style={{ backgroundColor: "var(--secondary)" }}
-            >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <div>
-                <h2 className="text-xl font-semibold text-white">
-                  Laporan 7 Kebiasaan Baik
-                </h2>
-                <p className="text-sm text-white/80">
-                  {selectedSummary.nama} • {selectedSummary.monthLabel}
+                <h3 className="text-lg font-bold text-gray-900">
+                  Rangkuman Kebiasaan
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {selectedSummary.nama} • {selectedSummary.kelas}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleDownloadSummaryPDF}
-                  className="rounded-full bg-white/20 p-2 text-white transition hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                  title="Download PDF"
-                >
-                  <ArrowDownToLine className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={closeSummaryModal}
-                  className="rounded-full bg-white/20 p-2 text-white transition hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+              <button
+                onClick={closeSummaryModal}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-6">
+                {selectedSummary.indicators.map((indicator, index) => (
+                  <div
+                    key={indicator.id}
+                    className="p-4 rounded-2xl bg-gray-50 border border-gray-100/50"
+                  >
+                    <div className="flex items-start gap-4">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-white border border-gray-200 text-xs font-bold text-gray-500 flex-shrink-0 mt-0.5">
+                        {index + 1}
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900 mb-2">
+                          {indicator.label}
+                        </p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-semibold">
+                            Nilai: {indicator.rating}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            (
+                            {
+                              RATING_HEADERS.find(
+                                (h) => h.value === indicator.rating
+                              )?.label
+                            }
+                            )
+                          </span>
+                        </div>
+                        {indicator.note && (
+                          <div className="text-xs text-gray-500 bg-white p-3 rounded-xl border border-gray-100 italic">
+                            "{indicator.note}"
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-6">
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-4">
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-xs uppercase tracking-wide text-slate-500">
-                      Nama
-                    </p>
-                    <p className="font-semibold text-slate-800">
-                      {selectedSummary.nama}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-xs uppercase tracking-wide text-slate-500">
-                      NIS / NISN
-                    </p>
-                    <p className="font-semibold text-slate-800">
-                      {selectedSummary.nisn || "-"}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-xs uppercase tracking-wide text-slate-500">
-                      Kelas
-                    </p>
-                    <p className="font-semibold text-slate-800">
-                      {selectedSummary.kelas || "-"}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-xs uppercase tracking-wide text-slate-500">
-                      Bulan
-                    </p>
-                    <p className="font-semibold text-slate-800">
-                      {selectedSummary.monthLabel}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto rounded-2xl border border-slate-200">
-                  <table className="min-w-full table-fixed">
-                    <thead className="bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-600">
-                      <tr>
-                        <th className="w-12 border-b border-r border-slate-200 px-4 py-3 text-left">
-                          No
-                        </th>
-                        <th className="w-56 border-b border-r border-slate-200 px-4 py-3 text-left">
-                          Indikator
-                        </th>
-                        {RATING_HEADERS.map((header) => (
-                          <th
-                            key={`label-${header.value}`}
-                            className="border-b border-r border-slate-200 px-4 py-3 text-center"
-                          >
-                            {header.label}
-                          </th>
-                        ))}
-                        <th className="border-b border-slate-200 px-4 py-3 text-left">
-                          Keterangan
-                        </th>
-                      </tr>
-                      <tr>
-                        <th className="border-r border-slate-200 px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                          &nbsp;
-                        </th>
-                        <th className="border-r border-slate-200 px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                          &nbsp;
-                        </th>
-                        {RATING_HEADERS.map((header) => (
-                          <th
-                            key={`value-${header.value}`}
-                            className="border-r border-slate-200 px-4 py-2 text-center text-xs font-medium uppercase tracking-wide text-slate-500 last:border-r-0"
-                          >
-                            {header.value}
-                          </th>
-                        ))}
-                        <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                          &nbsp;
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-sm text-slate-700">
-                      {selectedSummary.indicators.map((indicator, index) => (
-                        <tr
-                          key={indicator.id}
-                          className="odd:bg-white even:bg-slate-50"
-                        >
-                          <td className="border-t border-r border-slate-200 px-4 py-3 align-top">
-                            {index + 1}
-                          </td>
-                          <td className="border-t border-r border-slate-200 px-4 py-3 align-top text-sm font-medium text-slate-700">
-                            {indicator.label}
-                          </td>
-                          {RATING_HEADERS.map((header) => (
-                            <td
-                              key={`${indicator.id}-${header.value}`}
-                              className="border-t border-r border-slate-200 px-4 py-3 text-center align-top"
-                            >
-                              {indicator.rating === header.value ? "V" : ""}
-                            </td>
-                          ))}
-                          <td className="border-t border-slate-200 px-4 py-3 align-top text-sm text-slate-600">
-                            <span className="block whitespace-pre-wrap text-xs sm:text-sm">
-                              {indicator.note}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="flex justify-end pt-4 border-t border-slate-200">
-                  <button
-                    type="button"
-                    onClick={closeSummaryModal}
-                    className="rounded-full bg-slate-200 px-5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-                  >
-                    Tutup
-                  </button>
-                </div>
-              </div>
+            <div className="p-6 border-t border-gray-100 bg-gray-50/30 flex justify-end gap-3">
+              <button
+                onClick={closeSummaryModal}
+                className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                Tutup
+              </button>
+              <button
+                onClick={handleDownloadSummaryPDF}
+                className="px-5 py-2.5 text-sm font-medium text-white bg-[var(--secondary)] hover:bg-teal-700 rounded-xl transition-colors flex items-center gap-2 shadow-sm shadow-teal-200"
+              >
+                <Download className="w-4 h-4" />
+                Download PDF
+              </button>
             </div>
           </div>
         </div>

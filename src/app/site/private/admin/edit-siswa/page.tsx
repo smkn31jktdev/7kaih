@@ -310,161 +310,158 @@ function EditSiswaContent() {
           onToggleSidebar={toggleSidebar}
           onToggleMobileSidebar={toggleMobileSidebar}
         />
-        <main
-          className="flex-1 overflow-auto"
-          style={{ backgroundColor: "var(--background)" }}
-        >
-          <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6 md:mb-8">
-              <div
-                style={{ backgroundColor: "var(--secondary)" }}
-                className="px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 rounded-tr-xl rounded-tl-xl"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-full text-center">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 md:mb-3 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                      <Users className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
-                      <span>Edit Data Siswa</span>
-                    </h1>
-                    <p className="text-blue-100 text-xs sm:text-sm md:text-base lg:text-lg max-w-3xl mx-auto">
-                      Kelola data siswa yang sudah terdaftar dan perbarui
-                      informasi mereka.
-                    </p>
-                  </div>
-                </div>
+        <main className="flex-1 overflow-auto bg-gray-50/50">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+            {/* Header */}
+            <div className="mb-8 md:mb-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div className="text-center md:text-left w-full md:w-auto">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-2">
+                  Edit Data Siswa
+                </h1>
+                <p className="text-gray-500 text-sm md:text-base mx-auto md:mx-0">
+                  Kelola dan perbarui informasi siswa yang terdaftar.
+                </p>
               </div>
 
-              <div className="p-4 sm:p-6 md:p-8">
-                <div className="flex flex-col gap-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="relative w-full sm:w-72">
-                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="search"
-                        value={searchTerm}
-                        onChange={(event) => setSearchTerm(event.target.value)}
-                        className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                        placeholder="Cari nama, NISN, kelas, atau walas"
-                      />
-                    </div>
-                    <div className="text-sm text-slate-600">
-                      Total siswa:{" "}
-                      <span className="font-semibold">{students.length}</span>
-                    </div>
+              {/* Search Bar - Positioned in header for better UX on desktop */}
+              <div className="relative w-full md:w-80">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="search"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-10 pr-4 text-sm focus:border-[var(--secondary)] focus:outline-none focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all shadow-sm placeholder:text-gray-400"
+                  placeholder="Cari nama, NISN, atau kelas..."
+                />
+              </div>
+            </div>
+
+            <div className="w-full">
+              <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                {/* Table Toolbar */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/30">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                    <Users className="w-4 h-4 text-[var(--secondary)]" />
+                    <span>Daftar Siswa</span>
+                    <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs border border-gray-200">
+                      {students.length}
+                    </span>
                   </div>
+                </div>
 
-                  {error && (
-                    <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-                      {error}
-                    </div>
-                  )}
+                {error && (
+                  <div className="mx-6 mt-6 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-600 flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>
+                    {error}
+                  </div>
+                )}
 
-                  <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-slate-200 text-sm">
-                        <thead className="bg-slate-100 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
-                          <tr>
-                            <th className="px-4 py-3">No</th>
-                            <th className="px-4 py-3">NISN</th>
-                            <th className="px-4 py-3">Nama</th>
-                            <th className="px-4 py-3">Kelas</th>
-                            <th className="px-4 py-3">Guru Wali</th>
-                            <th className="px-4 py-3 text-center">Status</th>
-                            <th className="px-4 py-3 text-center">Aksi</th>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-100">
+                    <thead className="bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
+                      <tr>
+                        <th className="px-6 py-4">No</th>
+                        <th className="px-6 py-4">NISN</th>
+                        <th className="px-6 py-4">Nama</th>
+                        <th className="px-6 py-4">Kelas</th>
+                        <th className="px-6 py-4">Guru Wali</th>
+                        <th className="px-6 py-4 text-center">Status</th>
+                        <th className="px-6 py-4 text-center">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 bg-white text-gray-700 text-sm">
+                      {isLoading ? (
+                        [...Array(5)].map((_, index) => (
+                          <tr
+                            key={`skeleton-${index}`}
+                            className="animate-pulse"
+                          >
+                            <td className="px-6 py-4">
+                              <div className="h-4 w-6 rounded bg-gray-100" />
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="h-4 w-24 rounded bg-gray-100" />
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="h-4 w-40 rounded bg-gray-100" />
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="h-4 w-16 rounded bg-gray-100" />
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="h-4 w-32 rounded bg-gray-100" />
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="mx-auto h-4 w-16 rounded bg-gray-100" />
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="mx-auto h-8 w-20 rounded-full bg-gray-100" />
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 text-slate-700">
-                          {isLoading ? (
-                            [...Array(5)].map((_, index) => (
-                              <tr
-                                key={`skeleton-${index}`}
-                                className="animate-pulse"
-                              >
-                                <td className="px-4 py-4">
-                                  <div className="h-4 w-6 rounded bg-slate-200" />
-                                </td>
-                                <td className="px-4 py-4">
-                                  <div className="h-4 w-24 rounded bg-slate-200" />
-                                </td>
-                                <td className="px-4 py-4">
-                                  <div className="h-4 w-40 rounded bg-slate-200" />
-                                </td>
-                                <td className="px-4 py-4">
-                                  <div className="h-4 w-16 rounded bg-slate-200" />
-                                </td>
-                                <td className="px-4 py-4">
-                                  <div className="h-4 w-32 rounded bg-slate-200" />
-                                </td>
-                                <td className="px-4 py-4">
-                                  <div className="mx-auto h-4 w-16 rounded bg-slate-200" />
-                                </td>
-                                <td className="px-4 py-4">
-                                  <div className="mx-auto h-8 w-20 rounded-full bg-slate-200" />
-                                </td>
-                              </tr>
-                            ))
-                          ) : filteredStudents.length === 0 ? (
-                            <tr>
-                              <td
-                                colSpan={7}
-                                className="px-4 py-12 text-center text-sm text-slate-500"
-                              >
+                        ))
+                      ) : filteredStudents.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            className="px-6 py-16 text-center text-gray-400"
+                          >
+                            <div className="flex flex-col items-center justify-center gap-2">
+                              <Search className="w-8 h-8 opacity-20" />
+                              <p>
                                 {searchTerm
-                                  ? "Tidak ditemukan siswa yang sesuai dengan pencarian."
-                                  : "Belum ada data siswa untuk ditampilkan."}
-                              </td>
-                            </tr>
-                          ) : (
-                            filteredStudents.map((student, index) => (
-                              <tr
-                                key={student.id}
-                                className="hover:bg-slate-50/80 transition-colors"
+                                  ? "Tidak ditemukan data yang sesuai."
+                                  : "Belum ada data siswa."}
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredStudents.map((student, index) => (
+                          <tr
+                            key={student.id}
+                            className="hover:bg-gray-50/50 transition-colors group"
+                          >
+                            <td className="px-6 py-4 font-medium text-gray-500">
+                              {index + 1}
+                            </td>
+                            <td className="px-6 py-4 text-gray-600">
+                              {student.nisn}
+                            </td>
+                            <td className="px-6 py-4 font-semibold text-gray-900">
+                              {student.nama}
+                            </td>
+                            <td className="px-6 py-4 text-gray-600">
+                              {student.kelas}
+                            </td>
+                            <td className="px-6 py-4 text-gray-600">
+                              {student.walas || "-"}
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              <span
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                                  student.isOnline
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                    : "bg-gray-50 text-gray-600 border-gray-200"
+                                }`}
                               >
-                                <td className="px-4 py-4 align-top text-sm text-slate-500">
-                                  {index + 1}
-                                </td>
-                                <td className="px-4 py-4 align-top font-medium text-slate-700">
-                                  {student.nisn}
-                                </td>
-                                <td className="px-4 py-4 align-top">
-                                  <div className="font-semibold text-slate-800">
-                                    {student.nama}
-                                  </div>
-                                </td>
-                                <td className="px-4 py-4 align-top text-slate-700">
-                                  {student.kelas}
-                                </td>
-                                <td className="px-4 py-4 align-top text-slate-700">
-                                  {student.walas || "-"}
-                                </td>
-                                <td className="px-4 py-4 align-top text-center">
-                                  <span
-                                    className={`inline-flex w-full items-center justify-center rounded-full px-3 py-1 text-xs font-medium ${
-                                      student.isOnline
-                                        ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
-                                        : "bg-slate-100 text-slate-500 border border-slate-200"
-                                    }`}
-                                  >
-                                    {student.isOnline ? "Online" : "Offline"}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-4 align-top text-center">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleEditClick(student)}
-                                    className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 cursor-pointer"
-                                  >
-                                    <Pencil className="h-4 w-4" />
-                                    Edit
-                                  </button>
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                                {student.isOnline ? "Online" : "Offline"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleEditClick(student)}
+                                className="inline-flex items-center justify-center w-8 h-8 rounded-full text-blue-600 hover:bg-blue-50 hover:scale-110 transition-all cursor-pointer"
+                                title="Edit Siswa"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -473,253 +470,206 @@ function EditSiswaContent() {
       </div>
 
       {isModalOpen && selectedStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
-          <div className="relative w-full max-w-3xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
-            <div
-              style={{ backgroundColor: "var(--secondary)" }}
-              className="flex items-center justify-between gap-4 px-6 py-5"
-            >
-              <div>
-                <h2 className="text-xl font-semibold text-white">Edit Siswa</h2>
-                <p className="text-sm text-white/80">
-                  Perbarui data {selectedStudent.nama}
-                </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm transition-all">
+          <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-white">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-50 rounded-2xl text-blue-600">
+                  <Pencil className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Edit Data Siswa
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Perbarui informasi untuk {selectedStudent.nama}
+                  </p>
+                </div>
               </div>
               <button
-                type="button"
                 onClick={closeModal}
-                className="rounded-full bg-white/20 p-2 text-white transition hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white cursor-pointer"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
               >
-                <X className="h-5 w-5" />
+                <X className="w-6 h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleUpdateStudent} className="p-6 sm:p-8">
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="nisn"
-                    className="mb-2 block text-sm font-medium text-slate-700"
-                  >
-                    NISN
-                  </label>
-                  <input
-                    id="nisn"
-                    name="nisn"
-                    type="text"
-                    value={editForm.nisn}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                    placeholder="Masukkan NISN"
-                  />
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar">
+              <form
+                id="edit-student-form"
+                onSubmit={handleUpdateStudent}
+                className="space-y-6"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">
+                      NISN
+                    </label>
+                    <input
+                      name="nisn"
+                      value={editForm.nisn}
+                      onChange={handleFormChange}
+                      required
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
+                      placeholder="Nomor Induk Siswa Nasional"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">
+                      Nama Lengkap
+                    </label>
+                    <input
+                      name="nama"
+                      value={editForm.nama}
+                      onChange={handleFormChange}
+                      required
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
+                      placeholder="Nama Lengkap Siswa"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">
+                      Kelas
+                    </label>
+                    <input
+                      name="kelas"
+                      value={editForm.kelas}
+                      onChange={handleFormChange}
+                      required
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
+                      placeholder="Contoh: 12 RPL 1"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">
+                      Guru Wali
+                    </label>
+                    <input
+                      name="walas"
+                      value={editForm.walas}
+                      onChange={handleFormChange}
+                      required
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
+                      placeholder="Nama Wali Kelas"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">
+                      Password Baru{" "}
+                      <span className="text-gray-400 font-normal">
+                        (Opsional)
+                      </span>
+                    </label>
+                    <input
+                      name="password"
+                      type="password"
+                      value={editForm.password}
+                      onChange={handleFormChange}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
+                      placeholder="Biarkan kosong jika tidak ingin mengubah"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="nama"
-                    className="mb-2 block text-sm font-medium text-slate-700"
-                  >
-                    Nama
-                  </label>
-                  <input
-                    id="nama"
-                    name="nama"
-                    type="text"
-                    value={editForm.nama}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                    placeholder="Masukkan nama lengkap"
-                  />
+                {/* Danger Zone */}
+                <div className="mt-8 pt-6 border-t border-gray-100">
+                  <div className="flex items-center justify-between p-4 bg-rose-50 rounded-2xl border border-rose-100">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-rose-100 rounded-xl text-rose-600">
+                        <Trash className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-rose-700">
+                          Hapus Data Siswa
+                        </p>
+                        <p className="text-xs text-rose-600/80">
+                          Tindakan ini tidak dapat dibatalkan.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDeleteClick}
+                      className="px-4 py-2 bg-white text-rose-600 text-xs font-bold rounded-xl border border-rose-200 hover:bg-rose-50 hover:border-rose-300 transition-colors cursor-pointer"
+                    >
+                      Hapus Permanen
+                    </button>
+                  </div>
                 </div>
+              </form>
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="kelas"
-                    className="mb-2 block text-sm font-medium text-slate-700"
-                  >
-                    Kelas
-                  </label>
-                  <input
-                    id="kelas"
-                    name="kelas"
-                    type="text"
-                    value={editForm.kelas}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                    placeholder="Contoh: 10A, 11B"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="walas"
-                    className="mb-2 block text-sm font-medium text-slate-700"
-                  >
-                    Guru Wali
-                  </label>
-                  <input
-                    id="walas"
-                    name="walas"
-                    type="text"
-                    value={editForm.walas}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                    placeholder="Masukkan nama guru wali"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="password"
-                    className="mb-2 block text-sm font-medium text-slate-700"
-                  >
-                    Password Baru (Opsional)
-                  </label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={editForm.password}
-                    onChange={handleFormChange}
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                    placeholder="Kosongkan jika tidak ingin mengubah password"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-8 flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  type="button"
-                  onClick={handleDeleteClick}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-5 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
-                  disabled={isSubmitting || isDeleting}
-                >
-                  {isDeleting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Trash className="h-4 w-4" />
-                  )}
-                </button>
-                <div className="flex flex-col items-center gap-3 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="inline-flex items-center justify-center rounded-full border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 cursor-pointer disabled:cursor-not-allowed"
-                    disabled={isSubmitting || isDeleting}
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || isDeleting}
-                    className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 disabled:cursor-not-allowed disabled:bg-blue-400 cursor-pointer"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4" />
-                    )}
-                    Simpan Perubahan
-                  </button>
-                </div>
-              </div>
-            </form>
+            {/* Footer */}
+            <div className="px-6 py-5 border-t border-gray-100 bg-gray-50/50 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="px-5 py-2.5 rounded-xl text-gray-600 font-semibold text-sm hover:bg-gray-100 hover:text-gray-800 transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                form="edit-student-form"
+                type="submit"
+                disabled={isSubmitting}
+                className="flex items-center gap-2 px-6 py-2.5 bg-[var(--secondary)] text-white font-bold text-sm rounded-xl hover:brightness-110 shadow-lg shadow-[var(--secondary)]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                <span>Simpan Perubahan</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {isDeleteConfirmOpen && selectedStudent && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-            <div className="flex items-center gap-4 border-b border-slate-200 px-6 py-5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100">
-                <Trash className="h-6 w-6 text-rose-600" />
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm transition-all">
+          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 text-rose-500">
+                <Trash className="w-8 h-8" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-800">
-                  Konfirmasi Hapus Siswa
-                </h3>
-                <p className="text-sm text-slate-500">
-                  Tindakan ini bersifat permanen
-                </p>
-              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Hapus Data Siswa?
+              </h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Apakah anda yakin ingin menghapus data siswa{" "}
+                <span className="font-bold text-gray-800">
+                  {selectedStudent?.nama}
+                </span>
+                ? Data yang dihapus tidak dapat dikembalikan.
+              </p>
             </div>
 
-            <div className="px-6 py-5">
-              <div className="space-y-3">
-                <p className="text-sm leading-relaxed text-slate-600">
-                  Apakah Anda yakin ingin menghapus akun siswa ini dari
-                  database?
-                </p>
-
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                  <div className="flex justify-between gap-2">
-                    <span className="text-xs font-medium text-slate-500">
-                      Nama
-                    </span>
-                    <span className="font-semibold text-slate-800">
-                      {selectedStudent.nama}
-                    </span>
-                  </div>
-                  <div className="mt-2 flex justify-between gap-2">
-                    <span className="text-xs font-medium text-slate-500">
-                      NISN
-                    </span>
-                    <span className="font-semibold text-slate-800">
-                      {selectedStudent.nisn}
-                    </span>
-                  </div>
-                  <div className="mt-2 flex justify-between gap-2">
-                    <span className="text-xs font-medium text-slate-500">
-                      Kelas
-                    </span>
-                    <span className="font-semibold text-slate-800">
-                      {selectedStudent.kelas || "-"}
-                    </span>
-                  </div>
-                  <div className="mt-2 flex justify-between gap-2">
-                    <span className="text-xs font-medium text-slate-500">
-                      Guru Wali
-                    </span>
-                    <span className="font-semibold text-slate-800">
-                      {selectedStudent.walas || "-"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700">
-                  <span className="font-semibold">Peringatan:</span> Data siswa
-                  yang dihapus{" "}
-                  <span className="font-semibold">tidak dapat</span> dipulihkan.
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={handleCancelDelete}
-                className="rounded-full bg-slate-100 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 cursor-pointer disabled:cursor-not-allowed"
-                disabled={isDeleting}
+                className="flex-1 py-3 bg-gray-50 text-gray-700 font-bold text-sm rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
               >
-                Batal
+                Batalkan
               </button>
               <button
                 type="button"
                 onClick={handleConfirmDeleteStudent}
                 disabled={isDeleting}
-                className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex-1 py-3 bg-rose-600 text-white font-bold text-sm rounded-xl hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 {isDeleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  <Trash className="h-4 w-4" />
+                  "Ya, Hapus"
                 )}
-                Ya, Hapus
               </button>
             </div>
           </div>

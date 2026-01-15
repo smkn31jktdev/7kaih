@@ -407,184 +407,149 @@ export default function DeletePage() {
           onToggleSidebar={toggleSidebar}
           onToggleMobileSidebar={toggleMobileSidebar}
         />
-        <main
-          className="flex-1 overflow-auto"
-          style={{ backgroundColor: "var(--background)" }}
-        >
-          <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6 md:mb-8">
-              <div
-                style={{ backgroundColor: "var(--secondary)" }}
-                className="px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 rounded-tr-xl rounded-tl-xl"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-full text-center">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 md:mb-3 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                      <Trash2 className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
-                      <span>Hapus Kegiatan Siswa</span>
-                    </h1>
-                    <p className="text-blue-100 text-xs sm:text-sm md:text-base lg:text-lg max-w-3xl mx-auto">
-                      Pilih siswa dan bulan untuk menghapus seluruh catatan
-                      kegiatan dari database.
-                    </p>
-                  </div>
-                </div>
-              </div>
+        <main className="flex-1 overflow-auto bg-gray-50/50">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+            {/* Header */}
+            <div className="mb-8 md:mb-10 w-full text-center md:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-2">
+                Hapus Kegiatan Siswa
+              </h1>
+              <p className="text-gray-500 text-sm md:text-base mx-auto md:mx-0">
+                Pilih siswa dan bulan untuk menghapus seluruh catatan kegiatan
+                dari database secara permanen.
+              </p>
+            </div>
 
-              <div className="p-4 sm:p-6">
-                <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-4 sm:p-6">
-                  {feedback && (
+            <div className="w-full">
+              <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8">
+                {feedback && (
+                  <div
+                    className={`mb-6 rounded-xl border px-4 py-3 text-sm flex items-center gap-2 ${feedbackClassName}`}
+                  >
                     <div
-                      className={`mb-6 rounded-lg border px-4 py-3 text-sm ${feedbackClassName}`}
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        feedback.type === "error"
+                          ? "bg-rose-500"
+                          : "bg-green-500"
+                      }`}
+                    ></div>
+                    {feedback.text}
+                  </div>
+                )}
+
+                <form onSubmit={handleDelete} className="space-y-6">
+                  <div>
+                    <label
+                      htmlFor="student"
+                      className="mb-2 block text-sm font-semibold text-gray-700"
                     >
-                      {feedback.text}
-                    </div>
-                  )}
-
-                  <form onSubmit={handleDelete} className="space-y-6">
-                    <div>
-                      <label
-                        htmlFor="student"
-                        className="mb-2 block text-sm font-medium text-slate-700"
-                      >
-                        Nama siswa
-                      </label>
-                      <Select
-                        value={selectedStudent}
-                        onChange={(value) => {
-                          setSelectedStudent(value);
-                        }}
-                        options={students}
-                        placeholder={
-                          isLoadingStudents
-                            ? "Memuat daftar siswa..."
-                            : "Pilih siswa"
-                        }
-                        className="w-full"
-                        disabled={isLoadingStudents || students.length === 0}
-                        searchable
-                      />
-                      {isLoadingStudents && (
-                        <p className="mt-2 text-xs text-slate-500">
-                          Mengambil daftar siswa...
-                        </p>
-                      )}
-                      {!isLoadingStudents && students.length === 0 && (
-                        <p className="mt-2 text-xs text-slate-500">
-                          Tidak ada siswa yang dapat dipilih.
-                        </p>
-                      )}
-                      {selectedStudentMeta && (
-                        <p className="mt-2 text-xs text-slate-500">
-                          {selectedStudentMeta.kelas || "Kelas belum diatur"} •
-                          NISN {selectedStudentMeta.nisn}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="month"
-                        className="mb-2 block text-sm font-medium text-slate-700"
-                      >
-                        Bulan
-                      </label>
-                      <Select
-                        value={selectedMonth}
-                        onChange={(value) => {
-                          setSelectedMonth(value);
-                        }}
-                        options={monthSelectOptions}
-                        placeholder={
-                          selectedStudent
-                            ? isLoadingMonths
-                              ? "Memuat data bulan..."
-                              : months.length === 0
-                              ? "Tidak ada data bulan"
-                              : "Pilih bulan"
-                            : "Pilih siswa terlebih dahulu"
-                        }
-                        className="w-full"
-                        disabled={
-                          !selectedStudent ||
-                          isLoadingMonths ||
-                          monthSelectOptions.length === 0
-                        }
-                        searchable
-                      />
-                      {isLoadingMonths && (
-                        <p className="mt-2 text-xs text-slate-500">
-                          Mengambil data bulan...
-                        </p>
-                      )}
-                      {selectedMonthMeta && (
-                        <p className="mt-2 text-xs text-slate-500">
-                          Akan menghapus {selectedMonthMeta.entryCount} catatan
-                          pada bulan {selectedMonthMeta.label}.
-                        </p>
-                      )}
-                    </div>
-
-                    {totalEntriesLabel && (
-                      <p className="text-xs text-slate-500">
-                        {totalEntriesLabel}
+                      Pilih Siswa
+                    </label>
+                    <Select
+                      value={selectedStudent}
+                      onChange={(value) => {
+                        setSelectedStudent(value);
+                      }}
+                      options={students}
+                      placeholder={
+                        isLoadingStudents
+                          ? "Memuat daftar siswa..."
+                          : "Cari nama siswa..."
+                      }
+                      className="w-full"
+                      disabled={isLoadingStudents || students.length === 0}
+                      searchable
+                    />
+                    {isLoadingStudents && (
+                      <p className="mt-2 text-xs text-gray-500">
+                        Mengambil daftar siswa...
                       </p>
                     )}
+                    {selectedStudentMeta && (
+                      <p className="mt-2 text-xs text-gray-400">
+                        {selectedStudentMeta.kelas || "Kelas belum diatur"} •
+                        NISN {selectedStudentMeta.nisn}
+                      </p>
+                    )}
+                  </div>
 
-                    <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0">
-                          <svg
-                            className="h-5 w-5 text-red-600"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth="2"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-                            />
-                          </svg>
+                  <div>
+                    <label
+                      htmlFor="month"
+                      className="mb-2 block text-sm font-semibold text-gray-700"
+                    >
+                      Pilih Bulan
+                    </label>
+                    <Select
+                      value={selectedMonth}
+                      onChange={(value) => {
+                        setSelectedMonth(value);
+                      }}
+                      options={monthSelectOptions}
+                      placeholder={
+                        selectedStudent
+                          ? isLoadingMonths
+                            ? "Memuat data bulan..."
+                            : months.length === 0
+                            ? "Tidak ada data bulan"
+                            : "Pilih bulan kegiatan"
+                          : "Pilih siswa terlebih dahulu"
+                      }
+                      className="w-full"
+                      disabled={
+                        !selectedStudent ||
+                        isLoadingMonths ||
+                        monthSelectOptions.length === 0
+                      }
+                      searchable
+                    />
+                    {selectedMonthMeta && (
+                      <p className="mt-2 text-xs text-blue-600 font-medium">
+                        Ditemukan {selectedMonthMeta.entryCount} catatan
+                        kegiatan.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Danger Zone Block */}
+                  <div className="pt-4 mt-6 border-t border-gray-100">
+                    <div className="bg-rose-50 border border-rose-100 rounded-2xl p-5">
+                      <div className="flex items-start gap-4">
+                        <div className="p-2 bg-white rounded-xl text-rose-600 shadow-sm border border-rose-100">
+                          <Trash2 className="h-5 w-5" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-sm font-semibold text-red-800 mb-1">
-                            Peringatan: Tindakan Permanen
+                          <h3 className="text-sm font-bold text-gray-900 mb-1">
+                            Area Berbahaya
                           </h3>
-                          <p className="text-xs text-red-700 leading-relaxed">
+                          <p className="text-sm text-gray-600 mb-4 leading-relaxed">
                             Tindakan ini akan{" "}
-                            <span className="font-bold">
-                              menghapus data secara permanen
+                            <span className="font-semibold text-rose-600">
+                              menghapus permanen
                             </span>{" "}
-                            semua catatan kegiatan untuk bulan terpilih. Dan
-                            data yang sudah dihapus{" "}
-                            <span className="font-bold">
-                              tidak dapat dikembalikan
-                            </span>
-                            .
+                            semua catatan kegiatan untuk siswa dan bulan yang
+                            dipilih. Data yang dihapus tidak dapat dikembalikan.
                           </p>
+                          <button
+                            type="submit"
+                            disabled={
+                              !selectedStudent ||
+                              !selectedMonth ||
+                              isDeleting ||
+                              isLoadingMonths
+                            }
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 text-white font-bold text-sm rounded-xl hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            {isDeleting
+                              ? "Memproses..."
+                              : "Hapus Data Kegiatan"}
+                          </button>
                         </div>
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-end gap-4 pt-2">
-                      <button
-                        type="submit"
-                        disabled={
-                          !selectedStudent ||
-                          !selectedMonth ||
-                          isDeleting ||
-                          isLoadingMonths
-                        }
-                        className="inline-flex items-center justify-center gap-2 rounded-md bg-red-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 disabled:cursor-not-allowed disabled:opacity-70"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        {isDeleting ? "Menghapus..." : "Hapus Data"}
-                      </button>
-                    </div>
-                  </form>
-                </div>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
@@ -593,98 +558,55 @@ export default function DeletePage() {
 
       {/* Modal Konfirmasi Delete */}
       {showConfirmModal && pendingDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl">
-            {/* Header */}
-            <div className="flex items-center gap-4 border-b border-slate-200 px-6 py-5">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                <Trash2 className="h-6 w-6 text-red-600" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm transition-all">
+          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden p-6 animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 text-rose-500">
+                <Trash2 className="w-8 h-8" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-slate-800">
-                  Konfirmasi Penghapusan
-                </h3>
-                <p className="text-sm text-slate-500">
-                  Tindakan ini tidak dapat dibatalkan
-                </p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Konfirmasi Penghapusan
+              </h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                Apakah Anda yakin ingin menghapus data kegiatan ini?
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 mb-6 space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500">Siswa</span>
+                <span className="font-semibold text-gray-900">
+                  {pendingDelete.studentName}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500">Bulan</span>
+                <span className="font-semibold text-gray-900">
+                  {pendingDelete.monthName}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-500">Total Data</span>
+                <span className="font-bold text-rose-600">
+                  {pendingDelete.entryCount} Catatan
+                </span>
               </div>
             </div>
 
-            {/* Content */}
-            <div className="px-6 py-5">
-              <div className="space-y-4">
-                <p className="text-sm leading-relaxed text-slate-600">
-                  Apakah Anda yakin ingin menghapus data kegiatan berikut?
-                </p>
-
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-medium text-slate-500">
-                      Nama Siswa:
-                    </span>
-                    <span className="text-sm font-semibold text-slate-800 text-right">
-                      {pendingDelete.studentName}
-                    </span>
-                  </div>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-medium text-slate-500">
-                      Bulan:
-                    </span>
-                    <span className="text-sm font-semibold text-slate-800 text-right">
-                      {pendingDelete.monthName}
-                    </span>
-                  </div>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-medium text-slate-500">
-                      Jumlah Catatan:
-                    </span>
-                    <span className="text-sm font-semibold text-red-600 text-right">
-                      {pendingDelete.entryCount} catatan
-                    </span>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-                  <div className="flex items-start gap-2">
-                    <svg
-                      className="h-5 w-5 flex-shrink-0 text-red-600 mt-0.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="2"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-                      />
-                    </svg>
-                    <p className="text-xs text-red-700 leading-relaxed">
-                      <span className="font-semibold">Peringatan:</span> Semua
-                      data yang dihapus akan hilang secara permanen dan tidak
-                      dapat dikembalikan.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={cancelDelete}
-                className="rounded-lg bg-slate-100 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                className="flex-1 py-3 bg-gray-50 text-gray-700 font-bold text-sm rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
               >
-                Batal
+                Batalkan
               </button>
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                className="flex-1 py-3 bg-rose-600 text-white font-bold text-sm rounded-xl hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all cursor-pointer flex items-center justify-center gap-2"
               >
-                <Trash2 className="h-4 w-4" />
-                Ya, Hapus Data
+                {isDeleting ? "..." : "Ya, Hapus Data"}
               </button>
             </div>
           </div>

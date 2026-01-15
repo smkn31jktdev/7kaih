@@ -117,38 +117,45 @@ function ExcelImportForm() {
           onToggleSidebar={toggleSidebar}
           onToggleMobileSidebar={toggleMobileSidebar}
         />
-        <main
-          className="flex-1 overflow-auto"
-          style={{ backgroundColor: "var(--background)" }}
-        >
-          <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6 md:mb-8">
-              <div
-                style={{ backgroundColor: "var(--secondary)" }}
-                className="px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 rounded-tr-xl rounded-tl-xl"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-full text-center">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 md:mb-3 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                      <Table className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
-                      <span>Tambah Siswa dari Google Sheet</span>
-                    </h1>
-                  </div>
-                </div>
-              </div>
+        <main className="flex-1 overflow-auto bg-gray-50/50">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+            {/* Header */}
+            <div className="mb-8 md:mb-10 w-full text-center md:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-2">
+                Import Siswa (Excel/Sheet)
+              </h1>
+              <p className="text-gray-500 text-sm md:text-base mx-auto md:mx-0">
+                Import data siswa secara massal dari Google Spreadsheet.
+              </p>
+            </div>
 
-              <div className="p-4 sm:p-6 md:p-8">
+            <div className="w-full">
+              <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8">
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 gap-6">
+                  {/* Info Block */}
+                  <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3 text-blue-900 text-sm">
+                    <Table className="w-5 h-5 flex-shrink-0 text-blue-500" />
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Google Sheet URL
+                      <p className="font-semibold mb-1">Panduan Import</p>
+                      <p className="opacity-80">
+                        Pastikan Google Sheet Anda dapat diakses oleh publik
+                        atau service account. Struktur kolom harus sesuai dengan
+                        format yang ditentukan (NISN, Nama, Kelas, Walas,
+                        Password).
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">
+                        URL Google Sheet
                       </label>
                       <div className="flex gap-2">
                         <input
                           value={sheetUrl}
                           readOnly
-                          className="flex-1 px-4 py-3 border border-slate-300 rounded-lg bg-gray-100"
+                          className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 text-sm focus:outline-none"
                         />
                         <button
                           type="button"
@@ -162,101 +169,117 @@ function ExcelImportForm() {
                               console.error(err);
                             }
                           }}
-                          title="Edit Sheet"
-                          className="inline-flex items-center px-3 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 cursor-pointer"
+                          title="Buka Sheet"
+                          className="inline-flex items-center justify-center w-12 rounded-xl bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors cursor-pointer border border-amber-200"
                         >
-                          <SquarePen className="w-4 h-4" />
+                          <SquarePen className="w-5 h-5" />
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-center gap-3 border-t border-gray-100 pt-6">
                     <button
                       onClick={handleLoad}
                       disabled={loading}
-                      className={`inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 ${
-                        loading ? "cursor-not-allowed" : "cursor-pointer"
-                      }`}
-                    >
-                      <RefreshCw className="w-4 h-4" /> Muat Dari Sheet
-                    </button>
-                    <button
-                      onClick={handleImport}
-                      disabled={loading || !rows.length}
-                      className={`inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 ${
-                        loading || !rows.length
-                          ? "cursor-not-allowed"
+                      className={`inline-flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-700 border border-blue-200 font-semibold rounded-xl hover:bg-blue-100 transition-colors ${
+                        loading
+                          ? "cursor-not-allowed opacity-50"
                           : "cursor-pointer"
                       }`}
                     >
-                      <Save className="w-4 h-4" /> Simpan Siswa
+                      <RefreshCw
+                        className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+                      />
+                      <span>Muat Data Sheet</span>
                     </button>
-                    <div className="ml-auto text-sm text-slate-600">
-                      Baris dimuat: <strong>{rows.length}</strong>
+
+                    <button
+                      onClick={handleImport}
+                      disabled={loading || !rows.length}
+                      className={`inline-flex items-center gap-2 px-6 py-2.5 bg-[var(--secondary)] text-white font-bold rounded-xl shadow-lg shadow-[var(--secondary)]/20 hover:brightness-110 transition-all ${
+                        loading || !rows.length
+                          ? "cursor-not-allowed opacity-50 shadow-none"
+                          : "cursor-pointer"
+                      }`}
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>Simpan Semua Siswa</span>
+                    </button>
+
+                    <div className="ml-auto text-sm text-gray-500">
+                      Baris data:{" "}
+                      <strong className="text-gray-900">{rows.length}</strong>
                     </div>
                   </div>
 
-                  <div className="overflow-auto bg-white border border-slate-100 rounded-lg">
-                    <table className="min-w-full divide-y divide-slate-200">
-                      <thead className="bg-slate-50">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-sm font-medium text-slate-600">
-                            No
-                          </th>
-                          <th className="px-4 py-2 text-left text-sm font-medium text-slate-600">
-                            NISN
-                          </th>
-                          <th className="px-4 py-2 text-left text-sm font-medium text-slate-600">
-                            Nama
-                          </th>
-                          <th className="px-4 py-2 text-left text-sm font-medium text-slate-600">
-                            Kelas
-                          </th>
-                          <th className="px-4 py-2 text-left text-sm font-medium text-slate-600">
-                            Guru Wali
-                          </th>
-                          <th className="px-4 py-2 text-left text-sm font-medium text-slate-600">
-                            Password
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-slate-100">
-                        {rows.length === 0 ? (
+                  {/* Table Preview */}
+                  <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-100">
+                        <thead className="bg-gray-50/50">
                           <tr>
-                            <td
-                              colSpan={6}
-                              className="px-4 py-6 text-center text-sm text-slate-500"
-                            >
-                              Belum ada data dimuat.
-                            </td>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                              No
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                              NISN
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                              Nama
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                              Kelas
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                              Guru Wali
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                              Password
+                            </th>
                           </tr>
-                        ) : (
-                          rows.map((r, i) => (
-                            <tr key={i}>
-                              <td className="px-4 py-3 text-sm text-slate-600">
-                                {i + 1}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-slate-600">
-                                {r.nisn}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-slate-600">
-                                {r.nama}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-slate-600">
-                                {r.kelas}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-slate-600">
-                                {r.walas}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-slate-600">
-                                {r.password}
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                          {rows.length === 0 ? (
+                            <tr>
+                              <td
+                                colSpan={6}
+                                className="px-6 py-12 text-center text-sm text-gray-400"
+                              >
+                                Belum ada data dimuat. Klik tombol "Muat Data
+                                Sheet".
                               </td>
                             </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
+                          ) : (
+                            rows.map((r, i) => (
+                              <tr
+                                key={i}
+                                className="hover:bg-gray-50/50 transition-colors"
+                              >
+                                <td className="px-6 py-4 text-sm text-gray-500 font-medium whitespace-nowrap">
+                                  {i + 1}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">
+                                  {r.nisn}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-900 font-medium whitespace-nowrap">
+                                  {r.nama}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                                  {r.kelas}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
+                                  {r.walas}
+                                </td>
+                                <td className="px-6 py-4 text-sm font-mono text-gray-400 whitespace-nowrap">
+                                  {r.password}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>

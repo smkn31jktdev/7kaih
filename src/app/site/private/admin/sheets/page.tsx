@@ -193,242 +193,183 @@ export default function AdminSheetsPage() {
           onToggleMobileSidebar={() => setIsMobileSidebarOpen((s) => !s)}
         />
 
-        <main
-          className="flex-1 overflow-auto"
-          style={{ backgroundColor: "var(--background)" }}
-        >
-          <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-              <div
-                style={{ backgroundColor: "var(--secondary)" }}
-                className="px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 rounded-tr-xl rounded-tl-xl"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-full text-center">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 md:mb-3 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                      <FileSpreadsheet className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
-                      <span>Rekap Penilaian Akhir</span>
-                    </h1>
-                    <p className="text-blue-100 text-xs sm:text-sm md:text-base lg:text-lg max-w-3xl mx-auto">
-                      Unduh dan pantau rekap penilaian kebiasaan siswa dalam
-                      format Excel dengan antarmuka konsisten.
-                    </p>
+        <main className="flex-1 overflow-auto bg-gray-50/50">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+            <div className="mb-8 md:mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4 text-center md:text-left">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-2">
+                  Rekap Data
+                </h1>
+                <p className="text-gray-500 text-sm md:text-base max-w-2xl mx-auto md:mx-0">
+                  Unduh laporan penilaian bulanan siswa dalam format Excel
+                  (.csv).
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              {/* Control Panel */}
+              <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8">
+                <div className="flex flex-col lg:flex-row gap-8 items-start">
+                  {/* Selector Section */}
+                  <div className="flex-1 w-full space-y-4">
+                    <div className="flex items-center gap-3 text-gray-900 font-bold text-lg mb-2">
+                      <span className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-[var(--secondary)]">
+                        <Calendar className="w-5 h-5" />
+                      </span>
+                      Pilih Periode
+                    </div>
+
+                    <div className="max-w-md">
+                      <label className="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2 pl-1">
+                        Bulan Laporan
+                      </label>
+                      <Select
+                        value={month}
+                        onChange={(value) => {
+                          if (!value || value === monthRef.current) return;
+                          updateMonth(value);
+                          void fetchSummaries(value);
+                        }}
+                        options={availableMonths.map((option) => ({
+                          value: option.key,
+                          label: option.label,
+                        }))}
+                        placeholder={
+                          availableMonths.length === 0
+                            ? "Data tidak tersedia"
+                            : "Pilih bulan..."
+                        }
+                        disabled={availableMonths.length === 0}
+                        className="w-full text-sm"
+                        searchable
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap gap-3 pt-2">
+                      <button
+                        onClick={downloadExcel}
+                        disabled={loading || !month}
+                        className="px-6 py-2.5 rounded-xl bg-[var(--secondary)] text-white font-medium text-sm hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm shadow-teal-100 flex items-center gap-2"
+                      >
+                        <Download className="w-4 h-4" />
+                        {loading ? "Memproses..." : "Download Excel"}
+                      </button>
+                      <button
+                        onClick={() => fetchSummaries(month || undefined)}
+                        className="px-6 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 font-medium text-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        Refresh
+                      </button>
+                    </div>
+
+                    {message && (
+                      <div
+                        className={`p-4 rounded-xl text-sm font-medium animate-in fade-in slide-in-from-top-2 ${
+                          message.toLowerCase().includes("berhasil")
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                            : "bg-red-50 text-red-700 border border-red-100"
+                        }`}
+                      >
+                        {message}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Stats Section */}
+                  <div className="w-full lg:w-80 bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <h3 className="font-bold text-gray-900 mb-4">
+                      Ringkasan Data
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">
+                          Terpilih
+                        </p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {filteredSummaries.length}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Data siswa bulan {currentMonthLabel}
+                        </p>
+                      </div>
+                      <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">
+                          Total Arsip
+                        </p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {totalSummaries}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Total semua periode
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-2 sm:p-4">
-                <div className="flex flex-col gap-6 xl:flex-row">
-                  <div className="flex-1 space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100/40 rounded-3xl p-5 border border-emerald-100 shadow-sm">
-                        <div className="flex items-start gap-3 mb-4">
-                          <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
-                            <Calendar className="w-6 h-6 text-emerald-600" />
-                          </div>
-                          <div>
-                            <h2 className="text-lg font-semibold text-slate-800">
-                              Pilih Periode Rekap
-                            </h2>
-                            <p className="text-sm text-slate-500">
-                              Tentukan bulan yang ingin diunduh lalu buat file
-                              Excel secara instan.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <label className="block text-xs font-medium uppercase tracking-wide text-slate-500">
-                              Pilih Bulan
-                            </label>
-                            <Select
-                              value={month}
-                              onChange={(value) => {
-                                if (!value || value === monthRef.current) {
-                                  return;
-                                }
-                                updateMonth(value);
-                                void fetchSummaries(value);
-                              }}
-                              options={availableMonths.map((option) => ({
-                                value: option.key,
-                                label: option.label,
-                              }))}
-                              placeholder={
-                                availableMonths.length === 0
-                                  ? "Data bulan belum tersedia"
-                                  : "Pilih bulan laporan"
-                              }
-                              disabled={availableMonths.length === 0}
-                              className="w-full text-sm"
-                              searchable
-                            />
-                            {availableMonths.length > 0 && (
-                              <p className="text-xs text-slate-500">
-                                Data bulan terakhir: {availableMonths[0].label}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="flex flex-col gap-3 sm:flex-row">
-                            <button
-                              type="button"
-                              onClick={downloadExcel}
-                              disabled={loading}
-                              className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                              <Download className="h-4 w-4" />
-                              {loading ? "Membuat file..." : "Download Excel"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                fetchSummaries(month || undefined);
-                              }}
-                              className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2"
-                            >
-                              <RefreshCw className="h-4 w-4" />
-                              Refresh Preview
-                            </button>
-                          </div>
-
-                          {message && (
-                            <div
-                              className={`rounded-2xl border px-4 py-3 text-sm font-medium ${
-                                message.toLowerCase().includes("berhasil")
-                                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                                  : "border-rose-200 bg-rose-50 text-rose-600"
-                              }`}
-                            >
-                              {message}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-100/40 rounded-3xl p-5 border border-blue-100 shadow-sm">
-                        <div className="flex items-start gap-3">
-                          <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center">
-                            <FileSpreadsheet className="w-6 h-6 text-blue-600" />
-                          </div>
-                          <div className="flex-1">
-                            <h2 className="text-lg font-semibold text-slate-800">
-                              Statistik Cepat
-                            </h2>
-                            <p className="text-sm text-slate-500">
-                              Lihat jumlah rangkuman tersedia untuk bulan yang
-                              dipilih.
-                            </p>
-                            <div className="mt-4 grid grid-cols-1 gap-3">
-                              <div className="rounded-2xl bg-white/80 border border-blue-100 px-4 py-4 shadow-sm">
-                                <p className="text-xs font-medium uppercase tracking-wide text-blue-500">
-                                  Total Rangkuman
-                                </p>
-                                <p className="mt-1 text-3xl font-bold text-blue-800">
-                                  {filteredSummaries.length}
-                                </p>
-                                <p className="text-xs text-blue-500">
-                                  Data sesuai bulan {currentMonthLabel}
-                                </p>
-                              </div>
-                              <div className="rounded-2xl bg-white/80 border border-indigo-100 px-4 py-4 shadow-sm">
-                                <p className="text-xs font-medium uppercase tracking-wide text-indigo-500">
-                                  Tersedia Keseluruhan
-                                </p>
-                                <p className="mt-1 text-3xl font-bold text-indigo-800">
-                                  {totalSummaries}
-                                </p>
-                                <p className="text-xs text-indigo-500">
-                                  Semua rekapan yang pernah dibuat •{" "}
-                                  {availableMonths.length} bulan
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-4 sm:p-6">
-                      <div className="bg-gradient-to-r from-indigo-50 via-blue-50 to-white rounded-2xl p-5 border border-indigo-100">
-                        <div className="flex items-start gap-3 mb-4">
-                          <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center">
-                            <FileSpreadsheet className="w-6 h-6 text-indigo-500" />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-slate-800">
-                              Preview Rangkuman Bulanan
-                            </h3>
-                            <p className="text-sm text-slate-500">
-                              Data siswa yang tersedia akan tampil otomatis
-                              sesuai periode yang dipilih.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="overflow-x-auto rounded-2xl border border-slate-200">
-                          <table className="min-w-full table-fixed text-sm">
-                            <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
-                              <tr>
-                                <th className="w-32 px-4 py-3 text-left">
-                                  NISN
-                                </th>
-                                <th className="px-4 py-3 text-left">Nama</th>
-                                <th className="w-32 px-4 py-3 text-left">
-                                  Kelas
-                                </th>
-                                <th className="w-40 px-4 py-3 text-left">
-                                  Bulan
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-200 text-slate-700">
-                              {summaries.length === 0 ? (
-                                <tr>
-                                  <td
-                                    colSpan={4}
-                                    className="px-4 py-6 text-center text-sm text-slate-500"
-                                  >
-                                    Belum ada data rangkuman.
-                                  </td>
-                                </tr>
-                              ) : filteredSummaries.length === 0 ? (
-                                <tr>
-                                  <td
-                                    colSpan={4}
-                                    className="px-4 py-6 text-center text-sm text-slate-500"
-                                  >
-                                    Tidak ditemukan data untuk bulan terpilih.
-                                  </td>
-                                </tr>
-                              ) : (
-                                filteredSummaries.map((s) => (
-                                  <tr
-                                    key={String(s.nisn)}
-                                    className="odd:bg-white even:bg-slate-50"
-                                  >
-                                    <td className="px-4 py-3 font-medium text-slate-800">
-                                      {s.nisn}
-                                    </td>
-                                    <td className="px-4 py-3 text-slate-700">
-                                      {s.nama}
-                                    </td>
-                                    <td className="px-4 py-3 text-slate-600">
-                                      {s.kelas || "-"}
-                                    </td>
-                                    <td className="px-4 py-3 text-slate-600">
-                                      {s.monthLabel || s.monthKey}
-                                    </td>
-                                  </tr>
-                                ))
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              {/* Table Preview */}
+              <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-gray-50 flex items-center gap-3">
+                  <FileSpreadsheet className="w-5 h-5 text-gray-400" />
+                  <h3 className="font-bold text-gray-900">Preview Data</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-gray-50/50 text-gray-500 font-medium border-b border-gray-100">
+                      <tr>
+                        <th className="px-6 py-4">NISN</th>
+                        <th className="px-6 py-4">Nama Siswa</th>
+                        <th className="px-6 py-4">Kelas</th>
+                        <th className="px-6 py-4">Periode</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {summaries.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="px-6 py-12 text-center text-gray-400"
+                          >
+                            Belum ada data yang dimuat.
+                          </td>
+                        </tr>
+                      ) : filteredSummaries.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={4}
+                            className="px-6 py-12 text-center text-gray-400"
+                          >
+                            Tidak ada data untuk bulan ini.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredSummaries.map((s, idx) => (
+                          <tr
+                            key={idx}
+                            className="hover:bg-gray-50 transition-colors"
+                          >
+                            <td className="px-6 py-4 font-mono text-gray-500 text-xs">
+                              {s.nisn}
+                            </td>
+                            <td className="px-6 py-4 font-medium text-gray-900">
+                              {s.nama}
+                            </td>
+                            <td className="px-6 py-4 text-gray-500">
+                              {s.kelas || "-"}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                                {s.monthLabel || s.monthKey}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>

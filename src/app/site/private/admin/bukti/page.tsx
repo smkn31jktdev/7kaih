@@ -4,7 +4,14 @@ import { useState, useEffect } from "react";
 import AdminSidebar from "@/app/components/dashboard/admin/sidebar";
 import AdminNavbar from "@/app/components/dashboard/admin/navbar";
 import { useSessionTimeout } from "@/app/lib/useSessionTimeout";
-import { FileImage, ExternalLink, X } from "lucide-react";
+import {
+  FileImage,
+  ExternalLink,
+  X,
+  Image as ImageIcon,
+  Download,
+  Link as LinkIcon,
+} from "lucide-react";
 import Image from "next/image";
 
 interface Bukti {
@@ -14,7 +21,6 @@ interface Bukti {
   bulan: string;
   foto: string;
   linkYouTube: string;
-  // Field baru untuk deployment
   imageUrl?: string;
   imageId?: string;
   imageData?: string;
@@ -87,14 +93,11 @@ export default function AdminBuktiPage() {
   const openModal = (bukti: Bukti) => {
     setSelectedBukti(bukti);
     setIsModalOpen(true);
-    // Gunakan imageData dari database langsung (sudah Base64)
     if (bukti.imageData && bukti.imageMimeType) {
       setImageDataUrl(`data:${bukti.imageMimeType};base64,${bukti.imageData}`);
     } else if (bukti.imageUrl) {
-      // Fallback ke imageUrl jika tersedia
       setImageDataUrl(bukti.imageUrl);
     } else {
-      // Fallback ke load dari file untuk data lama
       loadImageFromFile(bukti.foto);
     }
   };
@@ -106,7 +109,6 @@ export default function AdminBuktiPage() {
     setImageLoading(false);
   };
 
-  // Fallback function untuk data lama yang masih menggunakan file lokal
   const loadImageFromFile = async (fotoPath: string) => {
     if (!fotoPath || !fotoPath.startsWith("/uploads/bukti/")) {
       setImageDataUrl(null);
@@ -151,13 +153,11 @@ export default function AdminBuktiPage() {
   const downloadImage = () => {
     if (!imageDataUrl || !selectedBukti) return;
 
-    // File download: bukti_nama-siswa_bulan.jpg/png
     const namaFormatted = selectedBukti.nama.toLowerCase().replace(/\s+/g, "-");
     const bulanFormatted = selectedBukti.bulan.replace("-", "");
     const extension = imageDataUrl.includes("data:image/png") ? "png" : "jpg";
     const filename = `bukti_${namaFormatted}_${bulanFormatted}.${extension}`;
 
-    // Create download link
     const link = document.createElement("a");
     link.href = imageDataUrl;
     link.download = filename;
@@ -184,96 +184,118 @@ export default function AdminBuktiPage() {
           onToggleSidebar={toggleSidebar}
           onToggleMobileSidebar={toggleMobileSidebar}
         />
-        <main
-          className="flex-1 overflow-auto"
-          style={{ backgroundColor: "var(--background)" }}
-        >
-          {/* Header Section */}
-          <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6 md:mb-8">
-              <div
-                style={{ backgroundColor: "var(--secondary)" }}
-                className="px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 rounded-tr-xl rounded-tl-xl"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-full text-center">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 md:mb-3 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                      <FileImage className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
-                      <span>Bukti Siswa</span>
-                    </h1>
-                    <p className="text-blue-100 text-xs sm:text-sm md:text-base lg:text-lg max-w-3xl mx-auto">
-                      Pantau bukti kegiatan siswa berupa foto dan link YouTube.
-                    </p>
+        <main className="flex-1 overflow-auto bg-gray-50/50">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+            <div className="mb-8 md:mb-10 text-center md:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-2">
+                Bukti Kegiatan
+              </h1>
+              <p className="text-gray-500 text-sm md:text-base max-w-2xl mx-auto md:mx-0">
+                Tinjau dokumentasi foto dan video YouTube yang diunggah oleh
+                siswa setiap bulannya.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-gray-50 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-[var(--secondary)]">
+                    <FileImage className="w-5 h-5" />
                   </div>
+                  <h3 className="font-bold text-gray-900">Daftar Unggahan</h3>
                 </div>
               </div>
 
-              <div className="p-2 sm:p-4">
-                <div className="bg-white border border-slate-200 rounded-3xl shadow-sm p-4 sm:p-6">
-                  <div className="bg-white rounded-2xl p-5 border border-emerald-100">
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
-                        <FileImage className="w-6 h-6 text-emerald-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-slate-800">
-                          Daftar Bukti Siswa
-                        </h3>
-                        <p className="text-sm text-slate-500">
-                          Lihat bukti kegiatan siswa dalam bentuk foto dan video
-                          YouTube.
-                        </p>
-                      </div>
-                    </div>
-
-                    {loading ? (
-                      <div className="flex h-32 items-center justify-center text-sm text-slate-500">
-                        Memuat bukti...
-                      </div>
-                    ) : error ? (
-                      <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-                        {error}
-                      </div>
-                    ) : buktiList.length === 0 ? (
-                      <div className="flex h-32 items-center justify-center text-sm text-slate-500">
-                        Belum ada bukti siswa.
-                      </div>
-                    ) : (
-                      <div className="h-64 md:h-72 lg:h-[18rem] overflow-y-auto overscroll-contain scrollbar-hide">
-                        <div className="space-y-3">
-                          {buktiList.map((bukti) => (
-                            <div
-                              key={`${bukti.nisn}-${bukti.bulan}`}
-                              className="flex items-center justify-between gap-4 rounded-2xl bg-white/80 border border-emerald-50 px-4 py-4 hover:bg-emerald-50/50 transition-colors"
-                            >
-                              <div className="flex items-center gap-4 min-w-0">
-                                <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
-                                  <FileImage className="w-6 h-6 text-emerald-700" />
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="text-sm font-semibold text-slate-800 truncate">
-                                    {bukti.nama}
-                                  </p>
-                                  <p className="text-xs text-slate-500 truncate">
-                                    {bukti.kelas || "-"} •{" "}
-                                    {formatBulan(bukti.bulan)}
-                                  </p>
-                                </div>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => openModal(bukti)}
-                                className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2"
-                              >
-                                Lihat Bukti
-                              </button>
-                            </div>
-                          ))}
+              <div className="p-0">
+                {loading ? (
+                  <div className="p-8 space-y-4">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl bg-gray-50/50 animate-pulse"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-gray-200 rounded-xl" />
+                          <div className="space-y-2">
+                            <div className="h-4 w-32 bg-gray-200 rounded" />
+                            <div className="h-3 w-24 bg-gray-200 rounded" />
+                          </div>
                         </div>
                       </div>
-                    )}
+                    ))}
                   </div>
-                </div>
+                ) : error ? (
+                  <div className="p-8 text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 text-red-500 mb-4">
+                      <X className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-red-900 font-medium mb-1">
+                      Gagal Memuat Data
+                    </h3>
+                    <p className="text-red-500 text-sm">{error}</p>
+                  </div>
+                ) : buktiList.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+                    <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-300">
+                      <ImageIcon className="w-10 h-10" />
+                    </div>
+                    <h3 className="text-gray-900 font-medium mb-1">
+                      Belum ada bukti
+                    </h3>
+                    <p className="text-gray-500 text-sm">
+                      Belum ada siswa yang mengunggah bukti kegiatan.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6 bg-gray-50/30">
+                    {buktiList.map((bukti) => (
+                      <div
+                        key={`${bukti.nisn}-${bukti.bulan}`}
+                        className="bg-white rounded-2xl p-4 border border-gray-100 hover:shadow-md hover:border-gray-200 transition-all group"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-bold text-sm">
+                              {bukti.nama.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900 text-sm">
+                                {bukti.nama}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {bukti.kelas}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-500">
+                            {formatBulan(bukti.bulan)}
+                          </span>
+                        </div>
+
+                        <div className="space-y-2">
+                          <button
+                            onClick={() => openModal(bukti)}
+                            className="w-full py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <ImageIcon className="w-4 h-4" />
+                            Lihat Foto
+                          </button>
+                          {bukti.linkYouTube && (
+                            <a
+                              href={bukti.linkYouTube}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full py-2.5 rounded-xl bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              Video YouTube
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -281,148 +303,147 @@ export default function AdminBuktiPage() {
       </div>
 
       {isModalOpen && selectedBukti && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4 pt-10 pb-6 sm:pb-10">
-          <div className="relative w-full max-w-2xl rounded-3xl border border-slate-200 bg-white shadow-2xl max-h-[90vh] flex flex-col">
-            <div
-              className="flex items-center justify-between gap-4 rounded-t-3xl px-6 py-5 flex-shrink-0"
-              style={{ backgroundColor: "var(--secondary)" }}
-            >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-white">
-                  Bukti Kegiatan Siswa
-                </h2>
-                <p className="text-sm text-white/80">
+                <h3 className="text-lg font-bold text-gray-900">
+                  Detail Bukti
+                </h3>
+                <p className="text-sm text-gray-500">
                   {selectedBukti.nama} • {formatBulan(selectedBukti.bulan)}
                 </p>
               </div>
               <button
-                type="button"
                 onClick={closeModal}
-                className="rounded-full bg-white/20 p-2 text-white transition hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600"
               >
-                <X className="h-5 w-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-6">
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-xs uppercase tracking-wide text-slate-500">
-                      Nama
-                    </p>
-                    <p className="font-semibold text-slate-800">
-                      {selectedBukti.nama}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-xs uppercase tracking-wide text-slate-500">
-                      NISN
-                    </p>
-                    <p className="font-semibold text-slate-800">
-                      {selectedBukti.nisn}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-                    <p className="text-xs uppercase tracking-wide text-slate-500">
-                      Kelas
-                    </p>
-                    <p className="font-semibold text-slate-800">
-                      {selectedBukti.kelas || "-"}
-                    </p>
-                  </div>
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50/50">
+              <div className="flex flex-col lg:flex-row gap-6">
+                {/* Left Col: Image */}
+                <div className="flex-1 bg-white p-2 rounded-2xl border border-gray-200 shadow-sm min-h-[300px] flex items-center justify-center relative">
+                  {imageLoading ? (
+                    <div className="flex flex-col items-center gap-2 text-gray-400">
+                      <div className="animate-spin w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full" />
+                      <span className="text-xs">Memuat...</span>
+                    </div>
+                  ) : imageDataUrl ? (
+                    <div className="relative w-full h-full min-h-[400px]">
+                      <Image
+                        src={imageDataUrl}
+                        alt="Preview Bukti"
+                        fill
+                        className="object-contain rounded-xl"
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-400 py-20">
+                      <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Gambar tidak tersedia</p>
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-800 mb-3">
-                      Foto Bukti
-                    </h3>
-                    <div className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
-                      <div className="relative w-full h-64">
-                        {imageLoading ? (
-                          <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
-                            <div className="text-center">
-                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600 mx-auto mb-2"></div>
-                              <p className="text-sm text-slate-500">
-                                Memuat gambar...
-                              </p>
-                            </div>
-                          </div>
-                        ) : imageDataUrl ? (
-                          <Image
-                            src={imageDataUrl}
-                            alt="Bukti kegiatan"
-                            fill
-                            className="object-cover"
-                            onError={() => {
-                              setImageDataUrl(null);
-                            }}
-                          />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center bg-slate-100 text-slate-500 text-sm">
-                            <div className="text-center">
-                              <FileImage className="w-12 h-12 mx-auto mb-2 text-slate-400" />
-                              <p>Foto belum tersedia</p>
-                              <p className="text-xs mt-1">
-                                File: {selectedBukti.foto}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                {/* Right Col: Info & Actions */}
+                <div className="w-full lg:w-80 space-y-6">
+                  <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                    <div>
+                      <label className="text-xs uppercase font-bold text-gray-400 tracking-wider">
+                        Nama Siswa
+                      </label>
+                      <p className="text-gray-900 font-semibold">
+                        {selectedBukti.nama}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase font-bold text-gray-400 tracking-wider">
+                        NISN
+                      </label>
+                      <p className="text-gray-900 font-medium font-mono">
+                        {selectedBukti.nisn}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase font-bold text-gray-400 tracking-wider">
+                        Kelas
+                      </label>
+                      <p className="text-gray-900 font-medium">
+                        {selectedBukti.kelas}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase font-bold text-gray-400 tracking-wider">
+                        Bulan
+                      </label>
+                      <p className="text-gray-900 font-medium">
+                        {formatBulan(selectedBukti.bulan)}
+                      </p>
                     </div>
                   </div>
 
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-800 mb-3">
-                      Link YouTube
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      <a
-                        href={selectedBukti.linkYouTube}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        Buka YouTube
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          navigator.clipboard.writeText(
-                            selectedBukti.linkYouTube
-                          )
-                        }
-                        className="inline-flex items-center gap-2 rounded-full bg-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-                      >
-                        Salin Link
-                      </button>
-                      {imageDataUrl && (
-                        <button
-                          type="button"
-                          onClick={downloadImage}
-                          className="inline-flex items-center gap-2 rounded-full bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                  <div className="space-y-3">
+                    <h4 className="font-bold text-gray-900 text-sm">
+                      Tautan & Aksi
+                    </h4>
+                    {selectedBukti.linkYouTube ? (
+                      <div className="space-y-2">
+                        <a
+                          href={selectedBukti.linkYouTube}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3 rounded-xl bg-red-50 text-red-700 hover:bg-red-100 transition-colors border border-red-100"
                         >
-                          <FileImage className="h-4 w-4" />
-                          Download Foto
+                          <div className="w-8 h-8 rounded-full bg-red-200 flex items-center justify-center flex-shrink-0">
+                            <ExternalLink className="w-4 h-4" />
+                          </div>
+                          <div className="text-sm font-medium truncate">
+                            Buka di YouTube
+                          </div>
+                        </a>
+                        <button
+                          onClick={() =>
+                            navigator.clipboard.writeText(
+                              selectedBukti.linkYouTube
+                            )
+                          }
+                          className="flex items-center gap-3 p-3 rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors w-full"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                            <LinkIcon className="w-4 h-4" />
+                          </div>
+                          <div className="text-sm font-medium">Salin Link</div>
                         </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic">
+                        Tidak ada link YouTube.
+                      </p>
+                    )}
 
-                <div className="flex justify-end pt-4 border-t border-slate-200">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="rounded-full bg-slate-200 px-5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-                  >
-                    Tutup
-                  </button>
+                    {imageDataUrl && (
+                      <button
+                        onClick={downloadImage}
+                        className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-[var(--secondary)] text-white font-medium hover:bg-teal-700 transition-colors shadow-sm mt-4"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download Foto
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
+            </div>
+            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <button
+                onClick={closeModal}
+                className="px-6 py-2 rounded-xl bg-white border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              >
+                Tutup
+              </button>
             </div>
           </div>
         </div>

@@ -90,38 +90,34 @@ function TambahSiswaForm() {
           onToggleSidebar={toggleSidebar}
           onToggleMobileSidebar={toggleMobileSidebar}
         />
-        <main
-          className="flex-1 overflow-auto"
-          style={{ backgroundColor: "var(--background)" }}
-        >
-          {/* Header Section */}
-          <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mb-6 md:mb-8">
-              <div
-                style={{ backgroundColor: "var(--secondary)" }}
-                className="px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8 rounded-tr-xl rounded-tl-xl"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="w-full text-center">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 md:mb-3 flex items-center justify-center gap-2 sm:gap-3 md:gap-4">
-                      <UserPlus className="w-6 h-6 sm:w-8 sm:h-8 text-white/90" />
-                      <span>Tambah Siswa</span>
-                    </h1>
-                    <p className="text-blue-100 text-xs sm:text-sm md:text-base lg:text-lg max-w-3xl mx-auto">
-                      Tambahkan data siswa baru ke dalam sistem.
-                    </p>
-                  </div>
-                </div>
-              </div>
+        <main className="flex-1 overflow-auto bg-gray-50/50">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+            {/* Header */}
+            <div className="mb-8 md:mb-10 w-full text-center md:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-2">
+                Tambah Siswa
+              </h1>
+              <p className="text-gray-500 text-sm md:text-base mx-auto md:mx-0">
+                Tambahkan data siswa baru ke dalam sistem sekolah.
+              </p>
+            </div>
 
-              <div className="p-4 sm:p-6 md:p-8">
-                <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="w-full">
+              <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  <div className="flex items-center gap-2 pb-2 border-b border-gray-100 mb-6">
+                    <UserPlus className="w-5 h-5 text-gray-400" />
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Informasi Siswa
+                    </h3>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* NISN */}
-                    <div>
+                    <div className="space-y-2">
                       <label
                         htmlFor="nisn"
-                        className="block text-sm font-medium text-slate-700 mb-2"
+                        className="text-sm font-semibold text-gray-700"
                       >
                         NISN
                       </label>
@@ -132,16 +128,16 @@ function TambahSiswaForm() {
                         value={formData.nisn}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
                         placeholder="Masukkan NISN"
                       />
                     </div>
 
                     {/* Nama */}
-                    <div>
+                    <div className="space-y-2">
                       <label
                         htmlFor="nama"
-                        className="block text-sm font-medium text-slate-700 mb-2"
+                        className="text-sm font-semibold text-gray-700"
                       >
                         Nama
                       </label>
@@ -152,16 +148,16 @@ function TambahSiswaForm() {
                         value={formData.nama}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
                         placeholder="Masukkan nama lengkap"
                       />
                     </div>
 
                     {/* Kelas */}
-                    <div>
+                    <div className="space-y-2">
                       <label
                         htmlFor="kelas"
-                        className="block text-sm font-medium text-slate-700 mb-2"
+                        className="text-sm font-semibold text-gray-700"
                       >
                         Kelas
                       </label>
@@ -172,16 +168,16 @@ function TambahSiswaForm() {
                         value={formData.kelas}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
                         placeholder="Contoh: 10A, 11B"
                       />
                     </div>
 
                     {/* Walas */}
-                    <div>
+                    <div className="space-y-2">
                       <label
                         htmlFor="walas"
-                        className="block text-sm font-medium text-slate-700 mb-2"
+                        className="text-sm font-semibold text-gray-700"
                       >
                         Guru Wali
                       </label>
@@ -192,16 +188,16 @@ function TambahSiswaForm() {
                         value={formData.walas}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
                         placeholder="Masukkan nama guru wali"
                       />
                     </div>
 
                     {/* Password */}
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-2 space-y-2">
                       <label
                         htmlFor="password"
-                        className="block text-sm font-medium text-slate-700 mb-2"
+                        className="text-sm font-semibold text-gray-700"
                       >
                         Password
                       </label>
@@ -212,23 +208,25 @@ function TambahSiswaForm() {
                         value={formData.password}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none placeholder:text-gray-400"
                         placeholder="Masukkan password"
                       />
                     </div>
                   </div>
 
                   {/* Submit Button */}
-                  <div className="flex justify-end pt-6 border-t border-slate-200">
+                  <div className="flex justify-end pt-6 border-t border-gray-100">
                     <button
                       type="submit"
                       disabled={loading}
-                      className={`inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${
+                      className={`group relative flex items-center gap-3 px-6 py-2.5 rounded-xl bg-[var(--secondary)] text-white font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-[var(--secondary)]/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
                         loading ? "cursor-not-allowed" : "cursor-pointer"
                       }`}
                     >
-                      <Save className="w-5 h-5" />
-                      Simpan Siswa
+                      <span>Simpan Siswa</span>
+                      <div className="bg-white/20 rounded-full p-1 backdrop-blur-sm group-hover:bg-white/30 transition-colors">
+                        <Save className="w-4 h-4" />
+                      </div>
                     </button>
                   </div>
                 </form>

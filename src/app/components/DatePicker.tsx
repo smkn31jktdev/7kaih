@@ -144,7 +144,6 @@ export function DatePicker({
 
       {isOpen && (
         <div className="absolute z-50 w-80 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-          {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <button
               type="button"
