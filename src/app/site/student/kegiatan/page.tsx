@@ -1,220 +1,42 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import StudentSidebar from "@/app/components/dashboard/student/sidebar";
 import StudentNavbar from "@/app/components/dashboard/student/navbar";
-import Select from "@/app/components/Select";
 import { DatePicker } from "@/app/components/DatePicker";
-import { TimePicker } from "@/app/components/TimePicker";
+import { Calendar, Users } from "lucide-react";
+
+// Import components from kegiatan folder
 import {
-  Calendar,
-  Utensils,
-  HandCoins,
-  Dumbbell,
-  HelpCircle,
-  Sun,
-  Moon,
-  Users,
-  BookOpen,
-  Save,
-  Clock,
-} from "lucide-react";
+  BangunSection,
+  TidurSection,
+  IbadahSection,
+  MakanSection,
+  OlahragaSection,
+  BelajarSection,
+  BermasyarakatSection,
+} from "@/app/components/dashboard/student/kegiatan";
+
+// Import types and constants from const folder
+import {
+  BeribadahForm,
+  BeribadahBooleanKey,
+  BERIBADAH_BOOLEAN_FIELDS,
+  createDefaultBeribadah,
+} from "@/app/components/dashboard/student/const/ibadah";
+import {
+  RamadhanForm,
+  RAMADHAN_BOOLEAN_FIELDS,
+  createDefaultRamadhan,
+  isRamadhanPeriod,
+} from "@/app/components/dashboard/student/const/ramadhan/ramadhan";
 
 interface StudentData {
   nama: string;
   nisn: string;
   kelas: string;
 }
-
-type BeribadahBooleanKey =
-  | "berdoaUntukDiriDanOrtu"
-  | "sholatFajar"
-  | "sholatLimaWaktuBerjamaah"
-  | "zikirSesudahSholat"
-  | "sholatDhuha"
-  | "sholatSunahRawatib";
-
-type BeribadahForm = {
-  [key in BeribadahBooleanKey]: boolean;
-} & {
-  zakatInfaqSedekah: string;
-};
-
-const BERIBADAH_BOOLEAN_FIELDS: Array<{
-  key: BeribadahBooleanKey;
-  label: string;
-}> = [
-  {
-    key: "berdoaUntukDiriDanOrtu",
-    label: "Berdoa untuk diri sendiri dan orang tua",
-  },
-  {
-    key: "sholatFajar",
-    label: "Sholat Fajar / Qoblal Subuh*",
-  },
-  {
-    key: "sholatLimaWaktuBerjamaah",
-    label: "Sholat 5 waktu berjamaah*",
-  },
-  {
-    key: "zikirSesudahSholat",
-    label: "Zikir dan doa sehabis sholat fardlu*",
-  },
-  {
-    key: "sholatDhuha",
-    label: "Sholat Dhuha*",
-  },
-  {
-    key: "sholatSunahRawatib",
-    label: "Sholat sunah rawatib*",
-  },
-];
-
-const createDefaultBeribadah = (): BeribadahForm => ({
-  berdoaUntukDiriDanOrtu: false,
-  sholatFajar: false,
-  sholatLimaWaktuBerjamaah: false,
-  zikirSesudahSholat: false,
-  sholatDhuha: false,
-  sholatSunahRawatib: false,
-  zakatInfaqSedekah: "",
-});
-
-const OLAGRAGA_DESKRIPSI_MAP: Record<string, string> = {
-  "senam-sekolah": "Senam di sekolah seminggu sekali",
-  "senam-masyarakat": "Senam di masyarakat seminggu sekali",
-  "walk-school": "Walk to school setiap hari",
-  "ride-school": "Ride to school (sepeda ontel) setiap hari",
-  "gym-renang": "Gym / renang seminggu sekali",
-  "running-jogging": "Running / lari / jogging seminggu 2 (dua) kali",
-  "olahraga-hobi": "Olah raga hobbi seminggu sekali",
-  lainnya: "",
-};
-
-const BERMASYARAKAT_DESKRIPSI_MAP: Record<string, string> = {
-  "membersihkan-tempat-ibadah": "Membersihkan tempat ibadah",
-  "membersihkan-got-jalanan": "Membersihkan got / jalanan umum",
-  "merawat-tanaman": "Merawat tanaman / penghijauan di tempat umum",
-  "petugas-ibadah":
-    "Menjadi petugas pelayan beribadah / imam / muadzin / bilal",
-  "khotib-penceramah":
-    "Menjadi khotib / penceramah / petugas pembimbing keagamaan",
-  "mengajar-ngaji": "Mengajar ngaji / ta'lim / membimbing kelompok belajar",
-};
-
-const BELAJAR_DESKRIPSI_MAP: Record<string, string> = {
-  "membaca-kitab-suci": "Membaca kitab suci ( sesuai Agama yang dianutnya )",
-  "membaca-buku-bacaan": "Membaca buku bacaan / novel / hobby / sejarah dsb.",
-  "membaca-buku-pelajaran": "Membaca buku mata pelajaran",
-  "mengerjakan-tugas": "Mengerjakan tugas / PR",
-};
-
-// Professional Select Options
-const MAKANAN_OPTIONS = [
-  { value: "", label: "Pilih jenis makanan..." },
-  { value: "sahur", label: "Makan sahur" },
-  { value: "sarapan", label: "Sarapan pagi" },
-  { value: "siang", label: "Makan siang" },
-  { value: "malam", label: "Makan malam" },
-];
-
-const OLAGRAGA_OPTIONS = [
-  { value: "", label: "Pilih jenis olahraga..." },
-  {
-    value: "senam-sekolah",
-    label: "Senam di sekolah",
-    description: "seminggu sekali",
-  },
-  {
-    value: "senam-masyarakat",
-    label: "Senam di masyarakat",
-    description: "seminggu sekali",
-  },
-  { value: "walk-school", label: "Walk to school", description: "setiap hari" },
-  {
-    value: "ride-school",
-    label: "Ride to school",
-    description: "sepeda ontel setiap hari",
-  },
-  {
-    value: "gym-renang",
-    label: "Gym / renang",
-    description: "seminggu sekali",
-  },
-  {
-    value: "running-jogging",
-    label: "Running / lari / jogging",
-    description: "seminggu 2 (dua) kali",
-  },
-  {
-    value: "olahraga-hobi",
-    label: "Olah raga hobbi",
-    description: "seminggu sekali",
-  },
-  { value: "lainnya", label: "Olah raga lainnya" },
-];
-
-const BERMASYARAKAT_OPTIONS = [
-  { value: "", label: "Pilih jenis kegiatan bermasyarakat..." },
-  ...Object.entries(BERMASYARAKAT_DESKRIPSI_MAP).map(([key, description]) => ({
-    value: key,
-    label: description,
-  })),
-];
-
-const BELAJAR_OPTIONS = [
-  { value: "", label: "Pilih jenis kegiatan belajar..." },
-  ...Object.entries(BELAJAR_DESKRIPSI_MAP).map(([key, description]) => ({
-    value: key,
-    label: description,
-  })),
-];
-
-// Reusable Section Component for consistent styling
-const SectionCard = ({
-  title,
-  icon: Icon,
-  children,
-  className = "",
-}: {
-  title: string;
-  icon: React.ElementType;
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <div
-    className={`bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 hover:shadow-md transition-shadow duration-300 ${className}`}
-  >
-    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-50">
-      <div className="w-10 h-10 rounded-2xl bg-[var(--secondary)]/10 flex items-center justify-center text-[var(--secondary)]">
-        <Icon className="w-5 h-5" />
-      </div>
-      <h3 className="text-lg font-bold text-gray-800 tracking-tight">
-        {title}
-      </h3>
-    </div>
-    <div className="space-y-5">{children}</div>
-  </div>
-);
-
-// Unified Save Button
-const SaveButton = ({
-  onClick,
-  label = "Simpan Data",
-}: {
-  onClick: () => void;
-  label?: string;
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className="w-full mt-2 group relative flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[var(--secondary)] text-white font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-[var(--secondary)]/20 active:scale-[0.98]"
-  >
-    <span>{label}</span>
-    <Save className="w-4 h-4 opacity-80 group-hover:scale-110 transition-transform" />
-  </button>
-);
 
 export default function KegiatanSiswa() {
   const router = useRouter();
@@ -232,41 +54,6 @@ export default function KegiatanSiswa() {
     type: "success" | "error";
   } | null>(null);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [showSuplemenHelp, setShowSuplemenHelp] = useState(false);
-  const suplemenRef = useRef<HTMLDivElement | null>(null);
-
-  const [showBeribadahHelp, setShowBeribadahHelp] = useState(false);
-  const beribadahRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!showSuplemenHelp) return;
-    function handleOutside(e: MouseEvent) {
-      if (
-        suplemenRef.current &&
-        e.target instanceof Node &&
-        !suplemenRef.current.contains(e.target)
-      ) {
-        setShowSuplemenHelp(false);
-      }
-    }
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, [showSuplemenHelp]);
-
-  useEffect(() => {
-    if (!showBeribadahHelp) return;
-    function handleOutside(e: MouseEvent) {
-      if (
-        beribadahRef.current &&
-        e.target instanceof Node &&
-        !beribadahRef.current.contains(e.target)
-      ) {
-        setShowBeribadahHelp(false);
-      }
-    }
-    document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
-  }, [showBeribadahHelp]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -283,6 +70,7 @@ export default function KegiatanSiswa() {
       membacaDanMasTidur: false,
     },
     beribadah: createDefaultBeribadah(),
+    ramadhan: createDefaultRamadhan(),
     makanSehat: {
       jenisMakanan: "",
       jenisLaukSayur: "",
@@ -411,11 +199,23 @@ export default function KegiatanSiswa() {
           });
           if (existingBeribadah.zakatInfaqSedekah !== undefined) {
             normalizedBeribadah.zakatInfaqSedekah = String(
-              existingBeribadah.zakatInfaqSedekah ?? ""
+              existingBeribadah.zakatInfaqSedekah ?? "",
             );
           }
         }
         kegiatan["beribadah"] = normalizedBeribadah;
+
+        // Normalize ramadhan data
+        const existingRamadhan = kegiatan.ramadhan as
+          | Partial<RamadhanForm>
+          | undefined;
+        const normalizedRamadhan = createDefaultRamadhan();
+        if (existingRamadhan) {
+          RAMADHAN_BOOLEAN_FIELDS.forEach(({ key }) => {
+            normalizedRamadhan[key] = Boolean(existingRamadhan[key]);
+          });
+        }
+        kegiatan["ramadhan"] = normalizedRamadhan;
 
         // Normalize makanSehat data
         if (kegiatan.makanSehat && typeof kegiatan.makanSehat === "object") {
@@ -514,7 +314,7 @@ export default function KegiatanSiswa() {
 
   const handleSectionSubmit = async (
     section: string,
-    sectionData: Record<string, unknown>
+    sectionData: Record<string, unknown>,
   ) => {
     try {
       const token = localStorage.getItem("studentToken");
@@ -525,7 +325,7 @@ export default function KegiatanSiswa() {
       }
 
       const payloadSectionData = JSON.parse(
-        JSON.stringify(sectionData)
+        JSON.stringify(sectionData),
       ) as Record<string, unknown>;
       delete payloadSectionData["_id"];
 
@@ -654,613 +454,93 @@ export default function KegiatanSiswa() {
                 </div>
 
                 {/* Card 3: Bangun Pagi */}
-                <SectionCard title="Bangun Pagi" icon={Sun} className="h-full">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Waktu Bangun
-                    </label>
-                    <TimePicker
-                      value={formData.bangunPagi.jam}
-                      onChange={(value) =>
-                        setFormData({
-                          ...formData,
-                          bangunPagi: {
-                            ...formData.bangunPagi,
-                            jam: value,
-                          },
-                        })
-                      }
-                      placeholder="00:00"
-                    />
-                  </div>
-                  <div className="pt-2">
-                    <span className="block text-xs font-medium text-gray-500 mb-2">
-                      Membaca Doa?
-                    </span>
-                    <div className="flex gap-3">
-                      {[true, false].map((val) => (
-                        <label key={`bangun-${val}`} className="cursor-pointer">
-                          <input
-                            type="radio"
-                            className="hidden peer"
-                            checked={
-                              formData.bangunPagi.membacaDanBangunTidur === val
-                            }
-                            onChange={() =>
-                              setFormData({
-                                ...formData,
-                                bangunPagi: {
-                                  ...formData.bangunPagi,
-                                  membacaDanBangunTidur: val,
-                                },
-                              })
-                            }
-                          />
-                          <div className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 peer-checked:bg-orange-50 peer-checked:text-orange-600 peer-checked:border-orange-200 transition-all">
-                            {val ? "Ya" : "Tidak"}
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <SaveButton
-                    onClick={() =>
-                      handleSectionSubmit("bangunPagi", formData.bangunPagi)
-                    }
-                  />
-                </SectionCard>
+                <BangunSection
+                  data={formData.bangunPagi}
+                  onChange={(data) =>
+                    setFormData((prev) => ({ ...prev, bangunPagi: data }))
+                  }
+                  onSave={() =>
+                    handleSectionSubmit("bangunPagi", formData.bangunPagi)
+                  }
+                />
 
                 {/* Card 4: Tidur Malam */}
-                <SectionCard title="Tidur Malam" icon={Moon} className="h-full">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Waktu Tidur
-                    </label>
-                    <TimePicker
-                      value={formData.tidur.jam}
-                      onChange={(value) =>
-                        setFormData({
-                          ...formData,
-                          tidur: {
-                            ...formData.tidur,
-                            jam: value,
-                          },
-                        })
-                      }
-                      placeholder="00:00"
-                    />
-                  </div>
-                  <div className="pt-2">
-                    <span className="block text-xs font-medium text-gray-500 mb-2">
-                      Membaca Doa?
-                    </span>
-                    <div className="flex gap-3">
-                      {[true, false].map((val) => (
-                        <label key={`tidur-${val}`} className="cursor-pointer">
-                          <input
-                            type="radio"
-                            className="hidden peer"
-                            checked={formData.tidur.membacaDanMasTidur === val}
-                            onChange={() =>
-                              setFormData({
-                                ...formData,
-                                tidur: {
-                                  ...formData.tidur,
-                                  membacaDanMasTidur: val,
-                                },
-                              })
-                            }
-                          />
-                          <div className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 peer-checked:border-indigo-200 transition-all">
-                            {val ? "Ya" : "Tidak"}
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  <SaveButton
-                    onClick={() => handleSectionSubmit("tidur", formData.tidur)}
-                  />
-                </SectionCard>
+                <TidurSection
+                  data={formData.tidur}
+                  onChange={(data) =>
+                    setFormData((prev) => ({ ...prev, tidur: data }))
+                  }
+                  onSave={() => handleSectionSubmit("tidur", formData.tidur)}
+                />
               </div>
 
               {/* --- Row 2: Beribadah (Focus Area) --- */}
-              <SectionCard
-                title="Beribadah"
-                icon={HandCoins}
-                className="border-t-4 border-t-[var(--secondary)]"
-              >
-                <div className="bg-blue-50/50 rounded-xl p-4 mb-6 border border-blue-100 flex gap-3 text-sm text-blue-800 items-start">
-                  <HelpCircle className="w-5 h-5 flex-shrink-0 text-blue-500 mt-0.5" />
-                  <p>
-                    Tanda <strong>*</strong> wajib diisi oleh siswa muslim.
-                    Wanita haid tetap dihitung melaksanakan.
-                  </p>
-                </div>
+              <IbadahSection
+                data={formData.beribadah}
+                ramadhanData={formData.ramadhan}
+                currentDate={formData.tanggal}
+                onChange={(data) =>
+                  setFormData((prev) => ({ ...prev, beribadah: data }))
+                }
+                onRamadhanChange={(data) =>
+                  setFormData((prev) => ({ ...prev, ramadhan: data }))
+                }
+                onSave={async () => {
+                  // Save beribadah data
+                  await handleSectionSubmit("beribadah", formData.beribadah);
+                  // If during Ramadhan, also save ramadhan data (stored in same kegiatan document)
+                  if (isRamadhanPeriod(formData.tanggal)) {
+                    await handleSectionSubmit("ramadhan", formData.ramadhan);
+                  }
+                }}
+              />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {BERIBADAH_BOOLEAN_FIELDS.map((item) => (
-                    <label
-                      key={item.key}
-                      className={`flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer group hover:shadow-md ${
-                        formData.beribadah[item.key]
-                          ? "bg-[var(--secondary)]/5 border-[var(--secondary)]/30 shadow-sm"
-                          : "bg-white border-gray-200 hover:border-[var(--secondary)]/30 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div
-                        className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
-                          formData.beribadah[item.key]
-                            ? "bg-[var(--secondary)] border-[var(--secondary)] text-white"
-                            : "bg-white border-gray-300 group-hover:border-[var(--secondary)]"
-                        }`}
-                      >
-                        {formData.beribadah[item.key] && (
-                          <Save className="w-3 h-3" />
-                        )}
-                      </div>
-                      <input
-                        type="checkbox"
-                        className="hidden"
-                        checked={formData.beribadah[item.key]}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            beribadah: {
-                              ...formData.beribadah,
-                              [item.key]: e.target.checked,
-                            },
-                          })
-                        }
-                      />
-                      <span
-                        className={`${
-                          formData.beribadah[item.key]
-                            ? "text-[var(--secondary)] font-semibold"
-                            : "text-gray-600"
-                        } text-sm leading-tight select-none`}
-                      >
-                        {item.label}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">
-                      Infaq / Sedekah
-                    </label>
-                    <p className="text-xs text-gray-400 mb-3">
-                      Masukkan nominal rupiah jika anda bersedekah hari ini
-                    </p>
-                    <div className="relative">
-                      <span className="absolute left-4 top-3.5 text-gray-400 text-sm font-semibold">
-                        Rp
-                      </span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="1000"
-                        value={formData.beribadah.zakatInfaqSedekah}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            beribadah: {
-                              ...formData.beribadah,
-                              zakatInfaqSedekah: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="0"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm font-medium placeholder:text-gray-300"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-end justify-end h-full">
-                    <div className="w-full md:w-auto">
-                      <SaveButton
-                        onClick={() =>
-                          handleSectionSubmit("beribadah", formData.beribadah)
-                        }
-                        label="Simpan Data Ibadah"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </SectionCard>
-
-              {/* --- Row 3: Makan, Olahraga, Bermasyarakat --- */}
+              {/* --- Row 3: Makan, Olahraga, Belajar --- */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Makan Sehat */}
-                <SectionCard
-                  title="Makan Sehat"
-                  icon={Utensils}
-                  className="h-full"
-                >
-                  <div className="space-y-4 flex-1">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                        Makanan Utama
-                      </label>
-                      <Select
-                        value={formData.makanSehat.jenisMakanan}
-                        onChange={(val) =>
-                          setFormData({
-                            ...formData,
-                            makanSehat: {
-                              ...formData.makanSehat,
-                              jenisMakanan: val,
-                            },
-                          })
-                        }
-                        options={MAKANAN_OPTIONS}
-                        placeholder="Pilih waktu makan..."
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                        Lauk Pauk
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.makanSehat.jenisLaukSayur}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            makanSehat: {
-                              ...formData.makanSehat,
-                              jenisLaukSayur: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="Ayam, Tahu, Sayur..."
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
-                      />
-                    </div>
-
-                    <div className="bg-gray-50 p-4 rounded-xl space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-700">
-                          Sayur / Buah?
-                        </span>
-                        <div className="flex gap-2">
-                          {[true, false].map((val) => (
-                            <label key={`sb-${val}`} className="cursor-pointer">
-                              <input
-                                type="radio"
-                                className="hidden peer"
-                                checked={
-                                  formData.makanSehat.makanSayurAtauBuah === val
-                                }
-                                onChange={() =>
-                                  setFormData({
-                                    ...formData,
-                                    makanSehat: {
-                                      ...formData.makanSehat,
-                                      makanSayurAtauBuah: val,
-                                    },
-                                  })
-                                }
-                              />
-                              <span className="px-2 py-1 rounded text-xs font-medium text-gray-500 peer-checked:bg-white peer-checked:text-pink-600 peer-checked:shadow-sm transition-all">
-                                {val ? "Ya" : "Tidak"}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm text-gray-700">
-                            Susu / Suplemen?
-                          </span>
-                          <span title="Pilih YA jika salah satu atau keduanya terpenuhi.">
-                            <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
-                          </span>
-                        </div>
-                        <div className="flex gap-2">
-                          {[true, false].map((val) => (
-                            <label
-                              key={`sup-${val}`}
-                              className="cursor-pointer"
-                            >
-                              <input
-                                type="radio"
-                                className="hidden peer"
-                                checked={
-                                  formData.makanSehat.minumSuplemen === val
-                                }
-                                onChange={() =>
-                                  setFormData({
-                                    ...formData,
-                                    makanSehat: {
-                                      ...formData.makanSehat,
-                                      minumSuplemen: val,
-                                    },
-                                  })
-                                }
-                              />
-                              <span className="px-2 py-1 rounded text-xs font-medium text-gray-500 peer-checked:bg-white peer-checked:text-pink-600 peer-checked:shadow-sm transition-all">
-                                {val ? "Ya" : "Tidak"}
-                              </span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <SaveButton
-                      onClick={() =>
-                        handleSectionSubmit("makanSehat", formData.makanSehat)
-                      }
-                    />
-                  </div>
-                </SectionCard>
+                <MakanSection
+                  data={formData.makanSehat}
+                  onChange={(data) =>
+                    setFormData((prev) => ({ ...prev, makanSehat: data }))
+                  }
+                  onSave={() =>
+                    handleSectionSubmit("makanSehat", formData.makanSehat)
+                  }
+                />
 
                 {/* Olahraga */}
-                <SectionCard
-                  title="Olahraga"
-                  icon={Dumbbell}
-                  className="h-full"
-                >
-                  <div className="space-y-4 flex-1">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                        Aktivitas Fisik
-                      </label>
-                      <Select
-                        value={formData.olahraga.jenisOlahraga}
-                        onChange={(val) =>
-                          setFormData({
-                            ...formData,
-                            olahraga: {
-                              ...formData.olahraga,
-                              jenisOlahraga: val,
-                              deskripsi: OLAGRAGA_DESKRIPSI_MAP[val] || "",
-                            },
-                          })
-                        }
-                        options={OLAGRAGA_OPTIONS}
-                        placeholder="Pilih aktivitas..."
-                      />
-                      {formData.olahraga.jenisOlahraga === "lainnya" && (
-                        <input
-                          type="text"
-                          value={formData.olahraga.deskripsi}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              olahraga: {
-                                ...formData.olahraga,
-                                deskripsi: e.target.value,
-                              },
-                            })
-                          }
-                          placeholder="Sebutkan olahraga lainnya..."
-                          className="mt-3 w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                        Durasi (Menit)
-                      </label>
-                      <div className="relative">
-                        <Clock className="absolute left-4 top-3.5 w-4 h-4 text-gray-400" />
-                        <input
-                          type="number"
-                          min="0"
-                          value={formData.olahraga.waktu}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              olahraga: {
-                                ...formData.olahraga,
-                                waktu: e.target.value,
-                              },
-                            })
-                          }
-                          placeholder="30"
-                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <SaveButton
-                      onClick={() =>
-                        handleSectionSubmit("olahraga", formData.olahraga)
-                      }
-                    />
-                  </div>
-                </SectionCard>
+                <OlahragaSection
+                  data={formData.olahraga}
+                  onChange={(data) =>
+                    setFormData((prev) => ({ ...prev, olahraga: data }))
+                  }
+                  onSave={() =>
+                    handleSectionSubmit("olahraga", formData.olahraga)
+                  }
+                />
 
                 {/* Belajar */}
-                <SectionCard
-                  title="Belajar Mandiri"
-                  icon={BookOpen}
-                  className="h-full"
-                >
-                  <div className="space-y-6 flex-1">
-                    <div className="bg-orange-50/50 rounded-xl p-4 border border-orange-100 text-center">
-                      <span className="block text-sm font-medium text-gray-800 mb-3">
-                        Belajar mandiri hari ini?
-                      </span>
-                      <div className="flex justify-center gap-4">
-                        {[true, false].map((val) => (
-                          <label
-                            key={`bel-${val}`}
-                            className="flex items-center gap-2 cursor-pointer group px-4 py-2 bg-white rounded-lg border border-orange-100 shadow-sm hover:border-orange-300 transition-all"
-                          >
-                            <div
-                              className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
-                                formData.belajar.yaAtauTidak === val
-                                  ? "border-orange-500 bg-orange-500"
-                                  : "border-gray-300"
-                              }`}
-                            >
-                              {formData.belajar.yaAtauTidak === val && (
-                                <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                              )}
-                            </div>
-                            <input
-                              type="radio"
-                              className="hidden"
-                              checked={formData.belajar.yaAtauTidak === val}
-                              onChange={() =>
-                                setFormData({
-                                  ...formData,
-                                  belajar: {
-                                    ...formData.belajar,
-                                    yaAtauTidak: val,
-                                  },
-                                })
-                              }
-                            />
-                            <span className="text-sm text-gray-600 font-medium">
-                              {val ? "Ya" : "Tidak"}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    {formData.belajar.yaAtauTidak && (
-                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                          Materi
-                        </label>
-                        <Select
-                          value={formData.belajar.deskripsi}
-                          onChange={(val) =>
-                            setFormData({
-                              ...formData,
-                              belajar: { ...formData.belajar, deskripsi: val },
-                            })
-                          }
-                          options={BELAJAR_OPTIONS}
-                          placeholder="Topik belajar..."
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-4">
-                    <SaveButton
-                      onClick={() =>
-                        handleSectionSubmit("belajar", formData.belajar)
-                      }
-                    />
-                  </div>
-                </SectionCard>
+                <BelajarSection
+                  data={formData.belajar}
+                  onChange={(data) =>
+                    setFormData((prev) => ({ ...prev, belajar: data }))
+                  }
+                  onSave={() =>
+                    handleSectionSubmit("belajar", formData.belajar)
+                  }
+                />
               </div>
 
               {/* --- Row 4: Bermasyarakat (Full Width) --- */}
-              <SectionCard title="Bermasyarakat" icon={Users}>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-1">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                      Jenis Kegiatan
-                    </label>
-                    <Select
-                      value={formData.bermasyarakat.deskripsi}
-                      onChange={(val) =>
-                        setFormData({
-                          ...formData,
-                          bermasyarakat: {
-                            ...formData.bermasyarakat,
-                            deskripsi: val,
-                          },
-                        })
-                      }
-                      options={BERMASYARAKAT_OPTIONS}
-                      placeholder="Pilih kegiatan sosial..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                      Tempat Kegiatan
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.bermasyarakat.tempat}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          bermasyarakat: {
-                            ...formData.bermasyarakat,
-                            tempat: e.target.value,
-                          },
-                        })
-                      }
-                      placeholder="Masjid, Balai Warga, dll"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                      Waktu Pelaksanaan
-                    </label>
-                    <TimePicker
-                      value={formData.bermasyarakat.waktu}
-                      onChange={(val) =>
-                        setFormData({
-                          ...formData,
-                          bermasyarakat: {
-                            ...formData.bermasyarakat,
-                            waktu: val,
-                          },
-                        })
-                      }
-                      placeholder="00:00"
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-2">
-                  <label className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-gray-300 hover:bg-gray-50 transition-all cursor-pointer w-full md:w-auto flex-1">
-                    <div
-                      className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                        formData.bermasyarakat.paraf
-                          ? "bg-[var(--secondary)] border-[var(--secondary)]"
-                          : "bg-white border-gray-300"
-                      }`}
-                    >
-                      {formData.bermasyarakat.paraf && (
-                        <Save className="w-3 h-3 text-white" />
-                      )}
-                    </div>
-                    <input
-                      type="checkbox"
-                      className="hidden"
-                      checked={formData.bermasyarakat.paraf}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          bermasyarakat: {
-                            ...formData.bermasyarakat,
-                            paraf: e.target.checked,
-                          },
-                        })
-                      }
-                    />
-                    <span className="text-sm text-gray-600">
-                      Saya menyatakan kegiatan ini diketahui oleh Orang Tua /
-                      Wali / RT setempat (Paraf)
-                    </span>
-                  </label>
-                  <div className="w-full md:w-auto">
-                    <SaveButton
-                      onClick={() =>
-                        handleSectionSubmit(
-                          "bermasyarakat",
-                          formData.bermasyarakat
-                        )
-                      }
-                    />
-                  </div>
-                </div>
-              </SectionCard>
+              <BermasyarakatSection
+                data={formData.bermasyarakat}
+                onChange={(data) =>
+                  setFormData((prev) => ({ ...prev, bermasyarakat: data }))
+                }
+                onSave={() =>
+                  handleSectionSubmit("bermasyarakat", formData.bermasyarakat)
+                }
+              />
             </form>
           </div>
         </main>
