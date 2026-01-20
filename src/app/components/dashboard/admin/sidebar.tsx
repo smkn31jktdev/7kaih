@@ -177,7 +177,7 @@ export default function AdminSidebar({
     setOpenMenus((prev) =>
       prev.includes(menuId)
         ? prev.filter((id) => id !== menuId)
-        : [...prev, menuId]
+        : [...prev, menuId],
     );
   };
 

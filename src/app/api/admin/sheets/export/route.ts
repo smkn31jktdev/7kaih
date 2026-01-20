@@ -38,6 +38,9 @@ type SheetRow = {
   belajarNilai: number;
   bermasyarakat: number;
   tidurCepat: number;
+  // Ramadhan fields (optional, only during Ramadhan period)
+  ramadhanTarawih?: number;
+  ramadhanPuasa?: number;
   nilaiMaks: number;
   nilaiPerolehan: number;
   nilaiAkhir: number;
@@ -47,7 +50,8 @@ function buildInstructionRows(): string[][] {
   return [[""]];
 }
 
-const HEADER_ROW = [
+// Base header columns (before ibadah group)
+const HEADER_ROW_BASE_START = [
   "NO",
   "NISN",
   "NAMA SISWA",
@@ -61,6 +65,16 @@ const HEADER_ROW = [
   "2e Sholat Dhuha",
   "2f Sholat Rawatib",
   "2g Zakat / Infaq / Sedekah",
+];
+
+// Ramadhan columns - placed as part of ibadah group (2h, 2i)
+const HEADER_ROW_RAMADHAN = [
+  "2h Berpuasa (Ramadhan)",
+  "2i Tarawih & Witir (Ramadhan)",
+];
+
+// Remaining base header columns (after ibadah group)
+const HEADER_ROW_BASE_END = [
   "3 Berolahraga",
   "4 Makan Sehat",
   "5a Membaca Kitab Suci",
@@ -70,10 +84,9 @@ const HEADER_ROW = [
   "5e Nilai Belajar",
   "6 Bermasyarakat",
   "7 Tidur Cepat",
-  "Nilai Maks",
-  "Nilai Perolehan",
-  "Nilai Akhir (%)",
 ];
+
+const HEADER_ROW_FOOTER = ["Nilai Maks", "Nilai Perolehan", "Nilai Akhir (%)"];
 
 function formatMonthKeyToLabel(monthKey: string): string {
   const [yearString, monthString] = monthKey.split("-");
@@ -190,11 +203,18 @@ export async function GET(request: NextRequest) {
         bundle.beribadah.components.map((component) => [
           component.key,
           component,
-        ])
+        ]),
       );
       const belajarMap = new Map(
-        bundle.belajar.components.map((component) => [component.key, component])
+        bundle.belajar.components.map((component) => [
+          component.key,
+          component,
+        ]),
       );
+
+      // Check if this period has Ramadhan data
+      const hasRamadhanData =
+        bundle.ramadhan && bundle.ramadhan.isRamadhanPeriod;
 
       const row: SheetRow = {
         no: counter,
@@ -223,12 +243,20 @@ export async function GET(request: NextRequest) {
         belajarNilai: bundle.belajar.rating,
         bermasyarakat: bundle.bermasyarakat.rating,
         tidurCepat: bundle.tidur.rating,
-        nilaiMaks: 90,
+        // Add Ramadhan data if available
+        ramadhanTarawih: hasRamadhanData
+          ? bundle.ramadhan!.tarawihWitir.rating
+          : undefined,
+        ramadhanPuasa: hasRamadhanData
+          ? bundle.ramadhan!.puasa.rating
+          : undefined,
+        // Nilai maks: 90 (normal) + 10 (ramadhan: 5+5) = 100 during Ramadhan
+        nilaiMaks: hasRamadhanData ? 100 : 90,
         nilaiPerolehan: 0,
         nilaiAkhir: 0,
       };
 
-      const nilaiPerolehanTotal =
+      let nilaiPerolehanTotal =
         row.bangunPagi +
         row.beribadahBerdoa +
         row.beribadahSholatFajar +
@@ -246,6 +274,11 @@ export async function GET(request: NextRequest) {
         row.bermasyarakat +
         row.tidurCepat;
 
+      // Add Ramadhan scores if available
+      if (hasRamadhanData && row.ramadhanTarawih && row.ramadhanPuasa) {
+        nilaiPerolehanTotal += row.ramadhanTarawih + row.ramadhanPuasa;
+      }
+
       row.nilaiPerolehan = nilaiPerolehanTotal;
       row.nilaiAkhir = Math.round((row.nilaiPerolehan / row.nilaiMaks) * 100);
 
@@ -253,42 +286,79 @@ export async function GET(request: NextRequest) {
       counter += 1;
     }
 
+    // Determine if any row has Ramadhan data to include columns
+    const hasAnyRamadhanData = sheetRows.some(
+      (row) =>
+        row.ramadhanTarawih !== undefined && row.ramadhanPuasa !== undefined,
+    );
+
+    // Build header row based on whether Ramadhan data exists
+    // Ramadhan columns are placed right after ibadah columns (2g Zakat) as 2h and 2i
+    const HEADER_ROW = hasAnyRamadhanData
+      ? [
+          ...HEADER_ROW_BASE_START,
+          ...HEADER_ROW_RAMADHAN,
+          ...HEADER_ROW_BASE_END,
+          ...HEADER_ROW_FOOTER,
+        ]
+      : [
+          ...HEADER_ROW_BASE_START,
+          ...HEADER_ROW_BASE_END,
+          ...HEADER_ROW_FOOTER,
+        ];
+
     const csvMatrix: string[][] = [];
     const instructionRows = buildInstructionRows().map((row) =>
-      row.map(escapeCsvValue)
+      row.map(escapeCsvValue),
     );
     csvMatrix.push(...instructionRows);
     csvMatrix.push(HEADER_ROW.map(escapeCsvValue));
 
     for (const row of sheetRows) {
+      // Data columns before Ramadhan (ibadah group start)
+      const baseRowDataStart = [
+        row.no,
+        row.nisn,
+        row.nama,
+        row.kelas,
+        row.periode,
+        row.bangunPagi,
+        row.beribadahBerdoa,
+        row.beribadahSholatFajar,
+        row.beribadahSholatLimaWaktu,
+        row.beribadahZikir,
+        row.beribadahSholatDhuha,
+        row.beribadahSholatRawatib,
+        row.beribadahZakat,
+      ];
+
+      // Ramadhan data columns (2h Berpuasa, 2i Tarawih & Witir)
+      const ramadhanRowData = hasAnyRamadhanData
+        ? [row.ramadhanPuasa ?? "-", row.ramadhanTarawih ?? "-"]
+        : [];
+
+      // Data columns after Ramadhan
+      const baseRowDataEnd = [
+        row.olahraga,
+        row.makanSehat,
+        row.belajarKitabSuci,
+        row.belajarBukuBacaan,
+        row.belajarBukuPelajaran,
+        row.belajarTugas,
+        row.belajarNilai,
+        row.bermasyarakat,
+        row.tidurCepat,
+      ];
+
+      const footerRowData = [row.nilaiMaks, row.nilaiPerolehan, row.nilaiAkhir];
+
       csvMatrix.push(
         [
-          row.no,
-          row.nisn,
-          row.nama,
-          row.kelas,
-          row.periode,
-          row.bangunPagi,
-          row.beribadahBerdoa,
-          row.beribadahSholatFajar,
-          row.beribadahSholatLimaWaktu,
-          row.beribadahZikir,
-          row.beribadahSholatDhuha,
-          row.beribadahSholatRawatib,
-          row.beribadahZakat,
-          row.olahraga,
-          row.makanSehat,
-          row.belajarKitabSuci,
-          row.belajarBukuBacaan,
-          row.belajarBukuPelajaran,
-          row.belajarTugas,
-          row.belajarNilai,
-          row.bermasyarakat,
-          row.tidurCepat,
-          row.nilaiMaks,
-          row.nilaiPerolehan,
-          row.nilaiAkhir,
-        ].map(escapeCsvValue)
+          ...baseRowDataStart,
+          ...ramadhanRowData,
+          ...baseRowDataEnd,
+          ...footerRowData,
+        ].map(escapeCsvValue),
       );
     }
 
@@ -312,7 +382,7 @@ export async function GET(request: NextRequest) {
     console.error("Export error:", error);
     return NextResponse.json(
       { error: "Failed to generate export" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

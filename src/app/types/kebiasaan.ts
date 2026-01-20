@@ -57,6 +57,12 @@ export interface Kebiasaan {
     deskripsi: string;
   };
 
+  // Ramadhan (Khusus bulan Ramadhan)
+  ramadhan?: {
+    sholatTarawihWitir: boolean;
+    berpuasa: boolean;
+  };
+
   createdAt: Date;
   updatedAt: Date;
 }

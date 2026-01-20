@@ -6,6 +6,7 @@ export { default as MakanSection } from "./makan";
 export { default as OlahragaSection } from "./olahraga";
 export { default as BelajarSection } from "./belajar";
 export { default as BermasyarakatSection } from "./bermasyarakat";
+export { default as RamadhanSection } from "./ramadhan/ramadhan";
 
 // Export types
 export type { BangunPagiData } from "./bangun";

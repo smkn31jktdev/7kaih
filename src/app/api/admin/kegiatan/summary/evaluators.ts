@@ -1,4 +1,5 @@
 import { Kebiasaan } from "@/app/types/kebiasaan";
+import calendarData from "@/app/server/data/calendar.json";
 
 export interface IndicatorSummary {
   id: string;
@@ -38,6 +39,15 @@ export const INDICATOR_DEFINITIONS: Array<{
   {
     id: "tidur",
     label: "Tidur lebih cepat : Siswa biasa tidur / istirahat malam jam 22.00",
+  },
+  {
+    id: "ramadhanTarawih",
+    label:
+      "Ramadhan - Tarawih & Witir : Siswa melaksanakan sholat tarawih dan witir",
+  },
+  {
+    id: "ramadhanPuasa",
+    label: "Ramadhan - Berpuasa : Siswa menjalankan ibadah puasa Ramadhan",
   },
 ];
 
@@ -125,6 +135,23 @@ export interface TidurMetrics {
   countBefore2200AndDoa: number;
 }
 
+export interface RamadhanMetrics {
+  rating: number;
+  note: string;
+  totalDays: number;
+  tarawihWitir: {
+    count: number;
+    rating: number;
+    note: string;
+  };
+  puasa: {
+    count: number;
+    rating: number;
+    note: string;
+  };
+  isRamadhanPeriod: boolean;
+}
+
 export interface IndicatorBundle {
   bangunPagi: BangunMetrics;
   beribadah: BeribadahMetrics;
@@ -133,6 +160,7 @@ export interface IndicatorBundle {
   belajar: BelajarMetrics;
   bermasyarakat: BermasyarakatMetrics;
   tidur: TidurMetrics;
+  ramadhan?: RamadhanMetrics;
 }
 
 export function safeParseDate(raw: string): Date | null {
@@ -152,7 +180,7 @@ export function monthKeyFromDate(date: Date): {
 } {
   const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
   const key = `${monthStart.getFullYear()}-${String(
-    monthStart.getMonth() + 1
+    monthStart.getMonth() + 1,
   ).padStart(2, "0")}`;
   return { key, monthStart };
 }
@@ -176,7 +204,7 @@ function parseTimeToMinutes(value: string | undefined | null): number | null {
 
 function ratioToRating(
   ratio: number,
-  thresholds: RatioThreshold = DEFAULT_RATIO_THRESHOLD
+  thresholds: RatioThreshold = DEFAULT_RATIO_THRESHOLD,
 ): number {
   if (ratio >= thresholds.rating5) return 5;
   if (ratio >= thresholds.rating4) return 4;
@@ -367,7 +395,7 @@ export function evaluateBeribadah(entries: Kebiasaan[]): BeribadahMetrics {
     if (beribadah.sholatSunahRawatib) sholatSunahRawatibCount++;
 
     const parsedZakat = Number(
-      String(beribadah.zakatInfaqSedekah ?? "0").replace(/[^0-9.-]+/g, "")
+      String(beribadah.zakatInfaqSedekah ?? "0").replace(/[^0-9.-]+/g, ""),
     );
     if (!Number.isNaN(parsedZakat)) {
       totalZakat += parsedZakat;
@@ -483,12 +511,12 @@ export function evaluateOlahraga(entries: Kebiasaan[]): OlahragaMetrics {
       rating === 5
         ? "Istimewa: Selalu"
         : rating === 4
-        ? "Sangat baik: Sering"
-        : rating === 3
-        ? "Baik: Jarang"
-        : rating === 2
-        ? "Cukup baik: Kadang-kadang"
-        : "Kurang baik: Pernah";
+          ? "Sangat baik: Sering"
+          : rating === 3
+            ? "Baik: Jarang"
+            : rating === 2
+              ? "Cukup baik: Kadang-kadang"
+              : "Kurang baik: Pernah";
     note = `${category} (Dalam ${consistentDays} hari berolahraga).`;
   }
 
@@ -504,7 +532,7 @@ export function evaluateMakan(entries: Kebiasaan[]): MakanMetrics {
     const data = entry.makanSehat;
     if (!data) return;
     const hasBalancedMeal = Boolean(
-      data.jenisMakanan?.trim() || data.jenisLaukSayur?.trim()
+      data.jenisMakanan?.trim() || data.jenisLaukSayur?.trim(),
     );
     if (hasBalancedMeal || data.minumSuplemen || data.makanSayurAtauBuah) {
       healthyDays += 1;
@@ -546,7 +574,7 @@ export function evaluateBelajar(entries: Kebiasaan[]): BelajarMetrics {
   const relevant = entries.filter((entry) => entry.belajar);
   const totalDays = relevant.length;
   const completedEntries = relevant.filter(
-    (entry) => entry.belajar?.yaAtauTidak
+    (entry) => entry.belajar?.yaAtauTidak,
   );
   const completed = completedEntries.length;
 
@@ -573,7 +601,7 @@ export function evaluateBelajar(entries: Kebiasaan[]): BelajarMetrics {
       label,
       count: counts.get(key) ?? 0,
       rating: mapBelajarCountToScore(counts.get(key) ?? 0),
-    })
+    }),
   );
 
   const otherCount = counts.get("other") ?? 0;
@@ -593,7 +621,7 @@ export function evaluateMasyarakat(entries: Kebiasaan[]): BermasyarakatMetrics {
   const relevant = entries.filter((entry) => entry.bermasyarakat);
   const totalDays = relevant.length;
   const participated = relevant.filter(
-    (entry) => entry.bermasyarakat?.paraf
+    (entry) => entry.bermasyarakat?.paraf,
   ).length;
 
   let rating = 1;
@@ -665,8 +693,176 @@ export function evaluateTidur(entries: Kebiasaan[]): TidurMetrics {
   return { rating, note, totalDays, countBefore2200AndDoa };
 }
 
-export function evaluateIndicators(entries: Kebiasaan[]): IndicatorBundle {
+// ===== RAMADHAN EVALUATORS =====
+
+function getRamadhanPeriodForDate(date: Date) {
+  const yearToCheck = date.getFullYear();
+  const ramadhanData = calendarData.ramadan.find(
+    (r) => r.gregorian_year === yearToCheck,
+  );
+
+  if (!ramadhanData) {
+    return null;
+  }
+
   return {
+    hijri_year: ramadhanData.hijri_year,
+    gregorian_year: ramadhanData.gregorian_year,
+    start_date: new Date(ramadhanData.start_date),
+    end_date: new Date(ramadhanData.end_date),
+    eid_date: new Date(ramadhanData.eid_date),
+  };
+}
+
+function isDateInRamadhan(date: Date): boolean {
+  const period = getRamadhanPeriodForDate(date);
+  if (!period) return false;
+
+  const normalizedCheck = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  );
+  const normalizedStart = new Date(
+    period.start_date.getFullYear(),
+    period.start_date.getMonth(),
+    period.start_date.getDate(),
+  );
+  const normalizedEnd = new Date(
+    period.end_date.getFullYear(),
+    period.end_date.getMonth(),
+    period.end_date.getDate(),
+  );
+
+  return normalizedCheck >= normalizedStart && normalizedCheck <= normalizedEnd;
+}
+
+// Calculate Tarawih & Witir rating based on total rokaat
+// Setiap malam = 11 rokaat (Tarawih 8 + Witir 3), 30 hari = 330 rokaat max
+function calculateTarawihWitirRating(
+  totalDays: number,
+  totalRamadhanDays: number,
+): { rating: number; note: string } {
+  const totalRokaat = totalDays * 11;
+  const bolong = totalRamadhanDays - totalDays;
+
+  if (totalRokaat > 330 || bolong === 0) {
+    return {
+      rating: 5,
+      note: `Istimewa: Selalu (${totalDays} malam, ${totalRokaat} rokaat)`,
+    };
+  } else if (totalRokaat >= 308) {
+    return {
+      rating: 4,
+      note: `Sangat baik: Sering (${totalDays} malam, ${totalRokaat} rokaat, bolong ${bolong} kali)`,
+    };
+  } else if (totalRokaat >= 275) {
+    return {
+      rating: 3,
+      note: `Baik: Jarang (${totalDays} malam, ${totalRokaat} rokaat, bolong ${bolong} kali)`,
+    };
+  } else if (totalRokaat >= 231) {
+    return {
+      rating: 2,
+      note: `Cukup baik: Kadang-kadang (${totalDays} malam, ${totalRokaat} rokaat, bolong ${bolong} kali)`,
+    };
+  } else {
+    return {
+      rating: 1,
+      note: `Kurang baik: Pernah (${totalDays} malam, ${totalRokaat} rokaat, bolong ${bolong} kali)`,
+    };
+  }
+}
+
+// Calculate Puasa rating
+function calculatePuasaRating(
+  totalDays: number,
+  totalRamadhanDays: number,
+): { rating: number; note: string } {
+  const tidakPuasa = totalRamadhanDays - totalDays;
+
+  if (tidakPuasa === 0) {
+    return {
+      rating: 5,
+      note: `Istimewa: Selalu (${totalDays} hari penuh)`,
+    };
+  } else if (tidakPuasa >= 1 && tidakPuasa <= 2) {
+    return {
+      rating: 3,
+      note: `Baik: Jarang (${totalDays} hari, tidak puasa ${tidakPuasa} hari)`,
+    };
+  } else if (tidakPuasa >= 3 && tidakPuasa <= 4) {
+    return {
+      rating: 2,
+      note: `Cukup baik: Kadang-kadang (${totalDays} hari, tidak puasa ${tidakPuasa} hari)`,
+    };
+  } else {
+    return {
+      rating: 1,
+      note: `Kurang baik: Pernah (${totalDays} hari, tidak puasa ${tidakPuasa} hari)`,
+    };
+  }
+}
+
+export function evaluateRamadhan(entries: Kebiasaan[]): RamadhanMetrics {
+  // Filter entries that are within Ramadhan period
+  const ramadhanEntries = entries.filter((entry) => {
+    const parsed = safeParseDate(entry.tanggal);
+    return parsed && isDateInRamadhan(parsed);
+  });
+
+  const totalDays = ramadhanEntries.length;
+  const isRamadhanPeriod = totalDays > 0;
+
+  // Count tarawih and puasa
+  let tarawihCount = 0;
+  let puasaCount = 0;
+
+  ramadhanEntries.forEach((entry) => {
+    if (entry.ramadhan?.sholatTarawihWitir) {
+      tarawihCount++;
+    }
+    if (entry.ramadhan?.berpuasa) {
+      puasaCount++;
+    }
+  });
+
+  const totalRamadhanDays = 30; // Ramadhan is always 29 or 30 days
+
+  const tarawihRating = calculateTarawihWitirRating(
+    tarawihCount,
+    totalRamadhanDays,
+  );
+  const puasaRating = calculatePuasaRating(puasaCount, totalRamadhanDays);
+
+  // Overall rating is average of tarawih and puasa
+  const overallRating = isRamadhanPeriod
+    ? Math.round((tarawihRating.rating + puasaRating.rating) / 2)
+    : 1;
+  const overallNote = isRamadhanPeriod
+    ? `Tarawih: ${tarawihRating.note}. Puasa: ${puasaRating.note}`
+    : "Belum ada data ibadah Ramadhan.";
+
+  return {
+    rating: overallRating,
+    note: overallNote,
+    totalDays,
+    tarawihWitir: {
+      count: tarawihCount,
+      rating: tarawihRating.rating,
+      note: tarawihRating.note,
+    },
+    puasa: {
+      count: puasaCount,
+      rating: puasaRating.rating,
+      note: puasaRating.note,
+    },
+    isRamadhanPeriod,
+  };
+}
+
+export function evaluateIndicators(entries: Kebiasaan[]): IndicatorBundle {
+  const bundle: IndicatorBundle = {
     bangunPagi: evaluateBangun(entries),
     beribadah: evaluateBeribadah(entries),
     olahraga: evaluateOlahraga(entries),
@@ -675,12 +871,20 @@ export function evaluateIndicators(entries: Kebiasaan[]): IndicatorBundle {
     bermasyarakat: evaluateMasyarakat(entries),
     tidur: evaluateTidur(entries),
   };
+
+  // Evaluate Ramadhan if any entries have ramadhan data
+  const hasRamadhanData = entries.some((entry) => entry.ramadhan);
+  if (hasRamadhanData) {
+    bundle.ramadhan = evaluateRamadhan(entries);
+  }
+
+  return bundle;
 }
 
 export function toIndicatorSummaries(
-  bundle: IndicatorBundle
+  bundle: IndicatorBundle,
 ): IndicatorSummary[] {
-  return [
+  const summaries: IndicatorSummary[] = [
     {
       id: "bangunPagi",
       label: INDICATOR_DEFINITIONS.find((item) => item.id === "bangunPagi")!
@@ -729,4 +933,28 @@ export function toIndicatorSummaries(
       note: bundle.tidur.note,
     },
   ];
+
+  // Add Ramadhan indicators if available
+  if (bundle.ramadhan && bundle.ramadhan.isRamadhanPeriod) {
+    summaries.push(
+      {
+        id: "ramadhanTarawih",
+        label: INDICATOR_DEFINITIONS.find(
+          (item) => item.id === "ramadhanTarawih",
+        )!.label,
+        rating: bundle.ramadhan.tarawihWitir.rating,
+        note: bundle.ramadhan.tarawihWitir.note,
+      },
+      {
+        id: "ramadhanPuasa",
+        label: INDICATOR_DEFINITIONS.find(
+          (item) => item.id === "ramadhanPuasa",
+        )!.label,
+        rating: bundle.ramadhan.puasa.rating,
+        note: bundle.ramadhan.puasa.note,
+      },
+    );
+  }
+
+  return summaries;
 }
