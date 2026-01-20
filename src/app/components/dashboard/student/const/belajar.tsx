@@ -1,5 +1,3 @@
-// Constants for Belajar section
-
 export const BELAJAR_DESKRIPSI_MAP: Record<string, string> = {
   "membaca-kitab-suci": "Membaca kitab suci ( sesuai Agama yang dianutnya )",
   "membaca-buku-bacaan": "Membaca buku bacaan / novel / hobby / sejarah dsb.",

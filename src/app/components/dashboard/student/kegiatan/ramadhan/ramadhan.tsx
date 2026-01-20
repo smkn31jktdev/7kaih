@@ -7,6 +7,7 @@ import {
   RAMADHAN_BOOLEAN_FIELDS,
   getRamadhanDay,
   getRamadhanDaysRemaining,
+  getHijriYearForDate,
 } from "../../const/ramadhan/ramadhan";
 
 interface RamadhanSectionProps {
@@ -31,6 +32,7 @@ export default function RamadhanSection({
 
   const ramadhanDay = getRamadhanDay(currentDate);
   const daysRemaining = getRamadhanDaysRemaining(currentDate);
+  const hijriYear = getHijriYearForDate(currentDate);
 
   return (
     <div className="relative overflow-hidden">
@@ -40,11 +42,9 @@ export default function RamadhanSection({
           background: `linear-gradient(135deg, ${RAMADHAN_COLOR} 0%, #15936A 50%, #0F7A57 100%)`,
         }}
       >
-        {/* Decorative blurred circles - smaller on mobile */}
         <div className="absolute top-0 right-0 w-40 h-40 sm:w-64 sm:h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-32 h-32 sm:w-48 sm:h-48 bg-yellow-400/15 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
 
-        {/* Stars decoration - hidden on very small screens */}
         <div className="absolute inset-0 pointer-events-none hidden sm:block">
           <Star
             className="absolute w-2 sm:w-3 h-2 sm:h-3 text-yellow-300/50 top-4 right-8 sm:right-12"
@@ -67,7 +67,6 @@ export default function RamadhanSection({
           />
         </div>
 
-        {/* Crescent Moon - smaller on mobile */}
         <div className="absolute top-2 sm:top-4 right-3 sm:right-6 opacity-20 sm:opacity-25">
           <div className="relative w-10 h-10 sm:w-16 sm:h-16">
             <Moon
@@ -78,7 +77,6 @@ export default function RamadhanSection({
         </div>
 
         <div className="relative z-10">
-          {/* Title section - responsive layout */}
           <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/25 flex-shrink-0">
               <Moon className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
@@ -88,12 +86,11 @@ export default function RamadhanSection({
                 Ramadhan Mubarak
               </h3>
               <p className="text-white/80 text-xs sm:text-sm truncate">
-                Ibadah Khusus Bulan Suci
+                Ramadhan {hijriYear} H • Ibadah Khusus Bulan Suci
               </p>
             </div>
           </div>
 
-          {/* Day counter - responsive grid */}
           {ramadhanDay && (
             <div className="flex flex-wrap gap-2 sm:gap-4 mt-3 sm:mt-4">
               <div className="bg-white/15 backdrop-blur-sm rounded-lg sm:rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 border border-white/15">
@@ -119,7 +116,6 @@ export default function RamadhanSection({
         </div>
       </div>
 
-      {/* Activity checkboxes - single column on mobile */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {RAMADHAN_BOOLEAN_FIELDS.map((item) => {
           const isChecked = data[item.key];

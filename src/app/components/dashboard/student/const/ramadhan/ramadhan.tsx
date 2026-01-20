@@ -1,5 +1,4 @@
-// Constants for Ramadhan special activities
-// Active period: February 19, 2026 - March 19, 2026 (March 20 is Eid Al-Fitr)
+import calendarData from "@/app/server/data/calendar.json";
 
 export type RamadhanBooleanKey = "sholatTarawihWitir" | "berpuasa";
 
@@ -32,67 +31,88 @@ export const createDefaultRamadhan = (): RamadhanForm => ({
   berpuasa: false,
 });
 
-// Ramadhan date range for 2026
-// Note: March 20 is Eid Al-Fitr, so Ramadhan ends on March 19
-export const RAMADHAN_START_DATE = new Date("2026-02-19");
-export const RAMADHAN_END_DATE = new Date("2026-03-19");
+export const getRamadhanPeriodForDate = (date: Date | string) => {
+  const checkDate = typeof date === "string" ? new Date(date) : date;
+  const yearToCheck = checkDate.getFullYear();
 
-/**
- * Check if a given date falls within Ramadhan period
- * @param date - Date to check (can be Date object or string in YYYY-MM-DD format)
- * @returns boolean indicating if it's Ramadhan
- */
+  const ramadhanData = calendarData.ramadan.find(
+    (r) => r.gregorian_year === yearToCheck,
+  );
+
+  if (!ramadhanData) {
+    return {
+      hijri_year: 1447,
+      gregorian_year: 2026,
+      start_date: new Date("2026-02-18"),
+      end_date: new Date("2026-03-19"),
+      eid_date: new Date("2026-03-20"),
+    };
+  }
+
+  return {
+    hijri_year: ramadhanData.hijri_year,
+    gregorian_year: ramadhanData.gregorian_year,
+    start_date: new Date(ramadhanData.start_date),
+    end_date: new Date(ramadhanData.end_date),
+    eid_date: new Date(ramadhanData.eid_date),
+  };
+};
+
 export const isRamadhanPeriod = (date: Date | string): boolean => {
   const checkDate = typeof date === "string" ? new Date(date) : date;
+  const ramadhanPeriod = getRamadhanPeriodForDate(checkDate);
 
-  // Normalize to compare just the date (ignore time)
   const normalizedCheck = new Date(
     checkDate.getFullYear(),
     checkDate.getMonth(),
     checkDate.getDate(),
   );
   const normalizedStart = new Date(
-    RAMADHAN_START_DATE.getFullYear(),
-    RAMADHAN_START_DATE.getMonth(),
-    RAMADHAN_START_DATE.getDate(),
+    ramadhanPeriod.start_date.getFullYear(),
+    ramadhanPeriod.start_date.getMonth(),
+    ramadhanPeriod.start_date.getDate(),
   );
   const normalizedEnd = new Date(
-    RAMADHAN_END_DATE.getFullYear(),
-    RAMADHAN_END_DATE.getMonth(),
-    RAMADHAN_END_DATE.getDate(),
+    ramadhanPeriod.end_date.getFullYear(),
+    ramadhanPeriod.end_date.getMonth(),
+    ramadhanPeriod.end_date.getDate(),
   );
 
   return normalizedCheck >= normalizedStart && normalizedCheck <= normalizedEnd;
 };
 
-/**
- * Get Ramadhan day number from date
- * @param date - Date to check
- * @returns number of Ramadhan day (1-30) or null if not Ramadhan
- */
 export const getRamadhanDay = (date: Date | string): number | null => {
   if (!isRamadhanPeriod(date)) return null;
 
   const checkDate = typeof date === "string" ? new Date(date) : date;
-  const diffTime = checkDate.getTime() - RAMADHAN_START_DATE.getTime();
+  const ramadhanPeriod = getRamadhanPeriodForDate(checkDate);
+  const diffTime = checkDate.getTime() - ramadhanPeriod.start_date.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-  return diffDays + 1; // Day 1 = first day of Ramadhan
+  return diffDays + 1;
 };
 
-/**
- * Get days remaining in Ramadhan
- * @param date - Current date
- * @returns number of days remaining or null if not Ramadhan
- */
 export const getRamadhanDaysRemaining = (
   date: Date | string,
 ): number | null => {
   if (!isRamadhanPeriod(date)) return null;
 
   const checkDate = typeof date === "string" ? new Date(date) : date;
-  const diffTime = RAMADHAN_END_DATE.getTime() - checkDate.getTime();
+  const ramadhanPeriod = getRamadhanPeriodForDate(checkDate);
+  const diffTime = ramadhanPeriod.end_date.getTime() - checkDate.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
+  // Return null if it's the last day (0 days remaining) or past the last day
+  if (diffDays <= 0) return null;
+
   return diffDays;
+};
+
+export const getHijriYearForDate = (date: Date | string): number => {
+  const ramadhanPeriod = getRamadhanPeriodForDate(date);
+  return ramadhanPeriod.hijri_year;
+};
+
+export const getCurrentHijriYear = (): number => {
+  return getHijriYearForDate(new Date());
 };

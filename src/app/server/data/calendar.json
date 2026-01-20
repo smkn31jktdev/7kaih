@@ -1,0 +1,41 @@
+{
+  "source": "Hijri astronomical calculation (predicted)",
+  "note": "Dates may vary by country based on moon sighting",
+  "ramadan": [
+    {
+      "hijri_year": 1447,
+      "gregorian_year": 2026,
+      "start_date": "2026-02-18",
+      "end_date": "2026-03-19",
+      "eid_date": "2026-03-20"
+    },
+    {
+      "hijri_year": 1448,
+      "gregorian_year": 2027,
+      "start_date": "2027-02-08",
+      "end_date": "2027-03-09",
+      "eid_date": "2027-03-10"
+    },
+    {
+      "hijri_year": 1449,
+      "gregorian_year": 2028,
+      "start_date": "2028-01-28",
+      "end_date": "2028-02-26",
+      "eid_date": "2028-02-27"
+    },
+    {
+      "hijri_year": 1450,
+      "gregorian_year": 2029,
+      "start_date": "2029-01-16",
+      "end_date": "2029-02-14",
+      "eid_date": "2029-02-15"
+    },
+    {
+      "hijri_year": 1451,
+      "gregorian_year": 2030,
+      "start_date": "2030-01-06",
+      "end_date": "2030-02-04",
+      "eid_date": "2030-02-05"
+    }
+  ]
+}

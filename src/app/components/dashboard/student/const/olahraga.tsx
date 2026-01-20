@@ -1,5 +1,3 @@
-// Constants for Olahraga section
-
 export const OLAGRAGA_DESKRIPSI_MAP: Record<string, string> = {
   "senam-sekolah": "Senam di sekolah seminggu sekali",
   "senam-masyarakat": "Senam di masyarakat seminggu sekali",

@@ -1,5 +1,3 @@
-// Constants for Beribadah/Ibadah section
-
 export type BeribadahBooleanKey =
   | "berdoaUntukDiriDanOrtu"
   | "sholatFajar"

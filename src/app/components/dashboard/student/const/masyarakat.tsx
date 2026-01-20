@@ -1,5 +1,3 @@
-// Constants for Bermasyarakat section
-
 export const BERMASYARAKAT_DESKRIPSI_MAP: Record<string, string> = {
   "membersihkan-tempat-ibadah": "Membersihkan tempat ibadah",
   "membersihkan-got-jalanan": "Membersihkan got / jalanan umum",

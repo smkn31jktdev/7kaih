@@ -2,22 +2,43 @@
 
 import { Gift, Heart, Users, Sparkles, Star } from "lucide-react";
 import Image from "next/image";
+import calendarData from "@/app/server/data/calendar.json";
 
 interface EidSectionProps {
   currentDate: string;
 }
 
-// Theme color for Eid
 const EID_COLOR = "#2AAF2D";
 
-// Eid Al-Fitr date for 2026
-export const EID_DATE = "2026-03-20";
+const getEidDataForDate = (date: Date | string) => {
+  const checkDate = typeof date === "string" ? new Date(date) : date;
+  const yearToCheck = checkDate.getFullYear();
 
-/**
- * Check if the given date is Eid Al-Fitr
- */
+  const ramadanData = calendarData.ramadan.find(
+    (r) => r.gregorian_year === yearToCheck,
+  );
+
+  if (!ramadanData) {
+    return {
+      eid_date: "2026-03-20",
+      hijri_year: 1447,
+    };
+  }
+
+  return {
+    eid_date: ramadanData.eid_date,
+    hijri_year: ramadanData.hijri_year,
+  };
+};
+
 export const isEidDay = (date: string): boolean => {
-  return date === EID_DATE;
+  const eidData = getEidDataForDate(date);
+  return date === eidData.eid_date;
+};
+
+const getEidHijriYear = (date: string): number => {
+  const eidData = getEidDataForDate(date);
+  return eidData.hijri_year;
 };
 
 export default function EidSection({ currentDate }: EidSectionProps) {
@@ -25,21 +46,20 @@ export default function EidSection({ currentDate }: EidSectionProps) {
     return null;
   }
 
+  const hijriYear = getEidHijriYear(currentDate);
+
   return (
     <div className="relative overflow-hidden mb-6 sm:mb-8">
-      {/* Eid Celebration Banner */}
       <div
         className="relative rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 text-white overflow-hidden"
         style={{
           background: `linear-gradient(135deg, ${EID_COLOR} 0%, #23962A 50%, #1B7A21 100%)`,
         }}
       >
-        {/* Decorative Elements - smaller on mobile */}
         <div className="absolute top-0 right-0 w-48 h-48 sm:w-80 sm:h-80 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="absolute bottom-0 left-0 w-40 h-40 sm:w-64 sm:h-64 bg-yellow-400/15 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
         <div className="absolute top-1/2 right-1/4 w-20 h-20 sm:w-32 sm:h-32 bg-white/5 rounded-full blur-2xl" />
 
-        {/* Stars and sparkles decoration - less on mobile */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <Star
             className="absolute w-3 sm:w-4 h-3 sm:h-4 text-yellow-300/60 top-4 sm:top-6 right-10 sm:right-16"
@@ -70,7 +90,6 @@ export default function EidSection({ currentDate }: EidSectionProps) {
           />
         </div>
 
-        {/* Ketupat decoration - smaller on mobile */}
         <div className="absolute top-2 sm:top-4 right-2 sm:right-4 opacity-25 sm:opacity-30">
           <Image
             src="/assets/svg/ketupat.svg"
@@ -82,7 +101,6 @@ export default function EidSection({ currentDate }: EidSectionProps) {
         </div>
 
         <div className="relative z-10">
-          {/* Main Title - responsive layout */}
           <div className="flex items-center gap-2.5 sm:gap-4 mb-4 sm:mb-6">
             <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/25 shadow-lg overflow-hidden flex-shrink-0">
               <Image
@@ -98,12 +116,11 @@ export default function EidSection({ currentDate }: EidSectionProps) {
                 Selamat Hari Raya Idul Fitri
               </h2>
               <p className="text-white/80 text-xs sm:text-sm md:text-base mt-0.5 sm:mt-1">
-                1 Syawwal 1447 Hijriyah
+                1 Syawwal {hijriYear} Hijriyah
               </p>
             </div>
           </div>
 
-          {/* Arabic Greeting - responsive sizing */}
           <div className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl px-4 py-3 sm:px-6 sm:py-4 border border-white/15 mb-4 sm:mb-6 w-full sm:inline-block">
             <p className="text-xl sm:text-2xl md:text-3xl font-bold text-yellow-300 font-arabic leading-relaxed text-center sm:text-left">
               تَقَبَّلَ اللهُ مِنَّا وَمِنْكُمْ
@@ -113,7 +130,6 @@ export default function EidSection({ currentDate }: EidSectionProps) {
             </p>
           </div>
 
-          {/* Message Cards - stack on mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-6">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/10 flex items-center gap-2.5 sm:gap-3">
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">
@@ -158,7 +174,6 @@ export default function EidSection({ currentDate }: EidSectionProps) {
             </div>
           </div>
 
-          {/* Closing Message - responsive text */}
           <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-white/15">
             <p className="text-white/90 text-center text-xs sm:text-sm md:text-base leading-relaxed px-2">
               Selamat merayakan kemenangan setelah sebulan penuh berpuasa.
@@ -170,7 +185,6 @@ export default function EidSection({ currentDate }: EidSectionProps) {
         </div>
       </div>
 
-      {/* Today's Special Note - responsive sizing */}
       <div
         className="mt-3 sm:mt-4 p-3 sm:p-4 rounded-lg sm:rounded-xl border flex items-start gap-2.5 sm:gap-3"
         style={{

@@ -19,7 +19,6 @@ interface IbadahSectionProps {
   onSave: () => void;
 }
 
-// Reusable Section Card
 const SectionCard = ({
   title,
   icon: Icon,
@@ -46,7 +45,6 @@ const SectionCard = ({
   </div>
 );
 
-// Save Button Component
 const SaveButton = ({
   onClick,
   label = "Simpan Data",
