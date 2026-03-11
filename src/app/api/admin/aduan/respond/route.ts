@@ -3,7 +3,7 @@ import { verifyToken } from "@/app/utils/jwt";
 import { adminCollection } from "@/app/lib/db";
 import clientPromise from "@/app/lib/mongodb";
 import { Admin } from "@/app/types/admin";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 
 const SUPER_ADMIN_EMAIL = "smkn31jktdev@gmail.com";
 
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
           : "guru_bk";
 
     const newMessage = {
-      id: uuidv4(),
+      id: randomUUID(),
       from: admin.nama,
       role: adminRole,
       message: message.trim(),

@@ -3,7 +3,7 @@ import { verifyToken } from "@/app/utils/jwt";
 import { buktiCollection, studentCollection } from "@/app/lib/db";
 import db from "@/app/lib/db";
 import { Bukti } from "@/app/types/bukti";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
     const base64Data = buffer.toString("base64");
     const imageMimeType = fotoFile.type;
-    const imageId = uuidv4();
+    const imageId = randomUUID();
 
     // Generate URL path (untuk kompatibilitas)
     const fileExtension = fotoFile.name.split(".").pop();

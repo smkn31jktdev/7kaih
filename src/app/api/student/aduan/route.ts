@@ -3,7 +3,7 @@ import { verifyToken } from "@/app/utils/jwt";
 import { studentCollection } from "@/app/lib/db";
 import clientPromise from "@/app/lib/mongodb";
 import { Student } from "@/app/types/student";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       }
 
       const newMessage = {
-        id: uuidv4(),
+        id: randomUUID(),
         from: student.nama,
         role: "student" as const,
         message: message.trim(),
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         walas: student.walas,
         messages: [
           {
-            id: uuidv4(),
+            id: randomUUID(),
             from: student.nama,
             role: "student" as const,
             message: message.trim(),
