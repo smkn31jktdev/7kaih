@@ -96,9 +96,12 @@ export default function BKSidebar({
   useEffect(() => {
     if (!pathname) return;
     menuItems.forEach((item) => {
-      if (item.hasSubmenu && (item as { submenu?: { href: string }[] }).submenu) {
-        const match = (item as { submenu?: { href: string }[] }).submenu!.some((si) =>
-          pathname.startsWith(si.href),
+      if (
+        item.hasSubmenu &&
+        (item as { submenu?: { href: string }[] }).submenu
+      ) {
+        const match = (item as { submenu?: { href: string }[] }).submenu!.some(
+          (si) => pathname.startsWith(si.href),
         );
         if (match) {
           setOpenMenus((prev) => {
