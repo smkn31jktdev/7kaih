@@ -44,7 +44,8 @@ export default function RoomChat() {
         return prev;
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Gagal memuat data aduan";
+      const msg =
+        err instanceof Error ? err.message : "Gagal memuat data aduan";
       console.error("Gagal memuat data aduan:", msg);
       setErrorMsg(msg);
     } finally {

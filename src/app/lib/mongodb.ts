@@ -19,7 +19,9 @@ const globalWithMongo = globalThis as typeof globalThis & {
 function createConnection(): Promise<MongoClient> {
   const uri = process.env.MONGODB_URI;
   if (!uri) {
-    return Promise.reject(new Error("MONGODB_URI environment variable is not set"));
+    return Promise.reject(
+      new Error("MONGODB_URI environment variable is not set"),
+    );
   }
   const client = new MongoClient(uri, options);
   const promise = client.connect();
