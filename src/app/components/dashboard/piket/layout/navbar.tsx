@@ -126,9 +126,7 @@ export default function PiketNavbar({
             <p className="text-sm font-bold text-gray-900 truncate">
               {userName || "Guru Piket"}
             </p>
-            <p className="text-xs text-gray-500 truncate">
-              {userEmail || "guru.piket@sekolah.sch.id"}
-            </p>
+            <p className="text-xs text-gray-500 truncate">{userEmail || ""}</p>
           </div>
 
           <div className="px-2 space-y-1">

@@ -13,10 +13,8 @@ export default function BKNavbar({
   onToggleMobileSidebar,
 }: BKNavbarProps) {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [userName, setUserName] = useState<string | null>("Guru Piket");
-  const [userEmail, setUserEmail] = useState<string | null>(
-    "piket@sekolah.sch.id",
-  );
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
   const toggleProfileDropdown = () => {
@@ -25,13 +23,32 @@ export default function BKNavbar({
 
   useEffect(() => {
     try {
-      // Assuming piket authentication uses piketUser and piketToken in localStorage
-      const raw = localStorage.getItem("piketUser");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed.nama) setUserName(parsed.nama);
-        if (parsed.email) setUserEmail(parsed.email);
-      }
+      const raw = localStorage.getItem("adminUser");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      setUserName(parsed.nama);
+      setUserEmail(parsed.email);
+
+      (async () => {
+        try {
+          const token = localStorage.getItem("adminToken");
+          if (!token) return;
+          const resp = await fetch("/api/auth/admin/me", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (!resp.ok) return;
+          const json = await resp.json();
+          const user = json?.user;
+          if (user) {
+            setUserName(user.nama);
+            setUserEmail(user.email);
+          }
+        } catch {}
+      })();
     } catch {}
   }, []);
 
@@ -81,9 +98,9 @@ export default function BKNavbar({
         >
           <div className="text-right hidden sm:block mr-2">
             <p className="text-sm font-semibold text-gray-800 leading-tight">
-              {userName}
+              {userName || "Guru BK"}
             </p>
-            <p className="text-xs text-gray-500">Guru Piket</p>
+            <p className="text-xs text-gray-500">Guru BK</p>
           </div>
           <div className="w-10 h-10 bg-[var(--secondary)] rounded-full flex items-center justify-center text-white shadow-sm ring-2 ring-white group-hover:ring-[var(--secondary)]/20 transition-all">
             <User className="w-5 h-5" />
@@ -105,9 +122,9 @@ export default function BKNavbar({
               Signed in as
             </p>
             <p className="text-sm font-bold text-gray-900 truncate">
-              {userName}
+              {userName || "Guru BK"}
             </p>
-            <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+            <p className="text-xs text-gray-500 truncate">{userEmail || ""}</p>
           </div>
 
           <div className="px-2 space-y-1">
@@ -123,9 +140,9 @@ export default function BKNavbar({
           <div className="border-t border-gray-100 my-2 pt-2 px-2">
             <button
               onClick={() => {
-                localStorage.removeItem("piketUser");
-                localStorage.removeItem("piketToken");
-                window.location.href = "/site/private/piket/login";
+                localStorage.removeItem("adminUser");
+                localStorage.removeItem("adminToken");
+                window.location.href = "/site/private/admin/login";
               }}
               className="w-full text-left flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors duration-200 gap-3 font-medium"
             >
