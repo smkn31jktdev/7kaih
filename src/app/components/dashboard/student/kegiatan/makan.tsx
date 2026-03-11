@@ -1,6 +1,6 @@
 "use client";
 
-import { Utensils, HelpCircle, Check } from "lucide-react";
+import { Utensils, HelpCircle } from "lucide-react";
 import Select from "@/app/components/Select";
 import { MAKANAN_OPTIONS } from "../const/makan";
 

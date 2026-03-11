@@ -23,7 +23,8 @@ export default function BKRoomChat() {
   const [actionLoading, setActionLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, _setIsSidebarCollapsed] = useState(false);
+  void _setIsSidebarCollapsed;
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const scrollToBottom = () => {

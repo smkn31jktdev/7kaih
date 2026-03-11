@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import PiketSidebar from "@/app/components/dashboard/piket/layout/sidebar";
 import PiketNavbar from "@/app/components/dashboard/piket/layout/navbar";
 import { useSessionTimeout } from "@/app/lib/useSessionTimeout";
-import { Users, Search, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Search, CheckCircle2, XCircle, Clock } from "lucide-react";
 import DataKelas from "@/app/components/dashboard/piket/data/DataKelas";
 import { DatePicker } from "@/app/components/DatePicker";
 
@@ -83,7 +83,9 @@ export default function MonitoringSection() {
           window.location.href = "/site/private/admin";
         }
       }
-    } catch (error) {}
+    } catch (_error) {
+      void _error;
+    }
   }, []);
 
   const toggleSidebar = () => {

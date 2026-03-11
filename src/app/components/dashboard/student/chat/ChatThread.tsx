@@ -158,7 +158,7 @@ export default function ChatThread({
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
-                        onSendMessage(e as any);
+                        onSendMessage(e as unknown as React.FormEvent);
                         e.currentTarget.style.height = "56px";
                       }
                     }}

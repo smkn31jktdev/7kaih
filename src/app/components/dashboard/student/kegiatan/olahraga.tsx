@@ -1,6 +1,6 @@
 "use client";
 
-import { Dumbbell, Clock, Check } from "lucide-react";
+import { Dumbbell, Clock } from "lucide-react";
 import Select from "@/app/components/Select";
 import { OLAGRAGA_OPTIONS, OLAGRAGA_DESKRIPSI_MAP } from "../const/olahraga";
 

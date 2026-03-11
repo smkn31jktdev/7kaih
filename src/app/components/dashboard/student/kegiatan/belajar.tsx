@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Check } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import Select from "@/app/components/Select";
 import { BELAJAR_OPTIONS } from "../const/belajar";
 

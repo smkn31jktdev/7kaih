@@ -1,6 +1,6 @@
 "use client";
 
-import { Sun, Check } from "lucide-react";
+import { Sun } from "lucide-react";
 import { TimePicker } from "@/app/components/TimePicker";
 
 interface BangunPagiData {

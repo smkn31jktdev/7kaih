@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import type { StudentSemesterSummary } from "./types";
-import { RATING_HEADERS, getRatingLabel } from "./types";
+import { RATING_HEADERS } from "./types";
 
 export function downloadSemesterPDF(summary: StudentSemesterSummary): void {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm" });

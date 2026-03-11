@@ -20,7 +20,8 @@ export default function AdminRoomChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Sidebar specific states
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+  const [isSidebarCollapsed, _setIsSidebarCollapsed] = useState(true);
+  void _setIsSidebarCollapsed;
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const scrollToBottom = () => {

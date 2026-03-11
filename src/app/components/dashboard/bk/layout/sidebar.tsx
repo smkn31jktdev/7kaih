@@ -34,7 +34,7 @@ export default function BKSidebar({
   isMobileOpen = false,
   onMobileClose,
 }: BKSidebarProps) {
-  const [openMenus, setOpenMenus] = useState<string[]>([]);
+  const [, setOpenMenus] = useState<string[]>([]);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -96,8 +96,8 @@ export default function BKSidebar({
   useEffect(() => {
     if (!pathname) return;
     menuItems.forEach((item) => {
-      if (item.hasSubmenu && (item as any).submenu) {
-        const match = (item as any).submenu.some((si: any) =>
+      if (item.hasSubmenu && (item as { submenu?: { href: string }[] }).submenu) {
+        const match = (item as { submenu?: { href: string }[] }).submenu!.some((si) =>
           pathname.startsWith(si.href),
         );
         if (match) {

@@ -21,7 +21,8 @@ import {
 export default function AdminMakanPage() {
   const [students, setStudents] = useState<MakanStudent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
+  void _error;
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -105,7 +106,8 @@ export default function AdminMakanPage() {
 
     await loadPoppinsFont(doc);
 
-    const pageWidth = doc.internal.pageSize.getWidth();
+    const _pageWidth = doc.internal.pageSize.getWidth();
+    void _pageWidth;
     const pageHeight = doc.internal.pageSize.getHeight();
     const marginX = 20;
     const tableTop = 95;

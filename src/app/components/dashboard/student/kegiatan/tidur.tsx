@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Check } from "lucide-react";
+import { Moon } from "lucide-react";
 import { TimePicker } from "@/app/components/TimePicker";
 
 interface TidurData {

@@ -23,7 +23,6 @@ import type { KehadiranData } from "@/app/components/dashboard/student/kegiatan"
 // Import types and constants from const folder
 import {
   BeribadahForm,
-  BeribadahBooleanKey,
   BERIBADAH_BOOLEAN_FIELDS,
   createDefaultBeribadah,
 } from "@/app/components/dashboard/student/const/ibadah";

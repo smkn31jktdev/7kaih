@@ -53,7 +53,9 @@ export default function BerandaSection() {
       } else {
         window.location.href = "/site/private/admin/login";
       }
-    } catch (error) {}
+    } catch (_error) {
+      void _error;
+    }
   }, []);
 
   useEffect(() => {
@@ -198,7 +200,8 @@ export default function BerandaSection() {
     return "Lainnya";
   };
 
-  const groupStudentsByJurusan = (studentsList: StudentAttendance[]) => {
+  const _groupStudentsByJurusan = (studentsList: StudentAttendance[]) => {
+    void _groupStudentsByJurusan;
     const grouped: Record<string, string[]> = {};
     const jurusans = [
       "Akuntansi",

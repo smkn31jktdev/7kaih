@@ -58,10 +58,11 @@ export function useSemesterData(): UseSemesterDataReturn {
     [availableYears],
   );
 
-  const currentSemesterOption = useMemo(
+  const _currentSemesterOption = useMemo(
     () => semesterOptions.find((opt) => opt.key === selectedSemester) ?? null,
     [semesterOptions, selectedSemester],
   );
+  void _currentSemesterOption;
 
   // Fetch available months first, then determine years
   const fetchAvailableMonths = useCallback(async () => {

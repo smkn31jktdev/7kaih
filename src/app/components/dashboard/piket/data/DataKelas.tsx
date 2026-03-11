@@ -123,7 +123,7 @@ export default function DataKelas({
           {["X", "XI", "XII"].map((level) => (
             <button
               key={level}
-              onClick={() => setActiveTab(level as any)}
+              onClick={() => setActiveTab(level as "X" | "XI" | "XII")}
               className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all shrink-0 ${
                 activeTab === level
                   ? "bg-[var(--secondary)] text-white shadow-md shadow-[var(--secondary)]/20"
