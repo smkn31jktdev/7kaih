@@ -7,7 +7,6 @@ import StudentNavbar from "@/app/components/dashboard/student/navbar";
 import { DatePicker } from "@/app/components/DatePicker";
 import { Calendar, Users } from "lucide-react";
 
-// Import components from kegiatan folder
 import {
   BangunSection,
   TidurSection,
