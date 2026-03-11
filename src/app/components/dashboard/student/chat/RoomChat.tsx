@@ -17,6 +17,7 @@ export default function RoomChat() {
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -69,6 +70,7 @@ export default function RoomChat() {
     if (!inputValue.trim() || sending) return;
 
     setSending(true);
+    setErrorMsg(null);
     try {
       const result = await sendAduan(inputValue.trim(), activeAduan?.ticketId);
 
@@ -83,7 +85,7 @@ export default function RoomChat() {
         }
       }
     } catch {
-      console.error("Gagal mengirim aduan");
+      setErrorMsg("Gagal mengirim aduan. Silakan coba lagi.");
     } finally {
       setSending(false);
     }
@@ -133,6 +135,18 @@ export default function RoomChat() {
           onSendMessage={handleSendMessage}
         />
       </div>
+
+      {errorMsg && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm">
+          {errorMsg}
+          <button
+            onClick={() => setErrorMsg(null)}
+            className="ml-3 font-bold"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 }

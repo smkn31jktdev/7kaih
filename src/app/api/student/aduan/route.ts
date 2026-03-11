@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     const student = (await studentCollection.findOne({
-      id: payload.id,
+      nisn: payload.nisn,
     })) as Student | null;
     if (!student) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
