@@ -16,7 +16,7 @@ export function TimePicker({
   onChange,
   placeholder = "Pilih waktu...",
   className = "",
-  disabled = false,
+  disabled = true,
 }: TimePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedHour, setSelectedHour] = useState("");
@@ -29,9 +29,16 @@ export function TimePicker({
       setSelectedHour(hour || "");
       setSelectedMinute(minute || "");
     } else {
-      setSelectedHour("");
-      setSelectedMinute("");
+      const now = new Date();
+      const currentHour = now.getHours().toString().padStart(2, "0");
+      const currentMinute = now.getMinutes().toString().padStart(2, "0");
+      setSelectedHour(currentHour);
+      setSelectedMinute(currentMinute);
+      if (onChange) {
+        onChange(`${currentHour}:${currentMinute}`);
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   useEffect(() => {
@@ -192,7 +199,7 @@ export function TimePicker({
                     onClick={() =>
                       handleTimeSelect(
                         time.value.split(":")[0],
-                        time.value.split(":")[1]
+                        time.value.split(":")[1],
                       )
                     }
                     className="py-2 px-3 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors font-medium"

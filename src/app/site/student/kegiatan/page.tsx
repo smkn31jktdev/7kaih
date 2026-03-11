@@ -16,7 +16,9 @@ import {
   OlahragaSection,
   BelajarSection,
   BermasyarakatSection,
+  KehadiranSection,
 } from "@/app/components/dashboard/student/kegiatan";
+import type { KehadiranData } from "@/app/components/dashboard/student/kegiatan";
 
 // Import types and constants from const folder
 import {
@@ -92,14 +94,24 @@ export default function KegiatanSiswa() {
       yaAtauTidak: false,
       deskripsi: "",
     },
+    kehadiran: {
+      status: "belum",
+      waktuAbsen: "",
+      hari: "",
+      alasanTidakHadir: "",
+      koordinat: null,
+      jarak: null,
+      akurasi: null,
+      verifiedAt: "",
+    } as KehadiranData,
   });
 
   useEffect(() => {
     fetchStudentData();
-    const savedTanggal = localStorage.getItem("selectedTanggal");
-    if (savedTanggal) {
-      setFormData((prev) => ({ ...prev, tanggal: savedTanggal }));
-    }
+    // const savedTanggal = localStorage.getItem("selectedTanggal");
+    // if (savedTanggal) {
+    //   setFormData((prev) => ({ ...prev, tanggal: savedTanggal }));
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -229,6 +241,22 @@ export default function KegiatanSiswa() {
           kegiatan["makanSehat"] = normalizedMakanSehat;
         }
 
+        // Normalize kehadiran data
+        if (kegiatan.kehadiran && typeof kegiatan.kehadiran === "object") {
+          const k = { ...(kegiatan.kehadiran as Record<string, unknown>) };
+          const normalizedKehadiran = {
+            status: (k.status as string) || "belum",
+            waktuAbsen: (k.waktuAbsen as string) || "",
+            hari: (k.hari as string) || "",
+            alasanTidakHadir: (k.alasanTidakHadir as string) || "",
+            koordinat: k.koordinat || null,
+            jarak: k.jarak !== undefined ? k.jarak : null,
+            akurasi: k.akurasi !== undefined ? k.akurasi : null,
+            verifiedAt: (k.verifiedAt as string) || "",
+          };
+          kegiatan["kehadiran"] = normalizedKehadiran;
+        }
+
         // Normalize bermasyarakat data
         if (
           kegiatan.bermasyarakat &&
@@ -248,6 +276,38 @@ export default function KegiatanSiswa() {
           ...prev,
           ...(kegiatan as Record<string, unknown>),
         }));
+      }
+      // Also fetch kehadiran from dedicated collection
+      try {
+        const kehadiranResponse = await fetch(
+          `/api/student/kehadiran?tanggal=${tanggal}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        if (kehadiranResponse.ok) {
+          const kehadiranResult = await kehadiranResponse.json();
+          if (kehadiranResult.kehadiran) {
+            const kh = kehadiranResult.kehadiran;
+            setFormData((prev) => ({
+              ...prev,
+              kehadiran: {
+                status: kh.status || "belum",
+                waktuAbsen: kh.waktuAbsen || "",
+                hari: kh.hari || "",
+                alasanTidakHadir: kh.alasanTidakHadir || "",
+                koordinat: kh.koordinat || null,
+                jarak: kh.jarak !== undefined ? kh.jarak : null,
+                akurasi: kh.akurasi !== undefined ? kh.akurasi : null,
+                verifiedAt: kh.verifiedAt || "",
+              },
+            }));
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching kehadiran:", err);
       }
     } catch (error) {
       console.error("Error fetching kegiatan:", error);
@@ -404,74 +464,166 @@ export default function KegiatanSiswa() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* --- Row 1: Meta Data & Tidur/Bangun --- */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                {/* Card 1: Select Date */}
-                <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
-                  <label className="block text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-[var(--secondary)]" />
-                    Pilih Tanggal
-                  </label>
-                  <DatePicker
-                    value={formData.tanggal}
-                    onChange={(value) => {
-                      localStorage.setItem("selectedTanggal", value);
-                      setFormData((prev) => ({ ...prev, tanggal: value }));
-                    }}
-                  />
+              {/* --- Row 1: Left Col (Date & Kehadiran) & Right Col (Info, Bangun, Tidur) --- */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {/* Left Column: Date & Kehadiran */}
+                <div className="flex flex-col gap-6 lg:col-span-1 border-none">
+                  {/* Date Picker */}
+                  <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col justify-between">
+                    <label className="block text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-[var(--secondary)]" />
+                      Pilih Tanggal
+                    </label>
+                    <DatePicker
+                      value={formData.tanggal}
+                      disabled={true}
+                      onChange={(value) => {
+                        localStorage.setItem("selectedTanggal", value);
+                        setFormData((prev) => ({ ...prev, tanggal: value }));
+                      }}
+                    />
+                  </div>
+
+                  {/* Kehadiran Section (Desktop & Mobile) */}
+                  <div>
+                    <KehadiranSection
+                      data={formData.kehadiran}
+                      onChange={(data: KehadiranData) =>
+                        setFormData((prev) => ({ ...prev, kehadiran: data }))
+                      }
+                      onSave={async (data: KehadiranData) => {
+                        // Save to dedicated kehadiran collection
+                        try {
+                          const token = localStorage.getItem("studentToken");
+                          if (!token) {
+                            alert(
+                              "Sesi Anda telah berakhir. Silakan login kembali.",
+                            );
+                            router.push("/site/student/login");
+                            return;
+                          }
+
+                          const response = await fetch(
+                            "/api/student/kehadiran",
+                            {
+                              method: "POST",
+                              headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                              },
+                              body: JSON.stringify({
+                                tanggal: formData.tanggal,
+                                kehadiran: data,
+                              }),
+                            },
+                          );
+
+                          const result = await response.json();
+                          if (!response.ok) {
+                            throw new Error(
+                              result.error || "Gagal menyimpan kehadiran",
+                            );
+                          }
+
+                          setSnackbar({
+                            message: result.message,
+                            type: "success",
+                          });
+
+                          // Also save to kebiasaan_hebat for backward compatibility
+                          handleSectionSubmit(
+                            "kehadiran",
+                            data as unknown as Record<string, unknown>,
+                          );
+                        } catch (error) {
+                          console.error("Error saving kehadiran:", error);
+                          setSnackbar({
+                            message:
+                              error instanceof Error
+                                ? error.message
+                                : "Gagal menyimpan data kehadiran",
+                            type: "error",
+                          });
+                        }
+                      }}
+                      tanggal={formData.tanggal}
+                    />
+                  </div>
                 </div>
 
-                {/* Card 2: Student Info */}
-                <div className="bg-[var(--secondary)]/5 rounded-3xl p-6 border border-[var(--secondary)]/10 flex flex-col justify-center">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-white rounded-lg shadow-sm text-[var(--secondary)]">
-                      <Users className="w-5 h-5" />
+                {/* Right Column: Student Info, Bangun, Tidur */}
+                <div className="flex flex-col gap-6 lg:col-span-2 xl:col-span-3">
+                  {/* Card 2: Student Info (Horizontal layout) */}
+                  <div className="bg-[var(--secondary)]/5 rounded-3xl p-6 border border-[var(--secondary)]/10 flex flex-col xl:flex-row xl:items-center justify-between gap-6 relative overflow-hidden">
+                    {/* Decorative Background Icon */}
+                    <div className="absolute right-[-20px] top-[-20px] text-[var(--secondary)]/5 pointer-events-none">
+                      <Users className="w-32 h-32" />
                     </div>
-                    <h3 className="text-sm font-bold text-[var(--secondary)] uppercase tracking-wider">
-                      Data Siswa
-                    </h3>
+
+                    <div className="flex items-center gap-3 relative z-10 w-full xl:w-1/4">
+                      <div className="p-2.5 bg-white rounded-xl shadow-sm border border-white/50 text-[var(--secondary)] backdrop-blur-sm">
+                        <Users className="w-5 h-5" />
+                      </div>
+                      <h3 className="text-sm font-bold text-[var(--secondary)] uppercase tracking-wider whitespace-nowrap">
+                        Data Siswa
+                      </h3>
+                    </div>
+
+                    <div className="flex-1 flex flex-col xl:flex-row xl:items-center w-full justify-between xl:justify-end gap-5 xl:gap-12 text-sm relative z-10">
+                      <div className="flex flex-col">
+                        <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-1">
+                          Nama Siswa
+                        </span>
+                        <span className="font-bold text-gray-800 text-base md:text-lg">
+                          {formData.nama || "-"}
+                        </span>
+                      </div>
+                      <div className="hidden xl:block w-px h-10 bg-[var(--secondary)]/20 shadow-sm"></div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-1">
+                          NISN
+                        </span>
+                        <span className="font-bold text-gray-800 text-base md:text-lg font-mono tracking-tight">
+                          {formData.nisn || "-"}
+                        </span>
+                      </div>
+                      <div className="hidden xl:block w-px h-10 bg-[var(--secondary)]/20 shadow-sm"></div>
+                      <div className="flex flex-col">
+                        <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-1">
+                          Kelas
+                        </span>
+                        <span className="font-bold text-emerald-600 text-base md:text-lg bg-emerald-50 px-3 py-0.5 rounded-lg w-max border border-emerald-100">
+                          {formData.kelas || "-"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between pb-2 border-b border-[var(--secondary)]/10">
-                      <span className="text-gray-500">Nama</span>
-                      <span className="font-semibold text-gray-800 text-right truncate pl-2">
-                        {formData.nama}
-                      </span>
-                    </div>
-                    <div className="flex justify-between pb-2 border-b border-[var(--secondary)]/10">
-                      <span className="text-gray-500">NISN</span>
-                      <span className="font-semibold text-gray-800">
-                        {formData.nisn}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Kelas</span>
-                      <span className="font-semibold text-gray-800">
-                        {formData.kelas}
-                      </span>
-                    </div>
+
+                  {/* Wrapper for Bangun and Tidur Sections */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                    {/* Card 3: Bangun Pagi */}
+                    <BangunSection
+                      data={formData.bangunPagi}
+                      onChange={(data) =>
+                        setFormData((prev) => ({ ...prev, bangunPagi: data }))
+                      }
+                      onSave={() =>
+                        handleSectionSubmit("bangunPagi", formData.bangunPagi)
+                      }
+                    />
+
+                    {/* Card 4: Tidur Malam */}
+                    <TidurSection
+                      data={formData.tidur}
+                      onChange={(data) =>
+                        setFormData((prev) => ({ ...prev, tidur: data }))
+                      }
+                      onSave={() =>
+                        handleSectionSubmit("tidur", formData.tidur)
+                      }
+                    />
                   </div>
                 </div>
-
-                {/* Card 3: Bangun Pagi */}
-                <BangunSection
-                  data={formData.bangunPagi}
-                  onChange={(data) =>
-                    setFormData((prev) => ({ ...prev, bangunPagi: data }))
-                  }
-                  onSave={() =>
-                    handleSectionSubmit("bangunPagi", formData.bangunPagi)
-                  }
-                />
-
-                {/* Card 4: Tidur Malam */}
-                <TidurSection
-                  data={formData.tidur}
-                  onChange={(data) =>
-                    setFormData((prev) => ({ ...prev, tidur: data }))
-                  }
-                  onSave={() => handleSectionSubmit("tidur", formData.tidur)}
-                />
               </div>
 
               {/* --- Row 2: Beribadah (Focus Area) --- */}

@@ -83,7 +83,13 @@ function LoginForm() {
           type: "success",
         });
         setTimeout(() => {
-          window.location.href = "/site/private/admin";
+          if (data.admin.email === "piket@smkn31jkt.id") {
+            window.location.href = "/site/private/piket";
+          } else if (data.admin.email === "bk@smkn31jkt.id") {
+            window.location.href = "/site/private/bk";
+          } else {
+            window.location.href = "/site/private/admin";
+          }
         }, 2000);
       } else {
         setSnackbar({
@@ -219,8 +225,8 @@ function LoginForm() {
           snackbar?.type === "success"
             ? "bg-gradient-to-r from-emerald-500 to-emerald-600 border-emerald-400"
             : snackbar?.type === "error"
-            ? "bg-gradient-to-r from-rose-500 to-rose-600 border-rose-400"
-            : "bg-gradient-to-r from-gray-500 to-gray-600 border-gray-400"
+              ? "bg-gradient-to-r from-rose-500 to-rose-600 border-rose-400"
+              : "bg-gradient-to-r from-gray-500 to-gray-600 border-gray-400"
         } text-white px-6 py-4 rounded-2xl shadow-2xl border-2 pointer-events-none max-w-sm`}
         aria-live="assertive"
       >

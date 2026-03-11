@@ -7,5 +7,6 @@ export const adminCollection = db.collection("akun_admin");
 export const studentCollection = db.collection("akun_siswa");
 export const kegiatanCollection = db.collection("kebiasaan_hebat");
 export const buktiCollection = db.collection("bukti");
+export const kehadiranCollection = db.collection("kehadiran");
 
 export default db;

@@ -63,6 +63,18 @@ export interface Kebiasaan {
     berpuasa: boolean;
   };
 
+  // Kehadiran
+  kehadiran?: {
+    status: "hadir" | "tidak_hadir" | "belum";
+    waktuAbsen: string; // Format HH:mm:ss
+    hari: string; // Nama hari (Senin-Jumat)
+    alasanTidakHadir: string;
+    koordinat: { latitude: number; longitude: number } | null;
+    jarak: number | null;
+    akurasi: number | null;
+    verifiedAt: string;
+  };
+
   createdAt: Date;
   updatedAt: Date;
 }

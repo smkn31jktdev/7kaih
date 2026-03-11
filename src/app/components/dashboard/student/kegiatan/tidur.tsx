@@ -27,9 +27,9 @@ const SectionCard = ({
   className?: string;
 }) => (
   <div
-    className={`bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 hover:shadow-md transition-shadow duration-300 ${className}`}
+    className={`bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8 hover:shadow-md transition-shadow duration-300 flex flex-col ${className}`}
   >
-    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-50">
+    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-50 shrink-0">
       <div className="w-10 h-10 rounded-2xl bg-[var(--secondary)]/10 flex items-center justify-center text-[var(--secondary)]">
         <Icon className="w-5 h-5" />
       </div>
@@ -37,7 +37,7 @@ const SectionCard = ({
         {title}
       </h3>
     </div>
-    <div className="space-y-5">{children}</div>
+    <div className="flex flex-col flex-1">{children}</div>
   </div>
 );
 
@@ -65,47 +65,51 @@ export default function TidurSection({
 }: TidurSectionProps) {
   return (
     <SectionCard title="Tidur Malam" icon={Moon} className="h-full">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Waktu Tidur
-        </label>
-        <TimePicker
-          value={data.jam}
-          onChange={(value) =>
-            onChange({
-              ...data,
-              jam: value,
-            })
-          }
-          placeholder="00:00"
-        />
-      </div>
-      <div className="pt-2">
-        <span className="block text-xs font-medium text-gray-500 mb-2">
-          Membaca Doa?
-        </span>
-        <div className="flex gap-3">
-          {[true, false].map((val) => (
-            <label key={`tidur-${val}`} className="cursor-pointer">
-              <input
-                type="radio"
-                className="hidden peer"
-                checked={data.membacaDanMasTidur === val}
-                onChange={() =>
-                  onChange({
-                    ...data,
-                    membacaDanMasTidur: val,
-                  })
-                }
-              />
-              <div className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 peer-checked:border-indigo-200 transition-all">
-                {val ? "Ya" : "Tidak"}
-              </div>
-            </label>
-          ))}
+      <div className="space-y-5 mb-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Waktu Tidur
+          </label>
+          <TimePicker
+            value={data.jam}
+            onChange={(value) =>
+              onChange({
+                ...data,
+                jam: value,
+              })
+            }
+            placeholder="00:00"
+          />
+        </div>
+        <div className="pt-2">
+          <span className="block text-xs font-medium text-gray-500 mb-2">
+            Membaca Doa?
+          </span>
+          <div className="flex gap-3">
+            {[true, false].map((val) => (
+              <label key={`tidur-${val}`} className="cursor-pointer">
+                <input
+                  type="radio"
+                  className="hidden peer"
+                  checked={data.membacaDanMasTidur === val}
+                  onChange={() =>
+                    onChange({
+                      ...data,
+                      membacaDanMasTidur: val,
+                    })
+                  }
+                />
+                <div className="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 peer-checked:bg-indigo-50 peer-checked:text-indigo-600 peer-checked:border-indigo-200 transition-all">
+                  {val ? "Ya" : "Tidak"}
+                </div>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
-      <SaveButton onClick={onSave} />
+      <div className="mt-auto">
+        <SaveButton onClick={onSave} />
+      </div>
     </SectionCard>
   );
 }

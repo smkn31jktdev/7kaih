@@ -9,6 +9,7 @@ interface DatePickerProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  align?: "left" | "right";
 }
 
 export function DatePicker({
@@ -17,6 +18,7 @@ export function DatePicker({
   placeholder = "Pilih tanggal...",
   className = "",
   disabled = false,
+  align = "left",
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -141,7 +143,9 @@ export function DatePicker({
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-80 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+        <div
+          className={`absolute z-50 w-80 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg ${align === "right" ? "right-0" : "left-0"}`}
+        >
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <button
               type="button"

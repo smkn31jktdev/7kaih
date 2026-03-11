@@ -14,6 +14,7 @@ import {
   FileText,
   FileSpreadsheet,
   Eraser,
+  MessageCircleQuestion,
 } from "lucide-react";
 
 const menuItems = [
@@ -95,6 +96,13 @@ const menuItems = [
     ],
   },
   {
+    id: "aduan-siswa",
+    label: "Aduan Siswa",
+    icon: MessageCircleQuestion,
+    href: "/site/private/admin/chat",
+    hasSubmenu: false,
+  },
+  {
     id: "settings",
     label: "Pengaturan Akun",
     icon: Wrench,
@@ -126,7 +134,6 @@ export default function AdminSidebar({
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
-  // Handle swipe gestures
   const minSwipeDistance = 50;
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -148,7 +155,6 @@ export default function AdminSidebar({
     }
   };
 
-  // Close sidebar when clicking outside on mobile
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isMobileOpen && onMobileClose) {
@@ -173,7 +179,7 @@ export default function AdminSidebar({
   }, [isMobileOpen, onMobileClose]);
 
   const toggleMenu = (menuId: string) => {
-    if (isCollapsed) return; // Don't toggle in collapsed mode
+    if (isCollapsed) return;
     setOpenMenus((prev) =>
       prev.includes(menuId)
         ? prev.filter((id) => id !== menuId)
@@ -183,11 +189,9 @@ export default function AdminSidebar({
 
   const pathname = usePathname();
 
-  // Highlight active menu based on current pathname
   useEffect(() => {
     if (!pathname) return;
 
-    // open the parent menu if a submenu matches the current path
     menuItems.forEach((item) => {
       if (item.hasSubmenu && item.submenu) {
         const match = item.submenu.some((si) => pathname.startsWith(si.href));
@@ -201,9 +205,7 @@ export default function AdminSidebar({
     });
   }, [pathname]);
 
-  // Decide visibility for special menu items (Tambah Admin)
   useEffect(() => {
-    // Only run on client
     if (typeof window === "undefined") return;
     const token = localStorage.getItem("adminToken");
     if (!token) {
@@ -211,7 +213,6 @@ export default function AdminSidebar({
       return;
     }
 
-    // Call the me endpoint to check the logged-in admin email
     (async () => {
       try {
         const res = await fetch("/api/auth/admin/me", {
@@ -264,8 +265,6 @@ export default function AdminSidebar({
           }`}
           title={isCollapsed ? item.label : undefined}
         >
-          {/* Active Indicator Strip (Optional, removed for cleaner look, relying on bg color) */}
-
           <Link
             href={item.hasSubmenu ? "#" : item.href}
             className="flex items-center flex-1 gap-4"
@@ -289,7 +288,6 @@ export default function AdminSidebar({
             )}
           </Link>
 
-          {/* Chevron for submenu */}
           {item.hasSubmenu && !isCollapsed && (
             <div
               className={`transition-transform duration-300 ${
@@ -305,15 +303,12 @@ export default function AdminSidebar({
           )}
         </div>
 
-        {/* Submenu Items */}
         {item.hasSubmenu && isOpen && item.submenu && !isCollapsed && (
           <div className="mt-1 ml-4 space-y-1 relative">
-            {/* Connective line */}
             <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-gray-100" />
 
             {item.submenu
               .filter((subItem) => {
-                // Hide Tambahkan Admin link unless the logged-in email is the special one
                 if (
                   subItem.href === "/site/private/admin/tambah-admin" &&
                   !isSuperAdmin
@@ -325,7 +320,13 @@ export default function AdminSidebar({
               .map((subItem, index) => {
                 const subActive =
                   pathname === subItem.href ||
-                  pathname?.startsWith(subItem.href + "/");
+                  (pathname?.startsWith(subItem.href + "/") &&
+                    !item.submenu?.some(
+                      (other) =>
+                        other.href.length > subItem.href.length &&
+                        (pathname === other.href ||
+                          pathname?.startsWith(other.href + "/")),
+                    ));
                 return (
                   <Link
                     key={index}
@@ -348,7 +349,6 @@ export default function AdminSidebar({
 
   return (
     <>
-      {/* Mobile Overlay */}
       {isMobileOpen && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden" />
       )}
@@ -364,7 +364,6 @@ export default function AdminSidebar({
         onTouchEnd={onTouchEnd}
       >
         <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden scrollbar-none">
-          {/* Mobile Close Button */}
           {isMobileOpen && (
             <button
               onClick={onMobileClose}
@@ -375,7 +374,6 @@ export default function AdminSidebar({
             </button>
           )}
 
-          {/* Logo Section */}
           <div
             className={`flex items-center justify-center mb-10 ${
               isMobileOpen ? "mt-8" : ""

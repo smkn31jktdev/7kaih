@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import StudentSidebar from "@/app/components/dashboard/student/sidebar";
 import StudentNavbar from "@/app/components/dashboard/student/navbar";
+import { useGeolocation } from "@/app/components/dashboard/student/kegiatan/daily/useGeolocation";
+import { ReasonModal } from "@/app/components/dashboard/student/kegiatan/daily/ReasonModal";
+import FloatingChat from "@/app/components/dashboard/student/chat/FloatingChat";
 import { useSessionTimeout } from "@/app/lib/useSessionTimeout";
 import {
   Activity,
@@ -12,6 +15,7 @@ import {
   School,
   Clock,
   CalendarDays,
+  MapPin,
 } from "lucide-react";
 
 interface KegiatanData {
@@ -80,6 +84,85 @@ export default function StudentDashboard() {
   const [isLoadingStudent, setIsLoadingStudent] = useState(true);
   const [currentDate, setCurrentDate] = useState("");
 
+  const {
+    isInsideSchoolBounds,
+    locationMessage,
+    isDevToolsOpen,
+    isLoadingLocation,
+    verifyLocation,
+  } = useGeolocation();
+
+  const [isReasonModalOpen, setIsReasonModalOpen] = useState(false);
+  const [kehadiranStatus, setKehadiranStatus] = useState<{
+    status: "hadir" | "tidak_hadir" | "belum";
+    alasanTidakHadir?: string;
+  }>({ status: "belum" });
+  const [snackbar, setSnackbar] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+
+  useEffect(() => {
+    if (snackbar) {
+      setSnackbarVisible(true);
+      const timer = setTimeout(() => setSnackbarVisible(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [snackbar]);
+
+  const submitReason = async (reasonText: string) => {
+    try {
+      const token = localStorage.getItem("studentToken");
+      if (!token) {
+        router.push("/site/student/login");
+        return;
+      }
+
+      const today = new Date();
+      const tanggal = today.toISOString().split("T")[0];
+
+      const response = await fetch("/api/student/kehadiran", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          tanggal,
+          kehadiran: {
+            status: "tidak_hadir",
+            alasanTidakHadir: reasonText,
+          },
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Gagal menyimpan kehadiran");
+      }
+
+      setKehadiranStatus({
+        status: "tidak_hadir",
+        alasanTidakHadir: reasonText,
+      });
+      setSnackbar({
+        message: data.message || "Data kehadiran berhasil disimpan",
+        type: "success",
+      });
+    } catch (error) {
+      setSnackbar({
+        message:
+          error instanceof Error
+            ? error.message
+            : "Gagal menyimpan data kehadiran",
+        type: "error",
+      });
+    } finally {
+      setIsReasonModalOpen(false);
+    }
+  };
+
   useSessionTimeout({
     timeoutMinutes: 30,
     redirectPath: "/site/student/login?expired=1",
@@ -116,7 +199,7 @@ export default function StudentDashboard() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -300,10 +383,39 @@ export default function StudentDashboard() {
     return activities;
   };
 
+  const fetchKehadiranHariIni = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("studentToken");
+      if (!token) return;
+
+      const today = new Date();
+      const todayString = today.toISOString().split("T")[0];
+      const response = await fetch(
+        `/api/student/kehadiran?tanggal=${todayString}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.kehadiran) {
+          setKehadiranStatus({
+            status: data.kehadiran.status,
+            alasanTidakHadir: data.kehadiran.alasanTidakHadir || "",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching kehadiran:", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchKegiatanHariIni();
     fetchStudentData();
-  }, [fetchKegiatanHariIni, fetchStudentData]);
+    fetchKehadiranHariIni();
+  }, [fetchKegiatanHariIni, fetchStudentData, fetchKehadiranHariIni]);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -433,8 +545,8 @@ export default function StudentDashboard() {
                     {isLoadingKegiatan
                       ? "Sedang memuat data..."
                       : getActivities().filter((a) => a.completed).length === 7
-                      ? "Luar biasa! Semua kegiatan selesai!"
-                      : "Ayo selesaikan kegiatanmu!"}
+                        ? "Luar biasa! Semua kegiatan selesai!"
+                        : "Ayo selesaikan kegiatanmu!"}
                   </p>
                 </div>
               </div>
@@ -443,15 +555,70 @@ export default function StudentDashboard() {
             {/* Activities List */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="p-6 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h3 className="text-lg font-bold text-gray-900">
-                  Aktivitas Hari Ini
-                </h3>
-                <button
-                  onClick={() => router.push("/site/student/kegiatan")}
-                  className="w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-[var(--secondary)] text-white text-sm font-medium hover:bg-teal-600 transition-all shadow-sm hover:shadow-md active:scale-95 cursor-pointer"
-                >
-                  Isi Kegiatan &rarr;
-                </button>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    Aktivitas Hari Ini
+                    <button
+                      onClick={verifyLocation}
+                      className="text-gray-400 hover:text-[var(--secondary)] transition-colors"
+                      title="Refresh Lokasi"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                        <path d="M3 3v5h5" />
+                      </svg>
+                    </button>
+                  </h3>
+                  <p
+                    className={`text-xs mt-1 font-medium ${
+                      isLoadingLocation
+                        ? "text-gray-500"
+                        : isInsideSchoolBounds && !isDevToolsOpen
+                          ? "text-emerald-600"
+                          : "text-rose-500"
+                    }`}
+                  >
+                    <MapPin className="w-3.5 h-3.5 inline mr-1" />{" "}
+                    {locationMessage}
+                  </p>
+                </div>
+                {kehadiranStatus.status !== "belum" ? (
+                  <div className="w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-amber-50 text-amber-700 text-sm font-medium border border-amber-200 flex items-center gap-2 justify-center">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>
+                      {kehadiranStatus.status === "hadir"
+                        ? "Sudah Absen Hadir"
+                        : `Tidak Hadir: ${kehadiranStatus.alasanTidakHadir}`}
+                    </span>
+                  </div>
+                ) : isInsideSchoolBounds && !isDevToolsOpen ? (
+                  <button
+                    onClick={() => router.push("/site/student/kegiatan")}
+                    className="w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-[var(--secondary)] text-white text-sm font-medium hover:bg-teal-600 transition-all shadow-sm hover:shadow-md active:scale-95 cursor-pointer"
+                  >
+                    Isi Kegiatan &rarr;
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setIsReasonModalOpen(true)}
+                    disabled={isLoadingLocation}
+                    className="w-full sm:w-auto text-center px-4 py-2 rounded-lg bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 transition-all shadow-sm hover:shadow-md active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoadingLocation
+                      ? "Memeriksa Lokasi..."
+                      : "Isi Alasan Tidak Hadir"}
+                  </button>
+                )}
               </div>
 
               <div className="p-0">
@@ -483,6 +650,43 @@ export default function StudentDashboard() {
           </div>
         </main>
       </div>
+
+      <ReasonModal
+        isOpen={isReasonModalOpen}
+        onClose={() => setIsReasonModalOpen(false)}
+        onSubmit={submitReason}
+      />
+
+      {/* Snackbar Notification */}
+      <div
+        className={`fixed bottom-6 left-1/2 -translate-x-1/2 transform transition-all duration-300 z-[100] ${
+          snackbarVisible
+            ? "translate-y-0 opacity-100"
+            : "translate-y-6 opacity-0"
+        }`}
+      >
+        {snackbar && (
+          <div
+            className={`px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3 border ${
+              snackbar.type === "success"
+                ? "bg-white text-emerald-600 border-emerald-100"
+                : "bg-white text-rose-600 border-rose-100"
+            }`}
+          >
+            <div
+              className={`w-2 h-2 rounded-full ${
+                snackbar.type === "success" ? "bg-emerald-500" : "bg-rose-500"
+              }`}
+            />
+            <span className="font-medium text-sm text-gray-800">
+              {snackbar.message}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Komponen Pusat Aduan Melayang */}
+      <FloatingChat />
     </div>
   );
 }
