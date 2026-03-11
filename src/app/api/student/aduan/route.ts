@@ -112,9 +112,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, aduan }, { status: 201 });
     }
   } catch (error) {
-    console.error("Student aduan error:", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error("Student aduan error:", errMsg);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Gagal mengirim aduan", detail: errMsg },
       { status: 500 },
     );
   }
@@ -133,6 +134,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!payload.nisn) {
+      return NextResponse.json(
+        { error: "Token tidak memiliki NISN, silakan login ulang" },
+        { status: 401 },
+      );
+    }
+
     const client = await clientPromise;
     const db = client.db("smkn31jkt");
     const collection = db.collection("aduan_siswa");
@@ -144,9 +152,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ aduan });
   } catch (error) {
-    console.error("Get aduan error:", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error("Get aduan error:", errMsg);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Gagal memuat aduan", detail: errMsg },
       { status: 500 },
     );
   }

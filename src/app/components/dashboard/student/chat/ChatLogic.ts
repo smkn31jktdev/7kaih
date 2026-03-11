@@ -12,7 +12,10 @@ function getAuthHeaders(): HeadersInit {
 
 export async function fetchAduan(): Promise<Aduan[]> {
   const res = await fetch(API_BASE, { headers: getAuthHeaders() });
-  if (!res.ok) throw new Error("Gagal mengambil data aduan");
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.detail || "Gagal mengambil data aduan");
+  }
   const data = await res.json();
   return data.aduan;
 }
@@ -26,7 +29,10 @@ export async function sendAduan(
     headers: getAuthHeaders(),
     body: JSON.stringify({ message, ticketId }),
   });
-  if (!res.ok) throw new Error("Gagal mengirim aduan");
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.detail || "Gagal mengirim aduan");
+  }
   return res.json();
 }
 

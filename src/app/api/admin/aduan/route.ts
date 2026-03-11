@@ -60,9 +60,10 @@ export async function GET(request: NextRequest) {
       isSuperAdmin: admin.email === SUPER_ADMIN_EMAIL,
     });
   } catch (error) {
-    console.error("Admin get aduan error:", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error("Admin get aduan error:", errMsg);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Gagal memuat aduan", detail: errMsg },
       { status: 500 },
     );
   }
@@ -178,9 +179,10 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true, status: newStatus });
   } catch (error) {
-    console.error("Admin update aduan error:", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error("Admin update aduan error:", errMsg);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Gagal update aduan", detail: errMsg },
       { status: 500 },
     );
   }

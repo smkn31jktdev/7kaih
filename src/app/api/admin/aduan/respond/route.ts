@@ -75,9 +75,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, message: newMessage });
   } catch (error) {
-    console.error("Admin respond error:", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error("Admin respond error:", errMsg);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Gagal merespons aduan", detail: errMsg },
       { status: 500 },
     );
   }

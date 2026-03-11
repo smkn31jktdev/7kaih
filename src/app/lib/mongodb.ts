@@ -6,40 +6,32 @@ const options = {
     strict: false,
     deprecationErrors: true,
   },
+  connectTimeoutMS: 10000,
+  serverSelectionTimeoutMS: 10000,
 };
 
 let clientPromise: Promise<MongoClient> | null = null;
-let clientPromiseSettled = false;
 
 const globalWithMongo = globalThis as typeof globalThis & {
   _mongoClientPromise?: Promise<MongoClient> | null;
-  _mongoClientSettled?: boolean;
 };
 
 function createConnection(): Promise<MongoClient> {
-  const uri = process.env.MONGODB_URI!;
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    return Promise.reject(new Error("MONGODB_URI environment variable is not set"));
+  }
   const client = new MongoClient(uri, options);
   const promise = client.connect();
 
-  promise.then(
-    () => {
-      if (process.env.NODE_ENV === "development") {
-        globalWithMongo._mongoClientSettled = true;
-      } else {
-        clientPromiseSettled = true;
-      }
-    },
-    () => {
-      // Reset cache on failure so next request retries
-      if (process.env.NODE_ENV === "development") {
-        globalWithMongo._mongoClientPromise = null;
-        globalWithMongo._mongoClientSettled = false;
-      } else {
-        clientPromise = null;
-        clientPromiseSettled = false;
-      }
-    },
-  );
+  promise.catch(() => {
+    // Reset cache on failure so next request retries
+    if (process.env.NODE_ENV === "development") {
+      globalWithMongo._mongoClientPromise = null;
+    } else {
+      clientPromise = null;
+    }
+  });
 
   return promise;
 }

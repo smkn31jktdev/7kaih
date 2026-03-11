@@ -43,8 +43,10 @@ export default function RoomChat() {
         }
         return prev;
       });
-    } catch {
-      console.error("Gagal memuat data aduan");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Gagal memuat data aduan";
+      console.error("Gagal memuat data aduan:", msg);
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }
@@ -84,8 +86,9 @@ export default function RoomChat() {
           setActiveAduan(result.aduan as Aduan);
         }
       }
-    } catch {
-      setErrorMsg("Gagal mengirim aduan. Silakan coba lagi.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Gagal mengirim aduan";
+      setErrorMsg(msg);
     } finally {
       setSending(false);
     }
