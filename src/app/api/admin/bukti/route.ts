@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/app/utils/jwt";
 import { buktiCollection } from "@/app/lib/db";
-import db from "@/app/lib/db";
+import getDb from "@/app/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +18,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    await db.createCollection("bukti").catch(() => {});
+    await getDb()
+      .createCollection("bukti")
+      .catch(() => {});
 
     // Ambil semua bukti, diurutkan berdasarkan createdAt descending
     const buktiList = await buktiCollection
@@ -31,7 +33,7 @@ export async function GET(request: NextRequest) {
     console.error("Bukti fetch error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

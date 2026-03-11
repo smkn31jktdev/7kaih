@@ -200,8 +200,8 @@ export default function BerandaSection() {
     return "Lainnya";
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _groupStudentsByJurusan = (studentsList: StudentAttendance[]) => {
-    void _groupStudentsByJurusan;
     const grouped: Record<string, string[]> = {};
     const jurusans = [
       "Akuntansi",

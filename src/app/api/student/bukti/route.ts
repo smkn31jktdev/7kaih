@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/app/utils/jwt";
 import { buktiCollection, studentCollection } from "@/app/lib/db";
-import db from "@/app/lib/db";
+import getDb from "@/app/lib/db";
 import { Bukti } from "@/app/types/bukti";
 import { randomUUID } from "crypto";
 
@@ -70,12 +70,12 @@ export async function POST(request: NextRequest) {
     // Cek apakah collection bukti sudah ada dengan konfigurasi yang benar
     // Jika belum, drop dan recreate dengan indexing yang benar
     try {
-      const collections = await db.listCollections();
+      const collections = await getDb().listCollections();
       const buktiExists = collections.some((c) => c.name === "bukti");
 
       if (!buktiExists) {
         // Buat collection baru dengan indexing yang benar
-        await db.createCollection("bukti", {
+        await getDb().createCollection("bukti", {
           indexing: {
             deny: ["imageData"], // Jangan index field imageData agar bisa menyimpan data besar
           },
@@ -153,14 +153,14 @@ export async function POST(request: NextRequest) {
 
         // Drop collection lama
         try {
-          await db.dropCollection("bukti");
+          await getDb().dropCollection("bukti");
           console.log("Collection bukti dropped successfully");
         } catch (dropErr) {
           console.log("Drop collection error (might not exist):", dropErr);
         }
 
         // Recreate collection dengan indexing yang benar
-        await db.createCollection("bukti", {
+        await getDb().createCollection("bukti", {
           indexing: {
             deny: ["imageData"], // Field imageData tidak diindex, bisa menyimpan data besar
           },
@@ -211,7 +211,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Bulan harus diisi" }, { status: 400 });
     }
 
-    await db.createCollection("bukti").catch(() => {});
+    await getDb()
+      .createCollection("bukti")
+      .catch(() => {});
 
     const bukti = await buktiCollection.findOne({
       nisn: payload.nisn,

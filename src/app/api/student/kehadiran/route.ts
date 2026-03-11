@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/app/utils/jwt";
 import { studentCollection, kehadiranCollection } from "@/app/lib/db";
-import db from "@/app/lib/db";
+import getDb from "@/app/lib/db";
 
 // Helper: Check if a date string (YYYY-MM-DD) falls on Saturday (6) or Sunday (0)
 function isWeekend(dateStr: string): boolean {
@@ -68,7 +68,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Ensure collection exists
-    await db.createCollection("kehadiran").catch(() => {});
+    await getDb()
+      .createCollection("kehadiran")
+      .catch(() => {});
 
     // Build precise timestamp with jam:menit:detik
     const now = new Date();
@@ -158,7 +160,9 @@ export async function GET(request: NextRequest) {
     const bulan = searchParams.get("bulan"); // Format: YYYY-MM (for monthly summary)
 
     // Ensure collection exists
-    await db.createCollection("kehadiran").catch(() => {});
+    await getDb()
+      .createCollection("kehadiran")
+      .catch(() => {});
 
     if (tanggal) {
       // Get single day kehadiran

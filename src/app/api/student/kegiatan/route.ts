@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/app/utils/jwt";
 import { kegiatanCollection, studentCollection } from "@/app/lib/db";
-import db from "@/app/lib/db";
+import getDb from "@/app/lib/db";
 import { Kebiasaan } from "@/app/types/kebiasaan";
 
 export async function POST(request: NextRequest) {
@@ -32,11 +32,13 @@ export async function POST(request: NextRequest) {
     if (!data.tanggal) {
       return NextResponse.json(
         { error: "Tanggal harus diisi" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    await db.createCollection("kebiasaan_hebat").catch(() => {});
+    await getDb()
+      .createCollection("kebiasaan_hebat")
+      .catch(() => {});
 
     const existingData = await kegiatanCollection.findOne({
       nisn: payload.nisn,
@@ -86,7 +88,7 @@ export async function POST(request: NextRequest) {
         { nisn: payload.nisn, tanggal: data.tanggal },
         {
           $set: updateData,
-        }
+        },
       );
 
       return NextResponse.json({
@@ -109,7 +111,7 @@ export async function POST(request: NextRequest) {
     console.error("Kegiatan save error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -136,11 +138,13 @@ export async function GET(request: NextRequest) {
     if (!tanggal) {
       return NextResponse.json(
         { error: "Tanggal harus diisi" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    await db.createCollection("kebiasaan_hebat").catch(() => {});
+    await getDb()
+      .createCollection("kebiasaan_hebat")
+      .catch(() => {});
 
     const kegiatan = await kegiatanCollection.findOne({
       nisn: payload.nisn,
@@ -152,7 +156,7 @@ export async function GET(request: NextRequest) {
     console.error("Kegiatan fetch error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

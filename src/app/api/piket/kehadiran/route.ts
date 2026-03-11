@@ -2,21 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { studentCollection, kehadiranCollection } from "@/app/lib/db";
 import { verifyToken } from "@/app/utils/jwt";
 
-// Helper: Check if a date falls on Saturday or Sunday
 function isWeekend(dateStr: string): boolean {
   const date = new Date(dateStr + "T00:00:00");
   const day = date.getDay();
   return day === 0 || day === 6;
 }
 
-// Helper: Get day name in Indonesian
 function getHariName(dateStr: string): string {
   const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
   const date = new Date(dateStr + "T00:00:00");
   return days[date.getDay()];
 }
 
-// Verify piket auth - returns token payload or throws
 function verifyPiketAuth(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -30,10 +27,6 @@ function verifyPiketAuth(request: NextRequest) {
   return payload;
 }
 
-// GET: Fetch all students' kehadiran for a given date
-// Query params:
-//   tanggal - date (YYYY-MM-DD)
-//   kelas   - filter by class (optional)
 export async function GET(request: NextRequest) {
   try {
     const payload = verifyPiketAuth(request);
@@ -52,12 +45,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch students (optionally filtered by class)
     const studentQuery: Record<string, unknown> = {};
     if (kelas) studentQuery.kelas = kelas;
     const students = await studentCollection.find(studentQuery).toArray();
 
-    // Fetch all attendance records for the given date
     const kehadiranFilter: Record<string, unknown> = { tanggal };
     if (kelas) kehadiranFilter.kelas = kelas;
     const kehadiranRecords = await kehadiranCollection
@@ -70,7 +61,6 @@ export async function GET(request: NextRequest) {
       kehadiranMap.set(record.nisn as string, record);
     }
 
-    // Combine student data with their attendance status
     const result = students.map((student) => {
       const kehadiran = kehadiranMap.get(student.nisn as string);
       return {
@@ -86,7 +76,6 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Sort by kelas then nama
     result.sort((a, b) => {
       const kelasCompare = (a.kelas as string).localeCompare(b.kelas as string);
       return kelasCompare !== 0
@@ -94,7 +83,6 @@ export async function GET(request: NextRequest) {
         : (a.nama as string).localeCompare(b.nama as string);
     });
 
-    // Summary counts
     const summary = {
       total: result.length,
       hadir: result.filter((r) => r.status === "hadir").length,
@@ -112,8 +100,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PUT: Piket manually update a student's kehadiran
-// Body: { nisn, tanggal, status, alasanTidakHadir? }
 export async function PUT(request: NextRequest) {
   try {
     const piketPayload = verifyPiketAuth(request);
@@ -212,8 +198,6 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// POST: Piket bulk update kehadiran (mark multiple students at once)
-// Body: { tanggal, siswa: [{ nisn, status, alasanTidakHadir? }] }
 export async function POST(request: NextRequest) {
   try {
     const piketPayload = verifyPiketAuth(request);
@@ -245,7 +229,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Limit bulk operations
     if (siswa.length > 100) {
       return NextResponse.json(
         { error: "Maksimal 100 siswa per batch" },
