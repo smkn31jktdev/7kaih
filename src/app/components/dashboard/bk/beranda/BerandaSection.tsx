@@ -78,7 +78,7 @@ export default function BKBerandaSection() {
           <div className="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-10">
             <div className="mb-8 md:mb-10 text-center md:text-left">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-2">
-                Beranda Guru BK / Piket
+                Beranda Guru BK
               </h1>
               <p className="text-gray-500 text-sm md:text-base max-w-2xl mx-auto md:mx-0">
                 Selamat datang di halaman bimbingan dan konseling. Anda bisa
