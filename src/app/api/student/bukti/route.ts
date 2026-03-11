@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     if (!fotoFile || !linkYouTube) {
       return NextResponse.json(
         { error: "Foto dan link YouTube harus diisi" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "File harus berupa gambar PNG atau JPG" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     if (fotoFile.size > 5 * 1024 * 1024) {
       return NextResponse.json(
         { error: "Ukuran file maksimal 5MB" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     if (!youtubeRegex.test(linkYouTube)) {
       return NextResponse.json(
         { error: "Link YouTube tidak valid" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     const bulan = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
       2,
-      "0"
+      "0",
     )}`;
 
     // Cek apakah sudah ada bukti untuk bulan ini
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     if (existingBukti) {
       return NextResponse.json(
         { error: "Bukti untuk bulan ini sudah dikumpulkan" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
         errorMessage.includes("exceeds maximum allowed")
       ) {
         console.log(
-          "Detected indexing issue, recreating collection with correct indexing..."
+          "Detected indexing issue, recreating collection with correct indexing...",
         );
 
         // Drop collection lama
@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
     console.error("Bukti save error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -223,7 +223,7 @@ export async function GET(request: NextRequest) {
     console.error("Bukti fetch error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
