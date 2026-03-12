@@ -35,7 +35,7 @@ function safeParseDate(raw: unknown): Date | null {
 function monthKeyFromDate(date: Date): { key: string; monthStart: Date } {
   const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
   const key = `${monthStart.getFullYear()}-${String(
-    monthStart.getMonth() + 1
+    monthStart.getMonth() + 1,
   ).padStart(2, "0")}`;
   return { key, monthStart };
 }
@@ -76,24 +76,27 @@ async function authenticateAdmin(request: NextRequest): Promise<AuthResult> {
 async function ensureStudentAccess(
   nisn: string,
   admin: Admin,
-  isSuperAdmin: boolean
+  isSuperAdmin: boolean,
 ): Promise<Student | { error: NextResponse }> {
   const studentDoc = await studentCollection.findOne({ nisn });
   if (!studentDoc) {
     return {
       error: NextResponse.json(
         { error: "Siswa tidak ditemukan" },
-        { status: 404 }
+        { status: 404 },
       ),
     };
   }
 
   const student = studentDoc as unknown as Student;
-  if (!isSuperAdmin && student.walas !== admin.nama) {
+  if (
+    !isSuperAdmin &&
+    student.walas?.toLowerCase() !== admin.nama?.toLowerCase()
+  ) {
     return {
       error: NextResponse.json(
         { error: "Anda tidak memiliki akses ke siswa ini" },
-        { status: 403 }
+        { status: 403 },
       ),
     };
   }
@@ -114,14 +117,14 @@ export async function GET(request: NextRequest) {
     if (!nisnParam || nisnParam.trim().length === 0) {
       return NextResponse.json(
         { error: "Parameter nisn harus diisi" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const studentResult = await ensureStudentAccess(
       nisnParam,
       auth.admin,
-      auth.isSuperAdmin
+      auth.isSuperAdmin,
     );
     if ("error" in studentResult) {
       return studentResult.error;
@@ -173,7 +176,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching months for deletion:", error);
     return NextResponse.json(
       { error: "Gagal mengambil data bulan" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -192,7 +195,7 @@ export async function DELETE(request: NextRequest) {
     if (!nisn || !month) {
       return NextResponse.json(
         { error: "Parameter nisn dan month harus diisi" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -200,14 +203,14 @@ export async function DELETE(request: NextRequest) {
     if (!monthPattern.test(month)) {
       return NextResponse.json(
         { error: "Format bulan tidak valid. Gunakan YYYY-MM" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const studentResult = await ensureStudentAccess(
       nisn,
       auth.admin,
-      auth.isSuperAdmin
+      auth.isSuperAdmin,
     );
     if ("error" in studentResult) {
       return studentResult.error;
@@ -227,7 +230,7 @@ export async function DELETE(request: NextRequest) {
     if (entriesToDelete.length === 0) {
       return NextResponse.json(
         { error: "Data kegiatan tidak ditemukan untuk bulan tersebut" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -238,7 +241,7 @@ export async function DELETE(request: NextRequest) {
     if (idsToDelete.length === 0) {
       return NextResponse.json(
         { error: "Data yang dipilih tidak memiliki identifier yang valid" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -252,7 +255,7 @@ export async function DELETE(request: NextRequest) {
     const monthDate = new Date(
       Number.parseInt(yearString ?? "0", 10),
       Number.parseInt(monthString ?? "1", 10) - 1,
-      1
+      1,
     );
 
     return NextResponse.json({
@@ -265,7 +268,7 @@ export async function DELETE(request: NextRequest) {
     console.error("Error deleting documents:", error);
     return NextResponse.json(
       { error: "Gagal menghapus data kegiatan" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

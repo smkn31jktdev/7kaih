@@ -23,13 +23,14 @@ export async function POST(request: NextRequest) {
         id: admin.id,
         username: admin.nama,
         email: admin.email,
+        fotoProfil: admin.fotoProfil || null,
       },
     });
   } catch (error) {
     console.error("Get admin settings error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -54,17 +55,17 @@ export async function PUT(request: NextRequest) {
       if (!currentPassword) {
         return NextResponse.json(
           { error: "Current password is required to change password" },
-          { status: 400 }
+          { status: 400 },
         );
       }
       const isValidPassword = await bcrypt.compare(
         currentPassword,
-        admin.password
+        admin.password,
       );
       if (!isValidPassword) {
         return NextResponse.json(
           { error: "Current password is incorrect" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -84,7 +85,7 @@ export async function PUT(request: NextRequest) {
       if (existingAdmin) {
         return NextResponse.json(
           { error: "Email already in use" },
-          { status: 400 }
+          { status: 400 },
         );
       }
       updateData.email = newEmail;
@@ -104,7 +105,7 @@ export async function PUT(request: NextRequest) {
     console.error("Update admin settings error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

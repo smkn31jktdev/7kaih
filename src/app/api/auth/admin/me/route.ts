@@ -29,13 +29,14 @@ export async function POST(request: NextRequest) {
         id: admin.id,
         nama: admin.nama,
         email: admin.email,
+        fotoProfil: admin.fotoProfil || null,
       },
     });
   } catch (error) {
     console.error("Me error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

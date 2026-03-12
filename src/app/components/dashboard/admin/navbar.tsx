@@ -15,6 +15,7 @@ export default function AdminNavbar({
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [fotoProfil, setFotoProfil] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
   const toggleProfileDropdown = () => {
@@ -47,6 +48,7 @@ export default function AdminNavbar({
           if (user) {
             setUserName(user.nama);
             setUserEmail(user.email);
+            if (user.fotoProfil) setFotoProfil(user.fotoProfil);
           }
         } catch {}
       })();
@@ -103,8 +105,19 @@ export default function AdminNavbar({
             </p>
             <p className="text-xs text-gray-500">Administrator</p>
           </div>
-          <div className="w-10 h-10 bg-gradient-to-tr from-[var(--secondary)] to-teal-400 rounded-full flex items-center justify-center text-white shadow-sm ring-2 ring-white group-hover:ring-[var(--secondary)]/20 transition-all">
-            <User className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-sm ring-2 ring-white group-hover:ring-[var(--secondary)]/20 transition-all overflow-hidden">
+            {fotoProfil ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={fotoProfil}
+                alt="Profil"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-tr from-[var(--secondary)] to-teal-400 flex items-center justify-center text-white">
+                <User className="w-5 h-5" />
+              </div>
+            )}
           </div>
         </button>
 

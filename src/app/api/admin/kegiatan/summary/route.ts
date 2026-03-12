@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       if (!monthRegex.test(normalized)) {
         return NextResponse.json(
           { error: "Format bulan tidak valid. Gunakan YYYY-MM." },
-          { status: 400 }
+          { status: 400 },
         );
       }
       selectedMonth = normalized;
@@ -67,28 +67,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Admin not found" }, { status: 404 });
     }
 
-    // Get allowed student NISNs based on admin permissions
-    let allowedNisns: string[] = [];
-    if (admin.email === "smkn31jktdev@gmail.com") {
-      // Super admin can see all students
-      const allStudents = await studentCollection.find({}).toArray();
-      allowedNisns = allStudents.map((s) => s.nisn);
-    } else {
-      // Regular admin can only see students where walas matches their nama
-      const allowedStudents = await studentCollection
-        .find({ walas: admin.nama })
-        .toArray();
-      allowedNisns = allowedStudents.map((s) => s.nisn);
-    }
+    // Get allowed students based on admin permissions
+    const allStudents = await studentCollection.find({}).toArray();
+    const allowedStudents =
+      admin.email === "smkn31jktdev@gmail.com"
+        ? allStudents
+        : allStudents.filter(
+            (s: Record<string, unknown>) =>
+              (s.walas as string)?.toLowerCase() === admin.nama?.toLowerCase(),
+          );
+    const allowedNisns = allowedStudents.map(
+      (s: Record<string, unknown>) => s.nisn as string,
+    );
+    const studentMap = new Map(
+      allowedStudents.map((s: Record<string, unknown>) => [
+        s.nisn as string,
+        s,
+      ]),
+    );
 
-    // Fetch all allowed students data
-    const allowedStudents = await studentCollection
-      .find({ nisn: { $in: allowedNisns } })
-      .toArray();
-    const studentMap = new Map(allowedStudents.map((s) => [s.nisn, s]));
-    const documents = await kegiatanCollection
-      .find({ nisn: { $in: allowedNisns } })
-      .toArray();
+    // Batch $in queries to avoid Astra DB's 100-value limit
+    const BATCH_SIZE = 100;
+    const documents: Record<string, unknown>[] = [];
+    for (let i = 0; i < allowedNisns.length; i += BATCH_SIZE) {
+      const batch = allowedNisns.slice(i, i + BATCH_SIZE);
+      const batchDocs = await kegiatanCollection
+        .find({ nisn: { $in: batch } })
+        .toArray();
+      documents.push(...batchDocs);
+    }
 
     const aggregates = new Map<string, StudentAggregate>();
     const latestMonthByStudent = new Map<string, string>();
@@ -118,9 +125,9 @@ export async function GET(request: NextRequest) {
         aggregates.set(aggregateKey, {
           student: {
             nisn: kebiasaan.nisn,
-            nama: studentData.nama,
-            kelas: studentData.kelas,
-            walas: studentData.walas,
+            nama: (studentData.nama as string) || "",
+            kelas: (studentData.kelas as string) || "",
+            walas: (studentData.walas as string) || "",
             monthLabel,
             monthKey,
             indicators: [],
@@ -142,12 +149,12 @@ export async function GET(request: NextRequest) {
 
     const relevantAggregates = selectedMonth
       ? aggregateValues.filter(
-          (item) => item.student.monthKey === selectedMonth
+          (item) => item.student.monthKey === selectedMonth,
         )
       : aggregateValues.filter(
           (item) =>
             item.student.monthKey ===
-            latestMonthByStudent.get(item.student.nisn)
+            latestMonthByStudent.get(item.student.nisn),
         );
 
     const result: StudentSummary[] = relevantAggregates.map(
@@ -158,7 +165,7 @@ export async function GET(request: NextRequest) {
           ...student,
           indicators,
         };
-      }
+      },
     );
 
     result.sort((a, b) => a.nama.localeCompare(b.nama, "id-ID"));
@@ -179,7 +186,7 @@ export async function GET(request: NextRequest) {
     }
 
     const sortedMonths = Array.from(monthSet.entries()).sort((a, b) =>
-      b[0].localeCompare(a[0])
+      b[0].localeCompare(a[0]),
     );
 
     const responsePayload = {
@@ -197,7 +204,7 @@ export async function GET(request: NextRequest) {
     console.error("Error generating summary:", error);
     return NextResponse.json(
       { error: "Failed to generate summary" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

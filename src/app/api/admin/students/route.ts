@@ -25,19 +25,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Get students based on admin permissions
-    let studentsQuery = {};
-    // Super admin check
-    if (admin.email !== "smkn31jktdev@gmail.com") {
-      studentsQuery = {
-        walas: {
-          $regex: `^${admin.nama.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
-          $options: "i",
-        },
-      };
-    }
-    // If super admin, get all students (empty query)
-
-    const students = await studentCollection.find(studentsQuery).toArray();
+    const allStudents = await studentCollection.find({}).toArray();
+    const students =
+      admin.email === "smkn31jktdev@gmail.com"
+        ? allStudents
+        : allStudents.filter(
+            (s) =>
+              (s.walas as string)?.toLowerCase() === admin.nama?.toLowerCase(),
+          );
 
     // Transform data to include only necessary fields
     const studentList = students.map((student) => ({

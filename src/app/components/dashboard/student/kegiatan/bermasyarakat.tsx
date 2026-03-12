@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Users, Check } from "lucide-react";
 import Select from "@/app/components/Select";
 import { TimePicker } from "@/app/components/TimePicker";
@@ -67,24 +68,77 @@ export default function BermasyarakatSection({
   onChange,
   onSave,
 }: BermasyarakatSectionProps) {
+  // Check if current description is a custom one
+  const isCustom =
+    data.deskripsi !== "" &&
+    !BERMASYARAKAT_OPTIONS.some((opt) => opt.value === data.deskripsi);
+
+  const [showLainnya, setShowLainnya] = useState(
+    isCustom || data.deskripsi === "Lainnya",
+  );
+
+  // Sync state if form data changes externally
+  useEffect(() => {
+    const custom =
+      data.deskripsi !== "" &&
+      !BERMASYARAKAT_OPTIONS.some((opt) => opt.value === data.deskripsi);
+
+    // Only force showLainnya if the incoming data is definitely custom
+    if (custom) {
+      setShowLainnya(true);
+    } else if (data.deskripsi !== "Lainnya" && data.deskripsi !== "") {
+      // If it's a predefined option, hide the custom input
+      setShowLainnya(false);
+    }
+  }, [data.deskripsi]);
+
   return (
     <SectionCard title="Bermasyarakat" icon={Users}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-            Jenis Kegiatan
-          </label>
-          <Select
-            value={data.deskripsi}
-            onChange={(val) =>
-              onChange({
-                ...data,
-                deskripsi: val,
-              })
-            }
-            options={BERMASYARAKAT_OPTIONS}
-            placeholder="Pilih kegiatan sosial..."
-          />
+        <div className="lg:col-span-1 flex flex-col gap-3">
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+              Jenis Kegiatan
+            </label>
+            <Select
+              value={
+                showLainnya &&
+                data.deskripsi !== "" &&
+                !BERMASYARAKAT_OPTIONS.some((o) => o.value === data.deskripsi)
+                  ? "Lainnya"
+                  : data.deskripsi
+              }
+              onChange={(val) => {
+                if (val === "Lainnya") {
+                  setShowLainnya(true);
+                  // Keep it as "Lainnya" initially until they type
+                  onChange({ ...data, deskripsi: "Lainnya" });
+                } else {
+                  setShowLainnya(false);
+                  onChange({ ...data, deskripsi: val });
+                }
+              }}
+              options={BERMASYARAKAT_OPTIONS}
+              placeholder="Pilih kegiatan sosial..."
+            />
+          </div>
+          {showLainnya && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+              <input
+                type="text"
+                value={data.deskripsi === "Lainnya" ? "" : data.deskripsi}
+                onChange={(e) =>
+                  onChange({
+                    ...data,
+                    deskripsi: e.target.value,
+                  })
+                }
+                placeholder="Tuliskan kegiatan sosial..."
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
+                autoFocus
+              />
+            </div>
+          )}
         </div>
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
@@ -116,6 +170,7 @@ export default function BermasyarakatSection({
               })
             }
             placeholder="00:00"
+            disabled={false}
           />
         </div>
       </div>

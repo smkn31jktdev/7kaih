@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     const adminRole =
       admin.email === SUPER_ADMIN_EMAIL
         ? "super_admin"
-        : admin.nama === aduan.walas
+        : admin.nama?.toLowerCase() === aduan.walas?.toLowerCase()
           ? "guru_wali"
           : "guru_bk";
 

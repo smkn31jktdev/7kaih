@@ -136,7 +136,9 @@ export async function GET(request: NextRequest) {
       adminData.email === "smkn31jktdev@gmail.com"
         ? allStudents.map((s) => s.nisn)
         : allStudents
-            .filter((s) => s.walas === adminData.nama)
+            .filter(
+              (s) => s.walas?.toLowerCase() === adminData.nama?.toLowerCase(),
+            )
             .map((s) => s.nisn);
 
     const documents = await kegiatanCollection

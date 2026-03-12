@@ -7,8 +7,9 @@ export const BELAJAR_DESKRIPSI_MAP: Record<string, string> = {
 
 export const BELAJAR_OPTIONS = [
   { value: "", label: "Pilih jenis kegiatan belajar..." },
-  ...Object.entries(BELAJAR_DESKRIPSI_MAP).map(([key, description]) => ({
-    value: key,
+  ...Object.values(BELAJAR_DESKRIPSI_MAP).map((description) => ({
+    value: description,
     label: description,
   })),
+  { value: "Lainnya", label: "Lainnya (Tuliskan sendiri)" },
 ];

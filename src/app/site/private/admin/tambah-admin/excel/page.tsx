@@ -14,7 +14,7 @@ function ExcelImportAdminForm() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const sheetUrl =
-    "https://docs.google.com/spreadsheets/d/1NgHOR1NWzE9KCfzmSZwwnJ7gcz-G8V0R1PrIfS-Nql0/edit?usp=sharing";
+    "https://docs.google.com/spreadsheets/d/1OfHPGfNhbsj_nvenWOj7ay8pp9XHl22VXs2KQ7i14dg/edit?usp=sharing";
 
   interface AdminRow {
     nama: string;

@@ -3,6 +3,7 @@ export interface Admin {
   nama: string;
   email: string;
   password: string; // hashed
+  fotoProfil?: string; // URL path ke foto profil, e.g. "/uploads/profil/admin_xxx.jpg"
   createdAt: Date;
   updatedAt: Date;
 }

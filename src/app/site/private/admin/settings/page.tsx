@@ -12,6 +12,8 @@ import {
   Loader2,
   Save,
   X,
+  Camera,
+  Trash2,
 } from "lucide-react";
 
 export default function AdminSettingsPage() {
@@ -27,6 +29,8 @@ export default function AdminSettingsPage() {
     type: "success" | "error";
     text: string;
   }>(null);
+  const [fotoProfil, setFotoProfil] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // Sidebar state for desktop collapse and mobile open
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -69,6 +73,9 @@ export default function AdminSettingsPage() {
           setName(user.username || "");
           setEmail(user.email || "");
           setOriginalEmail(user.email || "");
+          if (user.fotoProfil) {
+            setFotoProfil(user.fotoProfil);
+          }
         } else {
           const errorData = await response.json();
           setMessage({
@@ -86,6 +93,82 @@ export default function AdminSettingsPage() {
 
     loadAdminData();
   }, []);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setMessage({
+        type: "error",
+        text: "File harus berupa gambar JPG, PNG, atau WebP",
+      });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setMessage({ type: "error", text: "Ukuran file maksimal 2MB" });
+      return;
+    }
+
+    try {
+      setUploadingPhoto(true);
+      setMessage(null);
+      const token = localStorage.getItem("adminToken");
+      const formData = new FormData();
+      formData.append("foto", file);
+
+      const res = await fetch("/api/admin/profile-photo", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Gagal mengunggah foto");
+
+      setFotoProfil(data.fotoProfil);
+      setMessage({
+        type: "success",
+        text: data.message || "Foto profil berhasil diperbarui",
+      });
+    } catch (err: unknown) {
+      setMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Gagal mengunggah foto",
+      });
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = "";
+    }
+  };
+
+  const handlePhotoDelete = async () => {
+    try {
+      setUploadingPhoto(true);
+      setMessage(null);
+      const token = localStorage.getItem("adminToken");
+
+      const res = await fetch("/api/admin/profile-photo", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Gagal menghapus foto");
+
+      setFotoProfil(null);
+      setMessage({
+        type: "success",
+        text: data.message || "Foto profil berhasil dihapus",
+      });
+    } catch (err: unknown) {
+      setMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Gagal menghapus foto",
+      });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const validate = () => {
     if (!name.trim()) return "Nama diperlukan";
@@ -201,18 +284,60 @@ export default function AdminSettingsPage() {
               <div className="w-full">
                 {/* Profile Summary Card */}
                 <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 mb-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                  <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-4xl font-bold text-[var(--secondary)] border-4 border-white shadow-sm ring-1 ring-gray-100">
-                    {name ? name.charAt(0).toUpperCase() : "A"}
+                  <div className="relative group">
+                    {fotoProfil ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={fotoProfil}
+                        alt="Foto Profil"
+                        className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-sm ring-1 ring-gray-100"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center text-4xl font-bold text-[var(--secondary)] border-4 border-white shadow-sm ring-1 ring-gray-100">
+                        {name ? name.charAt(0).toUpperCase() : "A"}
+                      </div>
+                    )}
+                    <label
+                      className={`absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer ${
+                        uploadingPhoto ? "opacity-100" : ""
+                      }`}
+                    >
+                      {uploadingPhoto ? (
+                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                      ) : (
+                        <Camera className="w-6 h-6 text-white" />
+                      )}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={handlePhotoUpload}
+                        disabled={uploadingPhoto}
+                      />
+                    </label>
                   </div>
                   <div className="text-center sm:text-left flex-1">
                     <h2 className="text-xl font-bold text-gray-900">
                       {name || "Administrator"}
                     </h2>
                     <p className="text-gray-500 text-sm mb-3">{email}</p>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-100">
-                      <CheckCircle className="w-3 h-3" />
-                      Akun Terverifikasi
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-100">
+                        <CheckCircle className="w-3 h-3" />
+                        Akun Terverifikasi
+                      </span>
+                      {fotoProfil && (
+                        <button
+                          type="button"
+                          onClick={handlePhotoDelete}
+                          disabled={uploadingPhoto}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-red-600 text-xs font-semibold border border-red-100 hover:bg-red-100 transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          Hapus Foto
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 

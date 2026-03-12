@@ -36,19 +36,16 @@ export async function resolveAdminStudents(request: NextRequest): Promise<{
     throw new HttpError(404, "Admin tidak ditemukan");
   }
 
-  const query =
-    admin.email === "smkn31jktdev@gmail.com"
-      ? {}
-      : {
-          walas: {
-            $regex: `^${admin.nama.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
-            $options: "i",
-          },
-        };
-
-  const students = (await studentCollection
-    .find(query)
+  const allStudents = (await studentCollection
+    .find({})
     .toArray()) as unknown as Student[];
+
+  const students =
+    admin.email === "smkn31jktdev@gmail.com"
+      ? allStudents
+      : allStudents.filter(
+          (s) => s.walas?.toLowerCase() === admin.nama?.toLowerCase(),
+        );
 
   return { admin, students };
 }

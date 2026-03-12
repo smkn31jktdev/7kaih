@@ -11,8 +11,9 @@ export const BERMASYARAKAT_DESKRIPSI_MAP: Record<string, string> = {
 
 export const BERMASYARAKAT_OPTIONS = [
   { value: "", label: "Pilih jenis kegiatan bermasyarakat..." },
-  ...Object.entries(BERMASYARAKAT_DESKRIPSI_MAP).map(([key, description]) => ({
-    value: key,
+  ...Object.values(BERMASYARAKAT_DESKRIPSI_MAP).map((description) => ({
+    value: description,
     label: description,
   })),
+  { value: "Lainnya", label: "Lainnya (Tuliskan sendiri)" },
 ];

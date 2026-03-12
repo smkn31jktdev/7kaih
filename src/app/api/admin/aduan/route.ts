@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/app/utils/jwt";
-import { adminCollection } from "@/app/lib/db";
+import { adminCollection, studentCollection } from "@/app/lib/db";
 import clientPromise from "@/app/lib/mongodb";
 import { Admin } from "@/app/types/admin";
 
@@ -11,7 +11,8 @@ function getAdminRole(
   aduanWalas?: string,
 ): "super_admin" | "guru_wali" | "guru_bk" {
   if (admin.email === SUPER_ADMIN_EMAIL) return "super_admin";
-  if (aduanWalas && admin.nama === aduanWalas) return "guru_wali";
+  if (aduanWalas && admin.nama?.toLowerCase() === aduanWalas?.toLowerCase())
+    return "guru_wali";
   return "guru_bk";
 }
 
@@ -40,13 +41,30 @@ export async function GET(request: NextRequest) {
     const collection = db.collection("aduan_siswa");
 
     let query: Record<string, unknown> = {};
+    let isGuruWali = false;
 
     if (admin.email === SUPER_ADMIN_EMAIL) {
       // Super admin hanya melihat aduan yang sudah diteruskan oleh guru wali ke super admin
       query = { diteruskanKe: "super_admin" };
     } else {
-      // Guru wali melihat aduan siswa bimbingannya
-      query = { walas: admin.nama };
+      // Check if this admin is a wali kelas (has students assigned)
+      const matchingStudent = await studentCollection.findOne({
+        walas: admin.nama,
+      });
+      isGuruWali = !!matchingStudent;
+
+      if (isGuruWali) {
+        // Guru wali melihat aduan siswa bimbingannya (MongoDB supports $regex)
+        query = {
+          walas: {
+            $regex: `^${admin.nama.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+            $options: "i",
+          },
+        };
+      } else {
+        // Guru BK melihat aduan yang sudah diteruskan ke BK
+        query = { diteruskanKe: "guru_bk" };
+      }
     }
 
     const aduan = await collection
@@ -58,6 +76,7 @@ export async function GET(request: NextRequest) {
       aduan,
       adminNama: admin.nama,
       isSuperAdmin: admin.email === SUPER_ADMIN_EMAIL,
+      isGuruWali,
     });
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);

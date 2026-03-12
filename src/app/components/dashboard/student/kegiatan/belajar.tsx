@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { BookOpen } from "lucide-react";
 import Select from "@/app/components/Select";
 import { BELAJAR_OPTIONS } from "../const/belajar";
@@ -64,6 +65,28 @@ export default function BelajarSection({
   onChange,
   onSave,
 }: BelajarSectionProps) {
+  // Check if current description is a custom one
+  const isCustom =
+    data.deskripsi !== "" &&
+    !BELAJAR_OPTIONS.some((opt) => opt.value === data.deskripsi);
+
+  const [showLainnya, setShowLainnya] = useState(
+    isCustom || data.deskripsi === "Lainnya",
+  );
+
+  // Sync state if form data changes externally
+  useEffect(() => {
+    const custom =
+      data.deskripsi !== "" &&
+      !BELAJAR_OPTIONS.some((opt) => opt.value === data.deskripsi);
+
+    if (custom) {
+      setShowLainnya(true);
+    } else if (data.deskripsi !== "Lainnya" && data.deskripsi !== "") {
+      setShowLainnya(false);
+    }
+  }, [data.deskripsi]);
+
   return (
     <SectionCard title="Belajar Mandiri" icon={BookOpen} className="h-full">
       <div className="space-y-6 flex-1">
@@ -108,21 +131,50 @@ export default function BelajarSection({
         </div>
 
         {data.yaAtauTidak && (
-          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-              Materi
-            </label>
-            <Select
-              value={data.deskripsi}
-              onChange={(val) =>
-                onChange({
-                  ...data,
-                  deskripsi: val,
-                })
-              }
-              options={BELAJAR_OPTIONS}
-              placeholder="Topik belajar..."
-            />
+          <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                Materi
+              </label>
+              <Select
+                value={
+                  showLainnya &&
+                  data.deskripsi !== "" &&
+                  !BELAJAR_OPTIONS.some((o) => o.value === data.deskripsi)
+                    ? "Lainnya"
+                    : data.deskripsi
+                }
+                onChange={(val) => {
+                  if (val === "Lainnya") {
+                    setShowLainnya(true);
+                    onChange({ ...data, deskripsi: "Lainnya" });
+                  } else {
+                    setShowLainnya(false);
+                    onChange({ ...data, deskripsi: val });
+                  }
+                }}
+                options={BELAJAR_OPTIONS}
+                placeholder="Topik belajar..."
+              />
+            </div>
+
+            {showLainnya && (
+              <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                <input
+                  type="text"
+                  value={data.deskripsi === "Lainnya" ? "" : data.deskripsi}
+                  onChange={(e) =>
+                    onChange({
+                      ...data,
+                      deskripsi: e.target.value,
+                    })
+                  }
+                  placeholder="Tuliskan materi belajar..."
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--secondary)] focus:ring-4 focus:ring-[var(--secondary)]/10 transition-all outline-none text-sm"
+                  autoFocus
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

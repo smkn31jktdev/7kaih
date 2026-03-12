@@ -116,19 +116,24 @@ export default function BKRoomChat() {
 
   const getMyRole = (aduan: Aduan): string => {
     if (isSuperAdmin) return "Super Admin";
-    if (aduan.walas === adminNama) return "Guru Wali";
+    if (aduan.walas?.toLowerCase() === adminNama?.toLowerCase())
+      return "Guru Wali";
     return "Guru BK";
   };
 
-  const isGuruWali = (aduan: Aduan) => aduan.walas === adminNama;
+  const isGuruWali = (aduan: Aduan) =>
+    aduan.walas?.toLowerCase() === adminNama?.toLowerCase();
 
   const myRole = activeAduan ? getMyRole(activeAduan) : "";
   const canForward = activeAduan
     ? isGuruWali(activeAduan) && activeAduan.status === "pending"
     : false;
   const canTindaklanjuti = activeAduan
-    ? (isSuperAdmin || !isGuruWali(activeAduan)) &&
-      (activeAduan.status === "diteruskan" || activeAduan.status === "pending")
+    ? activeAduan.status !== "selesai" &&
+      activeAduan.status !== "ditindaklanjuti" &&
+      (isSuperAdmin ||
+        activeAduan.status === "diteruskan" ||
+        (isGuruWali(activeAduan) && activeAduan.status === "pending"))
     : false;
   const canSelesai = activeAduan
     ? activeAduan.status === "ditindaklanjuti" ||
