@@ -82,6 +82,10 @@ const menuItems = [
     submenu: [
       { label: "Tambahkan Admin", href: "/site/private/admin/tambah-admin" },
       {
+        label: "Sheets Tambah Admin",
+        href: "/site/private/admin/tambah-admin/excel",
+      },
+      {
         label: "Tambahkan Siswa",
         href: "/site/private/admin/tambah-siswa",
       },
@@ -92,6 +96,10 @@ const menuItems = [
       {
         label: "Edit Siswa",
         href: "/site/private/admin/edit-siswa",
+      },
+      {
+        label: "Edit Admin",
+        href: "/site/private/admin/edit-admin",
       },
     ],
   },
@@ -309,8 +317,13 @@ export default function AdminSidebar({
 
             {item.submenu
               .filter((subItem) => {
+                const superAdminOnlyPaths = [
+                  "/site/private/admin/tambah-admin",
+                  "/site/private/admin/tambah-admin/excel",
+                  "/site/private/admin/edit-admin",
+                ];
                 if (
-                  subItem.href === "/site/private/admin/tambah-admin" &&
+                  superAdminOnlyPaths.includes(subItem.href) &&
                   !isSuperAdmin
                 ) {
                   return false;

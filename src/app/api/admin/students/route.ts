@@ -28,7 +28,12 @@ export async function GET(request: NextRequest) {
     let studentsQuery = {};
     // Super admin check
     if (admin.email !== "smkn31jktdev@gmail.com") {
-      studentsQuery = { walas: admin.nama };
+      studentsQuery = {
+        walas: {
+          $regex: `^${admin.nama.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+          $options: "i",
+        },
+      };
     }
     // If super admin, get all students (empty query)
 
@@ -54,7 +59,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching students:", error);
     return NextResponse.json(
       { error: "Gagal mengambil data siswa" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -37,7 +37,14 @@ export async function resolveAdminStudents(request: NextRequest): Promise<{
   }
 
   const query =
-    admin.email === "smkn31jktdev@gmail.com" ? {} : { walas: admin.nama };
+    admin.email === "smkn31jktdev@gmail.com"
+      ? {}
+      : {
+          walas: {
+            $regex: `^${admin.nama.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+            $options: "i",
+          },
+        };
 
   const students = (await studentCollection
     .find(query)

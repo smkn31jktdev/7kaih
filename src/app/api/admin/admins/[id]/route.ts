@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
-import { adminCollection, studentCollection } from "@/app/lib/db";
+import { adminCollection } from "@/app/lib/db";
 import { verifyToken } from "@/app/utils/jwt";
 import { Admin } from "@/app/types/admin";
-import { Student } from "@/app/types/student";
 
-interface UpdateStudentBody {
-  nisn: string;
+interface UpdateAdminBody {
   nama: string;
-  kelas: string;
-  walas: string;
+  email: string;
   password?: string;
 }
 
@@ -18,8 +15,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id: studentId } = await params;
-    if (!studentId) {
+    const { id: adminId } = await params;
+    if (!adminId) {
       return NextResponse.json({ error: "ID tidak valid" }, { status: 400 });
     }
 
@@ -30,69 +27,61 @@ export async function PUT(
 
     const token = authHeader.substring(7);
     const payload = verifyToken(token);
-    if (!payload) {
+    if (!payload || payload.role !== "admin") {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const admin = (await adminCollection.findOne({
+    const currentAdmin = (await adminCollection.findOne({
       id: payload.id,
     })) as Admin | null;
 
-    if (!admin) {
+    if (!currentAdmin) {
       return NextResponse.json({ error: "Admin tidak ada" }, { status: 404 });
     }
 
-    const body = (await request.json()) as UpdateStudentBody;
-    const { nisn, nama, kelas, walas, password } = body;
+    if (currentAdmin.email !== "smkn31jktdev@gmail.com") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-    if (!nisn || !nama || !kelas || !walas) {
+    const body = (await request.json()) as UpdateAdminBody;
+    const { nama, email, password } = body;
+
+    if (!nama || !email) {
       return NextResponse.json(
-        { error: "Semua field wajib diisi" },
+        { error: "Nama dan email wajib diisi" },
         { status: 400 },
       );
     }
 
-    const existingStudent = (await studentCollection.findOne({
-      id: studentId,
-    })) as Student | null;
+    const existingAdmin = (await adminCollection.findOne({
+      id: adminId,
+    })) as Admin | null;
 
-    if (!existingStudent) {
+    if (!existingAdmin) {
       return NextResponse.json(
-        { error: "Siswa tidak ditemukan" },
+        { error: "Admin tidak ditemukan" },
         { status: 404 },
       );
     }
 
-    const isSuperAdmin = admin.email === "smkn31jktdev@gmail.com";
-    if (
-      !isSuperAdmin &&
-      existingStudent.walas?.toLowerCase() !== admin.nama?.toLowerCase()
-    ) {
-      return NextResponse.json(
-        { error: "Anda tidak memiliki akses untuk mengubah siswa ini" },
-        { status: 403 },
-      );
-    }
-
-    if (nisn !== existingStudent.nisn) {
-      const duplicateNisn = await studentCollection.findOne({
-        nisn,
-        id: { $ne: studentId },
+    // Check duplicate email if changed
+    if (email !== existingAdmin.email) {
+      const duplicateEmail = await adminCollection.findOne({
+        email,
+        id: { $ne: adminId },
       });
 
-      if (duplicateNisn) {
+      if (duplicateEmail) {
         return NextResponse.json(
-          { error: "NISN sudah terdaftar untuk siswa lain" },
+          { error: "Email sudah terdaftar untuk admin lain" },
           { status: 400 },
         );
       }
     }
 
-    const updatePayload: Partial<Student> = {
-      nisn,
+    const updatePayload: Partial<Admin> = {
       nama,
-      kelas,
-      walas,
+      email,
       updatedAt: new Date(),
     };
 
@@ -101,23 +90,18 @@ export async function PUT(
       updatePayload.password = hashedPassword;
     }
 
-    await studentCollection.updateOne(
-      { id: studentId },
-      { $set: updatePayload },
-    );
+    await adminCollection.updateOne({ id: adminId }, { $set: updatePayload });
 
     return NextResponse.json({
-      message: "Siswa berhasil diperbarui",
-      student: {
-        id: existingStudent.id,
-        nisn,
+      message: "Admin berhasil diperbarui",
+      admin: {
+        id: existingAdmin.id,
         nama,
-        kelas,
-        walas,
+        email,
       },
     });
   } catch (error) {
-    console.error("Update siswa error:", error);
+    console.error("Update admin error:", error);
     return NextResponse.json(
       { error: "Terjadi kesalahan pada server" },
       { status: 500 },
@@ -130,8 +114,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id: studentId } = await params;
-    if (!studentId) {
+    const { id: adminId } = await params;
+    if (!adminId) {
       return NextResponse.json({ error: "ID tidak valid" }, { status: 400 });
     }
 
@@ -142,53 +126,54 @@ export async function DELETE(
 
     const token = authHeader.substring(7);
     const payload = verifyToken(token);
-    if (!payload) {
+    if (!payload || payload.role !== "admin") {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const admin = (await adminCollection.findOne({
+    const currentAdmin = (await adminCollection.findOne({
       id: payload.id,
     })) as Admin | null;
 
-    if (!admin) {
+    if (!currentAdmin) {
       return NextResponse.json({ error: "Admin tidak ada" }, { status: 404 });
     }
 
-    const existingStudent = (await studentCollection.findOne({
-      id: studentId,
-    })) as Student | null;
+    if (currentAdmin.email !== "smkn31jktdev@gmail.com") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-    if (!existingStudent) {
+    const existingAdmin = (await adminCollection.findOne({
+      id: adminId,
+    })) as Admin | null;
+
+    if (!existingAdmin) {
       return NextResponse.json(
-        { error: "Siswa tidak ditemukan" },
+        { error: "Admin tidak ditemukan" },
         { status: 404 },
       );
     }
 
-    const isSuperAdmin = admin.email === "smkn31jktdev@gmail.com";
-    if (
-      !isSuperAdmin &&
-      existingStudent.walas?.toLowerCase() !== admin.nama?.toLowerCase()
-    ) {
+    // Prevent deleting super admin
+    if (existingAdmin.email === "smkn31jktdev@gmail.com") {
       return NextResponse.json(
-        { error: "Anda tidak memiliki akses untuk menghapus siswa ini" },
+        { error: "Super admin tidak dapat dihapus" },
         { status: 403 },
       );
     }
 
-    const deleteResult = await studentCollection.deleteOne({ id: studentId });
+    const deleteResult = await adminCollection.deleteOne({ id: adminId });
     if (!deleteResult || deleteResult.deletedCount !== 1) {
       return NextResponse.json(
-        { error: "Gagal menghapus data siswa" },
+        { error: "Gagal menghapus data admin" },
         { status: 500 },
       );
     }
 
     return NextResponse.json({
-      message: "Siswa berhasil dihapus",
+      message: "Admin berhasil dihapus",
     });
   } catch (error) {
-    console.error("Delete siswa error:", error);
+    console.error("Delete admin error:", error);
     return NextResponse.json(
       { error: "Terjadi kesalahan pada server" },
       { status: 500 },
