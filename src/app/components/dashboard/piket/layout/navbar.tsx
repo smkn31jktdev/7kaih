@@ -29,7 +29,6 @@ export default function PiketNavbar({
       setUserName(parsed.nama);
       setUserEmail(parsed.email);
 
-      // fetch fresh user data (using admin roles)
       (async () => {
         try {
           const token = localStorage.getItem("adminToken");
@@ -108,7 +107,6 @@ export default function PiketNavbar({
           </div>
         </button>
 
-        {/* Dropdown Menu */}
         <div
           id="profile-dropdown"
           className={`absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 transform transition-all duration-200 origin-top-right ${
@@ -118,7 +116,6 @@ export default function PiketNavbar({
           }`}
           role="menu"
         >
-          {/* User Info Mobile */}
           <div className="px-5 py-4 bg-gray-50/50 border-b border-gray-100 mb-2">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
               Signed in as
@@ -155,7 +152,6 @@ export default function PiketNavbar({
         </div>
       </div>
 
-      {/* Overlay to close dropdown when clicking outside */}
       {isProfileDropdownOpen && (
         <div
           className="fixed inset-0 z-40"

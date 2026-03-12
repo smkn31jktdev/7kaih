@@ -255,12 +255,12 @@ export function useGeolocation(): GeolocationResult {
         if (dist <= MAX_RADIUS_METERS) {
           setIsInsideSchoolBounds(true);
           setLocationMessage(
-            `✅ Lokasi Valid! Jarak: ${Math.round(dist)}m dari sekolah. (Akurasi: ±${Math.round(position.coords.accuracy)}m)`,
+            `Lokasi Valid! Jarak: ${Math.round(dist)}m dari sekolah. (Akurasi: ±${Math.round(position.coords.accuracy)}m)`,
           );
         } else {
           setIsInsideSchoolBounds(false);
           setLocationMessage(
-            `📍 Anda di luar area sekolah. Jarak: ${Math.round(dist)}m (Akurasi: ±${Math.round(position.coords.accuracy)}m)`,
+            `Anda di luar area sekolah. Jarak: ${Math.round(dist)}m (Akurasi: ±${Math.round(position.coords.accuracy)}m)`,
           );
         }
         setIsLoadingLocation(false);
